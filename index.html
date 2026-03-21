@@ -239,18 +239,17 @@ body.lm .ev-btn{display:inline-block}
     <div class="auth-sub">Grade 3 &middot; 50-Day Reading Practice</div>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchTab('login')">Sign In</button>
-      <button class="auth-tab" onclick="switchTab('signup')">Create Account</button>
+      <button class="auth-tab" onclick="switchTab('signup')">New Account</button>
     </div>
     <div id="tab-login">
-      <div class="auth-field"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com"></div>
-      <div class="auth-field"><label>Password</label><input type="password" id="login-pw" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;"></div>
+      <div class="auth-field"><label>Username</label><input type="text" id="login-user" placeholder="your username" autocomplete="username"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="login-pw" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" autocomplete="current-password"></div>
       <button class="auth-btn" onclick="doLogin()">Sign In</button>
       <div class="auth-msg" id="login-msg"></div>
     </div>
     <div id="tab-signup" style="display:none">
-      <div class="auth-field"><label>Your Name</label><input type="text" id="signup-name" placeholder="e.g. Emma"></div>
-      <div class="auth-field"><label>Email</label><input type="email" id="signup-email" placeholder="you@example.com"></div>
-      <div class="auth-field"><label>Password</label><input type="password" id="signup-pw" placeholder="at least 6 characters"></div>
+      <div class="auth-field"><label>Choose a Username</label><input type="text" id="signup-user" placeholder="e.g. Emma" autocomplete="username"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="signup-pw" placeholder="at least 6 characters" autocomplete="new-password"></div>
       <button class="auth-btn" onclick="doSignup()">Create Account</button>
       <div class="auth-msg" id="signup-msg"></div>
     </div>
@@ -752,27 +751,59 @@ function switchTab(tab){
   document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='signup')));
 }
 
+// Press Enter to submit
+document.addEventListener('keydown', e=>{
+  if(e.key !== 'Enter') return;
+  if(document.getElementById('screen-auth')?.style.display !== 'flex') return;
+  if(document.getElementById('tab-login')?.style.display !== 'none') doLogin();
+  else doSignup();
+});
+
+// Press Enter to submit auth forms
+document.addEventListener('keydown', e=>{
+  if(e.key !== 'Enter') return;
+  const loginVisible  = document.getElementById('tab-login')?.style.display  !== 'none';
+  const signupVisible = document.getElementById('tab-signup')?.style.display !== 'none';
+  const authVisible   = document.getElementById('screen-auth')?.style.display === 'flex';
+  if(!authVisible) return;
+  if(loginVisible)  doLogin();
+  if(signupVisible) doSignup();
+});
+
 async function doLogin(){
-  const email = document.getElementById('login-email').value.trim();
-  const pw    = document.getElementById('login-pw').value;
-  const msg   = document.getElementById('login-msg');
+  const username = document.getElementById('login-user').value.trim().toLowerCase().replace(/\s+/g,'');
+  const pw       = document.getElementById('login-pw').value;
+  const msg      = document.getElementById('login-msg');
+  if(!username){ msg.className='auth-msg err'; msg.textContent='Please enter your username.'; return; }
+  if(!pw){ msg.className='auth-msg err'; msg.textContent='Please enter your password.'; return; }
   msg.textContent='Signing in...'; msg.className='auth-msg';
+  const email = username + '@ela-trainer.app';
   const {error} = await sb.auth.signInWithPassword({email, password:pw});
-  if(error){ msg.className='auth-msg err'; msg.textContent=error.message; }
+  if(error){ msg.className='auth-msg err'; msg.textContent='Username or password is incorrect.'; }
 }
 
 async function doSignup(){
-  const name  = document.getElementById('signup-name').value.trim();
-  const email = document.getElementById('signup-email').value.trim();
-  const pw    = document.getElementById('signup-pw').value;
-  const msg   = document.getElementById('signup-msg');
-  if(!name){ msg.className='auth-msg err'; msg.textContent='Please enter your name.'; return; }
+  const username = document.getElementById('signup-user').value.trim().toLowerCase().replace(/\s+/g,'');
+  const pw       = document.getElementById('signup-pw').value;
+  const msg      = document.getElementById('signup-msg');
+  if(!username){ msg.className='auth-msg err'; msg.textContent='Please choose a username.'; return; }
+  if(username.length < 2){ msg.className='auth-msg err'; msg.textContent='Username must be at least 2 characters.'; return; }
+  if(pw.length < 6){ msg.className='auth-msg err'; msg.textContent='Password must be at least 6 characters.'; return; }
   msg.textContent='Creating account...'; msg.className='auth-msg';
-  const {data, error} = await sb.auth.signUp({email, password:pw, options:{data:{display_name:name}}});
-  if(error){ msg.className='auth-msg err'; msg.textContent=error.message; return; }
-  // Update display name
-  await sb.from('profiles').update({display_name:name}).eq('id',data.user.id);
-  msg.className='auth-msg ok'; msg.textContent='Account created! Signing you in...';
+  const email = username + '@ela-trainer.app';
+  const {data, error} = await sb.auth.signUp({
+    email, password: pw,
+    options: { data: { display_name: username }, emailRedirectTo: null }
+  });
+  if(error){ 
+    msg.className='auth-msg err'; 
+    msg.textContent = error.message.includes('already registered') ? 'That username is taken. Try another.' : error.message; 
+    return; 
+  }
+  if(data.user){
+    await sb.from('profiles').upsert({id: data.user.id, display_name: username});
+    msg.className='auth-msg ok'; msg.textContent='Account created!';
+  }
 }
 
 async function doLogout(){
@@ -783,8 +814,9 @@ async function doLogout(){
 
 function showAuth(){
   document.getElementById('screen-loading').style.display='none';
+  document.getElementById('screen-home').style.display='none';
+  document.getElementById('screen-test').style.display='none';
   document.getElementById('screen-auth').style.display='flex';
-  document.body.className='view-auth';
   document.getElementById('topbar').style.display='none';
   document.getElementById('pbar-strip').style.display='none';
   document.getElementById('bbar').style.display='none';
@@ -792,6 +824,11 @@ function showAuth(){
 
 async function onLogin(user){
   currentUser = user;
+  // Hide auth, show app
+  document.getElementById('screen-loading').style.display='none';
+  document.getElementById('screen-auth').style.display='none';
+  document.getElementById('topbar').style.display='flex';
+  document.getElementById('pbar-strip').style.display='block';
   // Load user data from Supabase
   const {data} = await sb.from('day_records').select('*').eq('user_id', user.id);
   userDays = {};
@@ -838,7 +875,10 @@ sb.auth.onAuthStateChange((event, session)=>{
 // ═══════════════════════════════════════════
 function goHome(){
   submitted=false; mode='exam'; answers={};
-  document.body.className='view-home';
+  document.getElementById('screen-auth').style.display='none';
+  document.getElementById('screen-loading').style.display='none';
+  document.getElementById('screen-home').style.display='flex';
+  document.getElementById('screen-test').style.display='none';
   document.getElementById('bbar').style.display='none';
   document.getElementById('btn-back').style.display='none';
   document.getElementById('badge').style.display='none';
@@ -932,7 +972,8 @@ function toggleHistory(){
 // ═══════════════════════════════════════════
 async function startDay(d){
   currentDay=d; answers={}; submitted=false; mode='exam';
-  document.body.className='view-test';
+  document.getElementById('screen-home').style.display='none';
+  document.getElementById('screen-test').style.display='flex';
   document.getElementById('bbar').style.display='flex';
   document.getElementById('btn-back').style.display='none';
   document.getElementById('badge').style.display='inline-block';

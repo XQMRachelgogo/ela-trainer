@@ -723,7 +723,8 @@ const AI_TOPICS = [
 ];
 
 function getSched(dayIdx){
-  if(dayIdx < SCHEDULE.length) return SCHEDULE[dayIdx];
+  if(dayIdx < SCHEDULE.length && SCHEDULE[dayIdx]) return SCHEDULE[dayIdx];
+  // Day 50+: all AI
   return ["AI","AI","AI"];
 }
 
@@ -1073,6 +1074,86 @@ async function loadOrGenerateAI(dayIdx){
   return arts;
 }
 
+// ═══════════════════════════════════════════
+//  DAY 50+ DYNAMIC PRE-GENERATION
+//  Called in background after completing Day 49+
+//  Generates based on weak areas from recent scores
+// ═══════════════════════════════════════════
+async function pregenNextDay(nextDayNum, lastScore){
+  // Check if already exists in Supabase
+  const {data} = await sb.from('ai_articles')
+    .select('day_number').eq('day_number', nextDayNum).single();
+  if(data) return; // already generated
+
+  console.log(`Pre-generating Day ${nextDayNum} in background...`);
+
+  // Choose topic - if last score was low, pick a review/easier topic
+  const topicIdx = lastScore < 60
+    ? (nextDayNum - 1) % AI_TOPICS.length          // same topic rotation (review)
+    : nextDayNum % AI_TOPICS.length;               // next topic
+
+  const topic = AI_TOPICS[topicIdx];
+  const prompt = buildFullPrompt(nextDayNum, topic);
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`;
+  const resp = await fetch(url, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      contents:[{parts:[{text:prompt}]}],
+      generationConfig:{temperature:0.7, maxOutputTokens:8192, responseMimeType:'application/json'},
+    }),
+  });
+  if(!resp.ok) throw new Error(`Gemini ${resp.status}`);
+  const data2 = await resp.json();
+  const text = data2.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  if(!text) throw new Error('Empty response');
+  const arts = JSON.parse(text.replace(/^```json\s*/i,'').replace(/\s*```$/i,'').trim());
+
+  // Save to Supabase - shared across all users
+  await sb.from('ai_articles').upsert({day_number: nextDayNum, articles: arts});
+  console.log(`Day ${nextDayNum} pre-generated and saved!`);
+
+  // Add to local schedule
+  arts.forEach(a=>{ ARTICLES[a.id]=a; });
+  SCHEDULE[nextDayNum-1] = arts.map(a=>a.id);
+}
+
+// ═══════════════════════════════════════════
+//  DAY 50+ DYNAMIC PRE-GENERATION
+// ═══════════════════════════════════════════
+async function pregenNextDay(nextDayNum, lastScore){
+  // Check Supabase cache first
+  const {data} = await sb.from('ai_articles')
+    .select('day_number').eq('day_number', nextDayNum).single();
+  if(data){ console.log(`Day ${nextDayNum} already cached`); return; }
+
+  console.log(`Pre-generating Day ${nextDayNum}...`);
+  const topicIdx = nextDayNum % AI_TOPICS.length;
+  const topic = AI_TOPICS[topicIdx];
+  const prompt = buildFullPrompt(nextDayNum, topic);
+
+  const url=`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`;
+  const resp=await fetch(url,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      contents:[{parts:[{text:prompt}]}],
+      generationConfig:{temperature:0.7,maxOutputTokens:8192,responseMimeType:'application/json'},
+    }),
+  });
+  if(!resp.ok) throw new Error(`Gemini ${resp.status}`);
+  const d=await resp.json();
+  const text=d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  if(!text) throw new Error('Empty response');
+  const arts=JSON.parse(text.replace(/^```json\s*/i,'').replace(/\s*```$/i,'').trim());
+
+  // Save to Supabase (shared by all users)
+  await sb.from('ai_articles').upsert({day_number:nextDayNum, articles:arts});
+  arts.forEach(a=>{ARTICLES[a.id]=a;});
+  if(!SCHEDULE[nextDayNum-1]) SCHEDULE[nextDayNum-1]=arts.map(a=>a.id);
+  console.log(`Day ${nextDayNum} ready!`);
+}
+
+
 function buildWritingPrompt(dayNum, topic){
   return `You are an expert NYS ELA test writer for Grade 3. Generate ONE nonfiction excerpt as a writing-only practice piece.
 Topic: ${topic.writing}
@@ -1236,6 +1317,12 @@ async function submitAll(){
     userDays[currentDay]={completed:true,totalScore,mc_correct:mcCorrect,mc_total:mcTotal};
     // Update streak
     streak = Object.keys(userDays).filter(d=>userDays[d].completed).length;
+
+    // Day 50+: pre-generate next day in background if not already cached
+    if(currentDay >= 49){
+      const nextDay = currentDay + 1;
+      pregenNextDay(nextDay, totalScore).catch(e=>console.log('Pregen failed:', e));
+    }
   }
 
   showOv(totalScore,mcTotal,mcCorrect,retried);
@@ -1244,7 +1331,11 @@ async function submitAll(){
 function showOv(score,total,correct,retried){
   document.getElementById('ov-title').textContent=`Day ${currentDay} Complete!`;
   document.getElementById('ov-score').textContent=total>0?score+'%':'\u2014';
-  document.getElementById('ov-sub').textContent=total>0?`${correct} of ${total} multiple choice correct`:'Written responses submitted';
+  let sub = total>0 ? `${correct} of ${total} multiple choice correct` : 'Written responses submitted';
+  if(currentDay >= 49){
+    sub += ' \u2014 Next day is being prepared\u2026';
+  }
+  document.getElementById('ov-sub').textContent=sub;
   document.getElementById('ov-retry').classList.toggle('on',retried.length>0);
   document.getElementById('overlay').classList.add('on');
 }

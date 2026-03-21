@@ -16,7 +16,7 @@
   --shadow:rgba(28,24,21,.1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden}
+html,body{height:100%;overflow:auto}
 body{font-family:'Libre Baskerville',Georgia,serif;background:var(--cream);color:var(--ink);font-size:14.5px;line-height:1.8;display:flex;flex-direction:column}
 
 /* ── AUTH SCREEN ── */
@@ -40,31 +40,31 @@ body.view-auth #screen-auth{display:flex!important}
 .auth-msg.ok{color:var(--green)}
 
 /* ── TOP BAR ── */
-#topbar{height:48px;flex-shrink:0;background:var(--ink);color:#f0ece4;display:flex;align-items:center;justify-content:space-between;padding:0 1.2rem;box-shadow:0 2px 8px var(--shadow);z-index:200}
-.logo{font-family:'DM Sans',sans-serif;font-weight:700;font-size:.88rem;letter-spacing:.07em;text-transform:uppercase}
-.logo em{color:#e8834a;font-style:normal}
+#topbar{height:44px;flex-shrink:0;background:#f7f3ec;color:var(--ink);display:flex;align-items:center;justify-content:space-between;padding:0 .9rem;border-bottom:1px solid var(--border);box-shadow:none;z-index:200}
+.logo{font-family:'DM Sans',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.logo em{color:var(--accent);font-style:normal}
 #topbar-right{display:flex;align-items:center;gap:.7rem}
 .badge{font-family:'DM Mono',monospace;font-size:.62rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .65rem;border-radius:2px;transition:all .3s}
 .badge.exam{background:#b5451b;color:#fff}
 .badge.review{background:#1a3a5c;color:#acd}
 .badge.learn{background:var(--green);color:#ade}
-.user-chip{font-family:'DM Sans',sans-serif;font-size:.75rem;color:#aaa;display:flex;align-items:center;gap:.5rem}
-.user-chip button{background:none;border:1px solid #444;color:#999;font-family:'DM Sans',sans-serif;font-size:.65rem;padding:.18rem .5rem;border-radius:2px;cursor:pointer;transition:all .15s}
-.user-chip button:hover{border-color:#aaa;color:#fff}
-#pbar-strip{height:3px;background:#2a2622;flex-shrink:0}
+.user-chip{font-family:'DM Sans',sans-serif;font-size:.75rem;color:var(--ink2);display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+.user-chip button{background:#fff;border:1px solid var(--border);color:var(--ink2);font-family:'DM Sans',sans-serif;font-size:.63rem;padding:.16rem .46rem;border-radius:999px;cursor:pointer;transition:all .15s}
+.user-chip button:hover{border-color:var(--ink2);color:var(--ink);background:#fffdf8}
+#pbar-strip{height:2px;background:#ebe3d6;flex-shrink:0}
 #pbar{height:100%;background:var(--accent);width:0;transition:width .35s}
 
 /* ── SCREENS ── */
 #screen-home,#screen-test{display:none;flex:1;min-height:0;overflow:hidden;flex-direction:column}
-#screen-home{overflow-y:auto;align-items:center;padding:2rem 1.5rem 4rem;background:var(--cream)}
+#screen-home{overflow-y:auto;align-items:center;padding:1rem 1.25rem 3rem;background:var(--cream)}
 #screen-home{display:none}body.view-home #screen-home{display:flex}
 #screen-test{display:none}body.view-test #screen-test{display:flex}
 
 /* ── HOME ── */
 .home-inner{width:100%;max-width:680px}
-.home-hero{margin-bottom:1.6rem}
-.home-hero h1{font-family:'DM Sans',sans-serif;font-weight:700;font-size:1.5rem;color:var(--ink)}
-.home-hero p{font-family:'DM Sans',sans-serif;font-size:.83rem;color:var(--ink3);margin-top:.25rem}
+.home-hero{margin-bottom:1rem}
+.home-hero h1{font-family:'DM Sans',sans-serif;font-weight:700;font-size:1.2rem;color:var(--ink)}
+.home-hero p{font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--ink3);margin-top:.15rem}
 
 .stats-row{display:flex;gap:.85rem;margin-bottom:1.6rem;flex-wrap:wrap}
 .stat-box{flex:1;min-width:100px;background:var(--paper);border:1.5px solid var(--border);border-radius:4px;padding:.8rem .9rem;text-align:center}
@@ -227,9 +227,9 @@ body.lm .ev-btn{display:inline-block}
 <body style="display:flex;flex-direction:column;height:100%">
 
 <!-- LOADING SCREEN (shown while checking session) -->
-<div id="screen-loading" style="display:flex;flex:1;align-items:center;justify-content:center;background:var(--ink);flex-direction:column;gap:.8rem;font-family:'DM Sans',sans-serif;color:#f0ece4">
-  <div style="font-size:1.2rem;font-weight:700;letter-spacing:.05em">NY ELA <span style="color:#e8834a">TRAINER</span></div>
-  <div style="width:28px;height:28px;border:3px solid #444;border-top-color:#e8834a;border-radius:50%;animation:spin .7s linear infinite"></div>
+<div id="screen-loading" style="display:flex;position:fixed;inset:0;align-items:center;justify-content:center;background:rgba(28,24,21,.82);backdrop-filter:blur(2px);flex-direction:column;gap:.8rem;font-family:'DM Sans',sans-serif;color:#f0ece4;z-index:1000">
+  <div style="font-size:1rem;font-weight:700;letter-spacing:.05em">NY ELA <span style="color:#e8834a">TRAINER</span></div>
+  <div style="width:24px;height:24px;border:3px solid #444;border-top-color:#e8834a;border-radius:50%;animation:spin .7s linear infinite"></div>
 </div>
 
 <!-- AUTH SCREEN -->
@@ -262,7 +262,7 @@ body.lm .ev-btn{display:inline-block}
   <div id="topbar-right">
     <span id="badge" class="badge exam" style="display:none">Exam Mode</span>
     <div class="user-chip">
-      <span id="user-name-display"></span>
+      <span>Personal info: <strong id="user-name-display"></strong></span>
       <button onclick="goHome()">&#8592; Home</button>
       <button onclick="doLogout()">Sign Out</button>
     </div>
@@ -823,6 +823,7 @@ function showAuth(){
 }
 
 async function onLogin(user){
+  hideLoading();
   currentUser = user;
   // Hide auth, show app
   document.getElementById('screen-loading').style.display='none';
@@ -866,14 +867,23 @@ sb.auth.onAuthStateChange((event, session)=>{
   const {data:{session}} = await sb.auth.getSession();
   if(!session?.user){
     showAuth();
+  } else {
+    hideLoading();
   }
   // If session exists, onAuthStateChange INITIAL_SESSION event handles login
 })();
+
+
+function hideLoading(){
+  const el=document.getElementById('screen-loading');
+  if(el) el.style.display='none';
+}
 
 // ═══════════════════════════════════════════
 //  HOME
 // ═══════════════════════════════════════════
 function goHome(){
+  hideLoading();
   submitted=false; mode='exam'; answers={};
   document.getElementById('screen-auth').style.display='none';
   document.getElementById('screen-loading').style.display='none';

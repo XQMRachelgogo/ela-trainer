@@ -25,6 +25,28 @@ body.view-auth #screen-auth{display:flex!important}
 .auth-card{background:var(--paper);border-radius:6px;padding:2.5rem 2.5rem 2rem;width:100%;max-width:400px;box-shadow:0 12px 48px rgba(0,0,0,.4)}
 .auth-logo{font-family:'DM Sans',sans-serif;font-weight:700;font-size:1.4rem;color:var(--ink);letter-spacing:.02em;margin-bottom:.2rem}
 .auth-logo em{color:var(--accent);font-style:normal}
+
+/* ── GRADE SELECTOR SCREEN ── */
+#screen-grade{display:none;flex:1;align-items:center;justify-content:center;background:var(--ink);overflow-y:auto;padding:2rem 1rem}
+body.view-grade #screen-grade{display:flex!important}
+.grade-card{background:var(--paper);border-radius:6px;padding:2.5rem 2.5rem 2rem;width:100%;max-width:440px;box-shadow:0 12px 48px rgba(0,0,0,.4)}
+.grade-card .auth-logo{margin-bottom:.2rem}
+.grade-card .auth-sub{margin-bottom:1.8rem}
+.grade-user{font-family:'DM Sans',sans-serif;font-size:.82rem;color:var(--ink3);margin-bottom:1.5rem;padding:.5rem .8rem;background:var(--cream);border-radius:4px;border:1px solid var(--border)}
+.grade-user span{color:var(--accent);font-weight:600}
+.grade-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:1.5rem}
+.grade-btn{font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;padding:.9rem .5rem;border-radius:5px;border:2px solid var(--border);background:var(--paper);color:var(--ink);cursor:pointer;transition:all .15s;text-align:center;position:relative}
+.grade-btn:hover{border-color:var(--accent);color:var(--accent)}
+.grade-btn.active{border-color:var(--accent);background:var(--accent);color:#fff}
+.grade-btn.coming-soon{opacity:.55;cursor:default}
+.grade-btn.coming-soon:hover{border-color:var(--border);color:var(--ink)}
+.grade-badge{display:block;font-family:'DM Mono',monospace;font-size:.52rem;font-weight:400;color:var(--ink3);margin-top:.2rem;letter-spacing:.03em}
+.grade-btn.active .grade-badge{color:rgba(255,255,255,.75)}
+.grade-btn.coming-soon .grade-badge{color:var(--ink3)}
+.grade-confirm{width:100%;padding:.75rem;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.88rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer}
+.grade-confirm:disabled{opacity:.4;cursor:default}
+.grade-switch{font-family:'DM Sans',sans-serif;font-size:.75rem;color:var(--ink3);text-align:center;margin-top:1rem;cursor:pointer;text-decoration:underline}
+.grade-switch:hover{color:var(--accent)}
 .auth-sub{font-family:'DM Sans',sans-serif;font-size:.83rem;color:var(--ink3);margin-bottom:2rem}
 .auth-tabs{display:flex;gap:0;margin-bottom:1.6rem;border-bottom:2px solid var(--border)}
 .auth-tab{font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;padding:.5rem 1.2rem;background:none;border:none;cursor:pointer;color:var(--ink3);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
@@ -274,9 +296,12 @@ body.lm .ev-btn{display:inline-block}
 <!-- HOME SCREEN -->
 <div id="screen-home">
   <div class="home-inner">
-    <div class="home-hero">
-      <h1>50-Day ELA Practice</h1>
-      <p>New York State Grade 3 &middot; 3 articles per session &middot; ~30 min each</p>
+    <div class="home-hero" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem">
+      <div>
+        <h1>50-Day ELA Practice</h1>
+        <p>New York State Grade 3 &middot; 3 articles per session &middot; ~30 min each</p>
+      </div>
+      <button onclick="showGradeSelector()" style="flex-shrink:0;font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:600;padding:.35rem .7rem;border:1.5px solid var(--border);border-radius:4px;background:var(--paper);color:var(--ink3);cursor:pointer;white-space:nowrap;margin-top:.15rem" title="Switch grade">Grade 3 ▾</button>
     </div>
     <div class="stats-row">
       <div class="stat-box"><div class="stat-num" id="stat-done">0</div><div class="stat-lbl">Days Done</div></div>
@@ -723,8 +748,7 @@ const AI_TOPICS = [
 ];
 
 function getSched(dayIdx){
-  if(dayIdx < SCHEDULE.length && SCHEDULE[dayIdx]) return SCHEDULE[dayIdx];
-  // Day 50+: all AI
+  if(dayIdx < SCHEDULE.length) return SCHEDULE[dayIdx];
   return ["AI","AI","AI"];
 }
 
@@ -750,6 +774,56 @@ function switchTab(tab){
   document.getElementById('tab-login').style.display  = tab==='login'  ? '' : 'none';
   document.getElementById('tab-signup').style.display = tab==='signup' ? '' : 'none';
   document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='signup')));
+}
+
+// ── GRADE SELECTOR ──────────────────────────────────────────────────────────
+let selectedGrade = 3;
+
+function showGradeSelector(){
+  document.getElementById('screen-home').style.display = 'none';
+  document.getElementById('screen-test').style.display = 'none';
+  document.getElementById('screen-grade').style.display = 'flex';
+  document.body.className = 'view-grade';
+  // Show current user
+  if(currentUser){
+    const name = currentUser.user_metadata?.display_name || currentUser.email?.split('@')[0] || 'Student';
+    document.getElementById('grade-username').textContent = name;
+  }
+  // Reflect current grade selection
+  selectGrade(selectedGrade, false);
+}
+
+function selectGrade(grade, isClick=true){
+  const comingSoon = [4,5,6,7,8];
+  if(comingSoon.includes(grade) && isClick){
+    // Show coming soon feedback
+    const btn = document.getElementById('gbtn-'+grade);
+    const orig = btn.querySelector('.grade-badge').textContent;
+    btn.querySelector('.grade-badge').textContent = '🔜 coming soon';
+    setTimeout(()=>{ btn.querySelector('.grade-badge').textContent = orig; }, 1500);
+    return;
+  }
+  selectedGrade = grade;
+  // Update button states
+  [3,4,5,6,7,8].forEach(g=>{
+    const btn = document.getElementById('gbtn-'+g);
+    if(!btn) return;
+    btn.classList.toggle('active', g===grade);
+  });
+  // Update confirm button
+  const confirmBtn = document.getElementById('grade-confirm-btn');
+  if(grade === 3){
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Start Grade 3 Practice →';
+  } else {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = `Grade ${grade} — Coming Soon`;
+  }
+}
+
+function confirmGrade(){
+  if(selectedGrade !== 3) return;
+  goHome();
 }
 
 // Press Enter to submit
@@ -779,8 +853,10 @@ async function doLogin(){
   if(!pw){ msg.className='auth-msg err'; msg.textContent='Please enter your password.'; return; }
   msg.textContent='Signing in...'; msg.className='auth-msg';
   const email = username + '@ela-trainer.app';
-  const {error} = await sb.auth.signInWithPassword({email, password:pw});
-  if(error){ msg.className='auth-msg err'; msg.textContent='Username or password is incorrect.'; }
+  const {data: loginData, error} = await sb.auth.signInWithPassword({email, password:pw});
+  if(error){ msg.className='auth-msg err'; msg.textContent='Username or password is incorrect.'; return; }
+  // Go to grade selector after login
+  showGradeSelector();
 }
 
 async function doSignup(){
@@ -804,6 +880,7 @@ async function doSignup(){
   if(data.user){
     await sb.from('profiles').upsert({id: data.user.id, display_name: username});
     msg.className='auth-msg ok'; msg.textContent='Account created!';
+    setTimeout(()=>{ showGradeSelector(); }, 800);
   }
 }
 
@@ -851,7 +928,7 @@ async function onLogin(user){
 
   document.getElementById('topbar').style.display='flex';
   document.getElementById('pbar-strip').style.display='block';
-  goHome();
+  showGradeSelector();
 }
 
 // Listen for auth state changes + check existing session immediately
@@ -1074,86 +1151,6 @@ async function loadOrGenerateAI(dayIdx){
   return arts;
 }
 
-// ═══════════════════════════════════════════
-//  DAY 50+ DYNAMIC PRE-GENERATION
-//  Called in background after completing Day 49+
-//  Generates based on weak areas from recent scores
-// ═══════════════════════════════════════════
-async function pregenNextDay(nextDayNum, lastScore){
-  // Check if already exists in Supabase
-  const {data} = await sb.from('ai_articles')
-    .select('day_number').eq('day_number', nextDayNum).single();
-  if(data) return; // already generated
-
-  console.log(`Pre-generating Day ${nextDayNum} in background...`);
-
-  // Choose topic - if last score was low, pick a review/easier topic
-  const topicIdx = lastScore < 60
-    ? (nextDayNum - 1) % AI_TOPICS.length          // same topic rotation (review)
-    : nextDayNum % AI_TOPICS.length;               // next topic
-
-  const topic = AI_TOPICS[topicIdx];
-  const prompt = buildFullPrompt(nextDayNum, topic);
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`;
-  const resp = await fetch(url, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({
-      contents:[{parts:[{text:prompt}]}],
-      generationConfig:{temperature:0.7, maxOutputTokens:8192, responseMimeType:'application/json'},
-    }),
-  });
-  if(!resp.ok) throw new Error(`Gemini ${resp.status}`);
-  const data2 = await resp.json();
-  const text = data2.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  if(!text) throw new Error('Empty response');
-  const arts = JSON.parse(text.replace(/^```json\s*/i,'').replace(/\s*```$/i,'').trim());
-
-  // Save to Supabase - shared across all users
-  await sb.from('ai_articles').upsert({day_number: nextDayNum, articles: arts});
-  console.log(`Day ${nextDayNum} pre-generated and saved!`);
-
-  // Add to local schedule
-  arts.forEach(a=>{ ARTICLES[a.id]=a; });
-  SCHEDULE[nextDayNum-1] = arts.map(a=>a.id);
-}
-
-// ═══════════════════════════════════════════
-//  DAY 50+ DYNAMIC PRE-GENERATION
-// ═══════════════════════════════════════════
-async function pregenNextDay(nextDayNum, lastScore){
-  // Check Supabase cache first
-  const {data} = await sb.from('ai_articles')
-    .select('day_number').eq('day_number', nextDayNum).single();
-  if(data){ console.log(`Day ${nextDayNum} already cached`); return; }
-
-  console.log(`Pre-generating Day ${nextDayNum}...`);
-  const topicIdx = nextDayNum % AI_TOPICS.length;
-  const topic = AI_TOPICS[topicIdx];
-  const prompt = buildFullPrompt(nextDayNum, topic);
-
-  const url=`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`;
-  const resp=await fetch(url,{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      contents:[{parts:[{text:prompt}]}],
-      generationConfig:{temperature:0.7,maxOutputTokens:8192,responseMimeType:'application/json'},
-    }),
-  });
-  if(!resp.ok) throw new Error(`Gemini ${resp.status}`);
-  const d=await resp.json();
-  const text=d.candidates?.[0]?.content?.parts?.[0]?.text||'';
-  if(!text) throw new Error('Empty response');
-  const arts=JSON.parse(text.replace(/^```json\s*/i,'').replace(/\s*```$/i,'').trim());
-
-  // Save to Supabase (shared by all users)
-  await sb.from('ai_articles').upsert({day_number:nextDayNum, articles:arts});
-  arts.forEach(a=>{ARTICLES[a.id]=a;});
-  if(!SCHEDULE[nextDayNum-1]) SCHEDULE[nextDayNum-1]=arts.map(a=>a.id);
-  console.log(`Day ${nextDayNum} ready!`);
-}
-
-
 function buildWritingPrompt(dayNum, topic){
   return `You are an expert NYS ELA test writer for Grade 3. Generate ONE nonfiction excerpt as a writing-only practice piece.
 Topic: ${topic.writing}
@@ -1317,12 +1314,6 @@ async function submitAll(){
     userDays[currentDay]={completed:true,totalScore,mc_correct:mcCorrect,mc_total:mcTotal};
     // Update streak
     streak = Object.keys(userDays).filter(d=>userDays[d].completed).length;
-
-    // Day 50+: pre-generate next day in background if not already cached
-    if(currentDay >= 49){
-      const nextDay = currentDay + 1;
-      pregenNextDay(nextDay, totalScore).catch(e=>console.log('Pregen failed:', e));
-    }
   }
 
   showOv(totalScore,mcTotal,mcCorrect,retried);
@@ -1331,11 +1322,7 @@ async function submitAll(){
 function showOv(score,total,correct,retried){
   document.getElementById('ov-title').textContent=`Day ${currentDay} Complete!`;
   document.getElementById('ov-score').textContent=total>0?score+'%':'\u2014';
-  let sub = total>0 ? `${correct} of ${total} multiple choice correct` : 'Written responses submitted';
-  if(currentDay >= 49){
-    sub += ' \u2014 Next day is being prepared\u2026';
-  }
-  document.getElementById('ov-sub').textContent=sub;
+  document.getElementById('ov-sub').textContent=total>0?`${correct} of ${total} multiple choice correct`:'Written responses submitted';
   document.getElementById('ov-retry').classList.toggle('on',retried.length>0);
   document.getElementById('overlay').classList.add('on');
 }

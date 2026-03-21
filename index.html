@@ -4,119 +4,167 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NY ELA Trainer &middot; Grade 3</title>
-<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Barlow:wght@300;400;500;600;700&family=Barlow+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--paper:#faf8f4;--cream:#f2ede4;--ink:#1c1815;--ink2:#4a3f35;--ink3:#8a7a6a;--border:#ddd5c8;--accent:#b5451b;--gold:#9a7b2e;--shadow:rgba(28,24,21,.1);--green:#2a6048;--red:#b5451b;--ev-bg:#fffae8;--ev-border:#e8c84a}
+:root{
+  --paper:#faf8f4;--cream:#f2ede4;--ink:#1c1815;
+  --ink2:#4a3f35;--ink3:#8a7a6a;--border:#ddd5c8;
+  --accent:#b5451b;--gold:#9a7b2e;
+  --green:#2a6048;--red:#b5451b;
+  --ev-bg:#fffae8;--ev-border:#e8c84a;
+  --shadow:rgba(28,24,21,.1);
+}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
 body{font-family:'Libre Baskerville',Georgia,serif;background:var(--cream);color:var(--ink);font-size:14.5px;line-height:1.8;display:flex;flex-direction:column}
+
+/* ── AUTH SCREEN ── */
+#screen-auth{display:none;flex:1;align-items:center;justify-content:center;background:var(--ink);overflow-y:auto;padding:2rem 1rem}
+body.view-auth #screen-auth{display:flex!important}
+.auth-card{background:var(--paper);border-radius:6px;padding:2.5rem 2.5rem 2rem;width:100%;max-width:400px;box-shadow:0 12px 48px rgba(0,0,0,.4)}
+.auth-logo{font-family:'DM Sans',sans-serif;font-weight:700;font-size:1.4rem;color:var(--ink);letter-spacing:.02em;margin-bottom:.2rem}
+.auth-logo em{color:var(--accent);font-style:normal}
+.auth-sub{font-family:'DM Sans',sans-serif;font-size:.83rem;color:var(--ink3);margin-bottom:2rem}
+.auth-tabs{display:flex;gap:0;margin-bottom:1.6rem;border-bottom:2px solid var(--border)}
+.auth-tab{font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;padding:.5rem 1.2rem;background:none;border:none;cursor:pointer;color:var(--ink3);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.auth-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.auth-field{margin-bottom:1rem}
+.auth-field label{display:block;font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:.35rem}
+.auth-field input{width:100%;border:1.5px solid var(--border);border-radius:3px;padding:.6rem .8rem;font-family:'DM Sans',sans-serif;font-size:.9rem;background:var(--paper);color:var(--ink);outline:none;transition:border-color .15s}
+.auth-field input:focus{border-color:var(--accent)}
+.auth-btn{width:100%;padding:.7rem;background:var(--ink);color:#f0ece4;border:none;border-radius:3px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.85rem;letter-spacing:.04em;cursor:pointer;margin-top:.5rem;transition:background .15s}
+.auth-btn:hover{background:#333}
+.auth-msg{font-family:'DM Sans',sans-serif;font-size:.8rem;text-align:center;margin-top:.8rem;min-height:1.2rem}
+.auth-msg.err{color:var(--red)}
+.auth-msg.ok{color:var(--green)}
+
+/* ── TOP BAR ── */
 #topbar{height:48px;flex-shrink:0;background:var(--ink);color:#f0ece4;display:flex;align-items:center;justify-content:space-between;padding:0 1.2rem;box-shadow:0 2px 8px var(--shadow);z-index:200}
-.logo{font-family:'Barlow',sans-serif;font-weight:700;font-size:.88rem;letter-spacing:.07em;text-transform:uppercase}
+.logo{font-family:'DM Sans',sans-serif;font-weight:700;font-size:.88rem;letter-spacing:.07em;text-transform:uppercase}
 .logo em{color:#e8834a;font-style:normal}
 #topbar-right{display:flex;align-items:center;gap:.7rem}
-.badge{font-family:'Barlow Mono',monospace;font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .65rem;border-radius:2px;transition:all .3s}
-.badge.exam{background:#b5451b;color:#fff}.badge.review{background:#1a3a5c;color:#acd}.badge.learn{background:var(--green);color:#ade}
+.badge{font-family:'DM Mono',monospace;font-size:.62rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .65rem;border-radius:2px;transition:all .3s}
+.badge.exam{background:#b5451b;color:#fff}
+.badge.review{background:#1a3a5c;color:#acd}
+.badge.learn{background:var(--green);color:#ade}
+.user-chip{font-family:'DM Sans',sans-serif;font-size:.75rem;color:#aaa;display:flex;align-items:center;gap:.5rem}
+.user-chip button{background:none;border:1px solid #444;color:#999;font-family:'DM Sans',sans-serif;font-size:.65rem;padding:.18rem .5rem;border-radius:2px;cursor:pointer;transition:all .15s}
+.user-chip button:hover{border-color:#aaa;color:#fff}
 #pbar-strip{height:3px;background:#2a2622;flex-shrink:0}
 #pbar{height:100%;background:var(--accent);width:0;transition:width .35s}
+
+/* ── SCREENS ── */
 #screen-home,#screen-test{display:none;flex:1;min-height:0;overflow:hidden;flex-direction:column}
-#screen-home{overflow-y:auto;align-items:center;padding:2.5rem 1.5rem 4rem;background:var(--cream)}
-body.view-home #screen-home{display:flex}
-body.view-test #screen-test{display:flex}
+#screen-home{overflow-y:auto;align-items:center;padding:2rem 1.5rem 4rem;background:var(--cream)}
+#screen-home{display:none}body.view-home #screen-home{display:flex}
+#screen-test{display:none}body.view-test #screen-test{display:flex}
+
+/* ── HOME ── */
 .home-inner{width:100%;max-width:680px}
-.home-hero{text-align:center;margin-bottom:2rem}
-.home-hero h1{font-family:'Barlow',sans-serif;font-weight:700;font-size:1.7rem;color:var(--ink);letter-spacing:.02em}
-.home-hero p{font-family:'Barlow',sans-serif;font-size:.9rem;color:var(--ink3);margin-top:.4rem}
-.stats-row{display:flex;gap:1rem;margin-bottom:1.8rem;flex-wrap:wrap}
-.stat-box{flex:1;min-width:110px;background:var(--paper);border:1.5px solid var(--border);border-radius:4px;padding:.9rem 1rem;text-align:center}
-.stat-num{font-family:'Barlow',sans-serif;font-weight:700;font-size:1.6rem;color:var(--accent)}
-.stat-lbl{font-family:'Barlow Mono',monospace;font-size:.6rem;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-top:.1rem}
-.section-title{font-family:'Barlow',sans-serif;font-weight:600;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:.65rem;display:flex;align-items:center;gap:.6rem}
+.home-hero{margin-bottom:1.6rem}
+.home-hero h1{font-family:'DM Sans',sans-serif;font-weight:700;font-size:1.5rem;color:var(--ink)}
+.home-hero p{font-family:'DM Sans',sans-serif;font-size:.83rem;color:var(--ink3);margin-top:.25rem}
+
+.stats-row{display:flex;gap:.85rem;margin-bottom:1.6rem;flex-wrap:wrap}
+.stat-box{flex:1;min-width:100px;background:var(--paper);border:1.5px solid var(--border);border-radius:4px;padding:.8rem .9rem;text-align:center}
+.stat-num{font-family:'DM Sans',sans-serif;font-weight:700;font-size:1.5rem;color:var(--accent)}
+.stat-lbl{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-top:.1rem}
+
+.section-title{font-family:'DM Sans',sans-serif;font-weight:600;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:.6rem;display:flex;align-items:center;gap:.6rem}
 .section-title::after{content:'';flex:1;height:1px;background:var(--border)}
-.day-grid{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.8rem}
-.day-card{background:var(--paper);border:1.5px solid var(--border);border-radius:4px;padding:.75rem 1rem;display:flex;align-items:center;gap:.85rem;cursor:pointer;transition:border-color .15s,background .15s}
+
+/* completed summary */
+.completed-summary{display:flex;align-items:center;gap:.7rem;background:var(--paper);border:1.5px solid var(--green);border-radius:4px;padding:.65rem .9rem;margin-bottom:.45rem;flex-wrap:wrap}
+.cs-icon{color:var(--green)}
+.cs-text{font-family:'DM Sans',sans-serif;font-weight:600;font-size:.85rem;color:var(--green);flex:1}
+.cs-acc{font-family:'DM Mono',monospace;font-size:.65rem;color:var(--ink3)}
+.cs-toggle{font-family:'DM Sans',sans-serif;font-size:.7rem;background:none;border:1px solid var(--border);color:var(--ink3);padding:.18rem .55rem;border-radius:2px;cursor:pointer}
+.cs-toggle:hover{border-color:var(--ink);color:var(--ink)}
+
+.day-grid{display:flex;flex-direction:column;gap:.45rem;margin-bottom:1.6rem}
+.day-card{background:var(--paper);border:1.5px solid var(--border);border-radius:4px;padding:.7rem .95rem;display:flex;align-items:center;gap:.8rem;cursor:pointer;transition:border-color .15s,background .15s}
 .day-card:hover{border-color:var(--ink2);background:#ede8df}
 .day-card.done{border-color:var(--green);background:#f0f8f4}
 .day-card.retry-due{border-color:#e8c84a;background:#fffae8}
 .day-card.locked{opacity:.4;cursor:default;pointer-events:none}
-.day-num{font-family:'Barlow',sans-serif;font-weight:700;font-size:1.05rem;color:var(--accent);min-width:1.8rem}
+.day-card.history-card{opacity:.7}.day-card.history-card:hover{opacity:1}
+.day-num{font-family:'DM Sans',sans-serif;font-weight:700;font-size:1rem;color:var(--accent);min-width:1.8rem}
 .day-info{flex:1;min-width:0}
-.day-title{font-family:'Barlow',sans-serif;font-weight:600;font-size:.86rem;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.day-sub{font-family:'Barlow Mono',monospace;font-size:.6rem;color:var(--ink3);margin-top:.08rem}
-.day-right{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
-.day-score{font-family:'Barlow',sans-serif;font-size:.78rem;color:var(--ink3)}
-.dbadge{font-family:'Barlow Mono',monospace;font-size:.58rem;letter-spacing:.07em;text-transform:uppercase;padding:.16rem .5rem;border-radius:2px}
+.day-title{font-family:'DM Sans',sans-serif;font-weight:600;font-size:.85rem;color:var(--ink)}
+.day-sub{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--ink3);margin-top:.06rem}
+.day-right{display:flex;align-items:center;gap:.45rem;flex-shrink:0}
+.day-score{font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--ink3)}
+.dbadge{font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.07em;text-transform:uppercase;padding:.14rem .48rem;border-radius:2px}
 .dbadge.done{background:#dff0e8;color:var(--green);border:1px solid #b8dbc9}
 .dbadge.retry{background:#fff3cd;color:#856404;border:1px solid #e8c84a}
 .dbadge.today{background:var(--ink);color:#f0ece4}
 .dbadge.upcoming{background:#f0ece4;color:var(--ink3);border:1px solid var(--border)}
+.dbadge.bonus{background:#f0e8ff;color:#6a2fa0;border:1px solid #d4b0f0}
+
+/* import button */
+.btn-import{font-family:'DM Sans',sans-serif;font-size:.73rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:.48rem 1rem;border-radius:3px;border:1.5px solid var(--accent);color:var(--accent);background:none;cursor:pointer;transition:all .15s}
+.btn-import:hover{background:var(--accent);color:#fff}
+
+/* import modal */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(28,24,21,.72);z-index:600;align-items:center;justify-content:center}
+.modal-backdrop.on{display:flex}
+.modal-box{background:var(--paper);border-radius:4px;padding:1.8rem 2rem;max-width:540px;width:92%;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.modal-box h3{font-family:'DM Sans',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:.3rem}
+.modal-box p{font-family:'DM Sans',sans-serif;font-size:.8rem;color:var(--ink3);margin-bottom:.85rem}
+.modal-ta{width:100%;height:150px;border:1.5px solid var(--border);border-radius:3px;font-family:'DM Mono',monospace;font-size:.73rem;padding:.65rem;resize:vertical;outline:none;background:#faf8f4}
+.modal-msg{font-family:'DM Sans',sans-serif;font-size:.78rem;margin:.45rem 0;min-height:1.1rem}
+.modal-msg.err{color:var(--red)}.modal-msg.ok{color:var(--green)}
+.modal-btns{display:flex;gap:.65rem;justify-content:flex-end;margin-top:.4rem}
+
+/* ── SPLIT PANE ── */
 #split{flex:1;display:flex;min-height:0;overflow:hidden}
 #pane-l{width:52%;flex-shrink:0;overflow-y:auto;background:var(--paper);border-right:1px solid var(--border);padding:1.3rem 1.4rem 3rem}
 #rh{width:5px;flex-shrink:0;cursor:col-resize;background:var(--border);transition:background .15s;position:relative;z-index:10}
 #rh:hover{background:var(--ink3)}
 #rh::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:2px;height:28px;background:var(--ink3);border-radius:2px;opacity:.4}
 #pane-r{flex:1;overflow-y:auto;background:var(--cream);padding:1.3rem 1.3rem 3rem}
+
+/* ── BOTTOM BAR ── */
 #bbar{height:46px;flex-shrink:0;background:var(--ink);padding:0 1.2rem;display:flex;align-items:center;justify-content:space-between;gap:.7rem;box-shadow:0 -2px 8px var(--shadow);z-index:200}
-.bbar-status{font-family:'Barlow Mono',monospace;font-size:.64rem;color:#888;letter-spacing:.04em}
+.bbar-status{font-family:'DM Mono',monospace;font-size:.63rem;color:#888;letter-spacing:.04em}
 .bbar-btns{display:flex;gap:.5rem}
-.btn{font-family:'Barlow',sans-serif;font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.44rem .95rem;border-radius:2px;border:1.5px solid;cursor:pointer;transition:all .15s;background:none}
+.btn{font-family:'DM Sans',sans-serif;font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:.44rem .95rem;border-radius:2px;border:1.5px solid;cursor:pointer;transition:all .15s;background:none}
 .btn-dk{color:#ccc;border-color:#555}.btn-dk:hover{border-color:#aaa;color:#fff}
 .btn-rev{color:#acd;border-color:#2a5a8c}.btn-rev:hover{background:#1a3a5c}
 .btn-lrn{color:#ade;border-color:var(--green)}.btn-lrn:hover{background:var(--green);color:#fff}
-.completed-summary{display:flex;align-items:center;gap:.75rem;background:var(--paper);border:1.5px solid var(--green);border-radius:4px;padding:.7rem 1rem;margin-bottom:.5rem;flex-wrap:wrap}
-.cs-icon{color:var(--green);font-size:1rem}
-.cs-text{font-family:'Barlow',sans-serif;font-weight:600;font-size:.88rem;color:var(--green);flex:1}
-.cs-acc{font-family:'Barlow Mono',monospace;font-size:.68rem;color:var(--ink3)}
-.cs-toggle{font-family:'Barlow',sans-serif;font-size:.72rem;background:none;border:1px solid var(--border);color:var(--ink3);padding:.2rem .6rem;border-radius:2px;cursor:pointer;white-space:nowrap}
-.cs-toggle:hover{border-color:var(--ink);color:var(--ink)}
-.history-card{opacity:.75}
-.history-card:hover{opacity:1}
-.completed-summary{display:flex;align-items:center;gap:.75rem;background:var(--paper);border:1.5px solid var(--green);border-radius:4px;padding:.7rem 1rem;margin-bottom:.5rem;flex-wrap:wrap}
-.cs-icon{color:var(--green);font-size:1rem}
-.cs-text{font-family:'Barlow',sans-serif;font-weight:600;font-size:.88rem;color:var(--green);flex:1}
-.cs-acc{font-family:'Barlow Mono',monospace;font-size:.68rem;color:var(--ink3)}
-.cs-toggle{font-family:'Barlow',sans-serif;font-size:.72rem;background:none;border:1px solid var(--border);color:var(--ink3);padding:.2rem .6rem;border-radius:2px;cursor:pointer;white-space:nowrap}
-.cs-toggle:hover{border-color:var(--ink);color:var(--ink)}
-.history-card{opacity:.75}
-.history-card:hover{opacity:1}
-.art-src{font-family:'Barlow Mono',monospace;font-size:.62rem;letter-spacing:.07em;text-transform:uppercase;padding:.18rem .6rem;border-radius:2px;display:inline-block;margin-bottom:.45rem}
-.real-src{background:#eef4ff;color:#1a4a8c;border:1px solid #b8cff0}
-.sim-src{background:#f5f0e8;color:var(--gold);border:1px solid #ddd0b0}
-.completed-summary{display:flex;align-items:center;gap:.75rem;background:var(--paper);border:1.5px solid var(--green);border-radius:4px;padding:.7rem 1rem;margin-bottom:.5rem;flex-wrap:wrap}
-.cs-icon{color:var(--green);font-size:1rem}
-.cs-text{font-family:'Barlow',sans-serif;font-weight:600;font-size:.88rem;color:var(--green);flex:1}
-.cs-acc{font-family:'Barlow Mono',monospace;font-size:.68rem;color:var(--ink3)}
-.cs-toggle{font-family:'Barlow',sans-serif;font-size:.72rem;background:none;border:1px solid var(--border);color:var(--ink3);padding:.2rem .6rem;border-radius:2px;cursor:pointer;white-space:nowrap}
-.cs-toggle:hover{border-color:var(--ink);color:var(--ink)}
-.history-card{opacity:.75}
-.history-card:hover{opacity:1}
-.art-src{font-family:'Barlow Mono',monospace;font-size:.6rem;letter-spacing:.07em;text-transform:uppercase;padding:.16rem .55rem;border-radius:2px;display:inline-block;margin-bottom:.4rem}
+
+/* ── PASSAGE ── */
+.art-src{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.07em;text-transform:uppercase;padding:.16rem .55rem;border-radius:2px;display:inline-block;margin-bottom:.4rem}
 .real-src{background:#eef4ff;color:#1a4a8c;border:1px solid #b8cff0}
 .sim-src{background:#f5f0e8;color:var(--gold);border:1px solid #ddd0b0}
 .art-hd{margin-bottom:1rem;padding-bottom:.7rem;border-bottom:2px solid var(--border)}
-.art-dir{font-family:'Barlow',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-bottom:.3rem}
-.art-ctx{font-family:'Barlow',sans-serif;font-size:.82rem;font-style:italic;color:var(--ink2);margin-bottom:.55rem;line-height:1.6}
-.art-ttl{font-family:'Barlow',sans-serif;font-size:1.1rem;font-weight:700}
-.art-byl{font-family:'Barlow',sans-serif;font-size:.76rem;color:var(--ink3);font-style:italic;margin-top:.1rem}
+.art-dir{font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-bottom:.3rem}
+.art-ctx{font-family:'DM Sans',sans-serif;font-size:.82rem;font-style:italic;color:var(--ink2);margin-bottom:.55rem;line-height:1.6}
+.art-ttl{font-family:'DM Sans',sans-serif;font-size:1.1rem;font-weight:700}
+.art-byl{font-family:'DM Sans',sans-serif;font-size:.76rem;color:var(--ink3);font-style:italic;margin-top:.1rem}
 .art-div{border:none;border-top:2px solid var(--border);margin:1.8rem 0}
 .pr{display:flex;gap:.65rem;margin-bottom:.78rem}
-.pn{font-family:'Barlow Mono',monospace;font-size:.63rem;color:var(--ink3);min-width:1.2rem;padding-top:.3rem;user-select:none;flex-shrink:0}
+.pn{font-family:'DM Mono',monospace;font-size:.63rem;color:var(--ink3);min-width:1.2rem;padding-top:.3rem;user-select:none;flex-shrink:0}
 .pt{flex:1;line-height:1.85}
 .pt.ev{background:var(--ev-bg);border-left:3px solid var(--ev-border);padding-left:.45rem;border-radius:0 2px 2px 0}
-.vb{display:inline-block;border:1.5px solid var(--border);border-radius:2px;padding:.16rem .55rem;font-family:'Barlow',sans-serif;font-size:.74rem;color:var(--ink3);margin:.04rem 0 .5rem 1.85rem;background:#f5f0e8}
-.sh{font-family:'Barlow',sans-serif;font-weight:700;font-size:.8rem;text-align:center;margin:.9rem 0 .45rem;color:var(--ink)}
-.gfx{border:1.5px solid var(--border);border-radius:3px;padding:.8rem 1rem;margin:.4rem 0 .85rem;background:#f5f0e8;font-family:'Barlow',sans-serif;font-size:.84rem}
+.vb{display:inline-block;border:1.5px solid var(--border);border-radius:2px;padding:.16rem .55rem;font-family:'DM Sans',sans-serif;font-size:.74rem;color:var(--ink3);margin:.04rem 0 .5rem 1.85rem;background:#f5f0e8}
+.sh{font-family:'DM Sans',sans-serif;font-weight:700;font-size:.8rem;text-align:center;margin:.9rem 0 .45rem;color:var(--ink)}
+.gfx{border:1.5px solid var(--border);border-radius:3px;padding:.8rem 1rem;margin:.4rem 0 .85rem;background:#f5f0e8;font-family:'DM Sans',sans-serif;font-size:.84rem}
 .gfx-r{display:flex;align-items:flex-start;gap:.5rem;margin-bottom:.32rem}.gfx-r:last-child{margin-bottom:0}
-.diagram-note{font-family:'Barlow',sans-serif;font-size:.8rem;font-style:italic;color:var(--ink3);text-align:center;margin:.6rem 0;padding:.5rem;border:1px dashed var(--border);border-radius:2px}
+.diagram-note{font-family:'DM Sans',sans-serif;font-size:.8rem;font-style:italic;color:var(--ink3);text-align:center;margin:.6rem 0;padding:.5rem;border:1px dashed var(--border);border-radius:2px}
 #pane-l.lmode .pt{cursor:text}
-.ql{font-family:'Barlow',sans-serif;font-size:.67rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);padding-bottom:.42rem;margin-bottom:.9rem;border-bottom:1px solid var(--border)}
+
+/* ── QUESTIONS ── */
+.ql{font-family:'DM Sans',sans-serif;font-size:.67rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);padding-bottom:.42rem;margin-bottom:.9rem;border-bottom:1px solid var(--border)}
 .qb{margin-bottom:1.45rem}
 .qs{font-size:.9rem;font-weight:700;line-height:1.6;margin-bottom:.58rem}
 .qn{color:var(--accent);margin-right:.26rem}
-.qpts{font-family:'Barlow Mono',monospace;font-size:.56rem;background:#f0e8d8;color:var(--gold);border:1px solid #ddd0b0;padding:.07rem .3rem;border-radius:2px;margin-left:.28rem;vertical-align:middle}
+.qpts{font-family:'DM Mono',monospace;font-size:.56rem;background:#f0e8d8;color:var(--gold);border:1px solid #ddd0b0;padding:.07rem .3rem;border-radius:2px;margin-left:.28rem;vertical-align:middle}
 .chs{display:flex;flex-direction:column;gap:.3rem}
 .cb{display:flex;align-items:flex-start;gap:.5rem;background:var(--paper);border:1.5px solid var(--border);border-radius:3px;padding:.46rem .76rem;cursor:pointer;text-align:left;font-family:'Libre Baskerville',serif;font-size:.85rem;color:var(--ink);transition:border-color .15s,background .15s}
 .cb:hover:not(:disabled){border-color:var(--ink2);background:#ede8df}
-.ck{font-family:'Barlow Mono',monospace;font-size:.7rem;font-weight:600;color:var(--ink3);min-width:.88rem;margin-top:.08rem;flex-shrink:0}
+.ck{font-family:'DM Mono',monospace;font-size:.7rem;font-weight:500;color:var(--ink3);min-width:.88rem;margin-top:.08rem;flex-shrink:0}
 .cb.sel{border-color:#666;background:#ece6d8}
 .cb.correct{border-color:var(--green);background:#dff0e8}
 .cb.wrong{border-color:var(--red);background:#f8e4e0}
@@ -124,85 +172,112 @@ body.view-test #screen-test{display:flex}
 .cb:disabled{cursor:default}
 .ex{display:none;margin-top:.62rem;padding:.7rem .86rem;background:#f7f3ec;border-left:3px solid var(--gold);border-radius:0 3px 3px 0;font-size:.82rem}
 .ex.on{display:block}
-.ex-t{font-family:'Barlow Mono',monospace;font-size:.57rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.26rem}
+.ex-t{font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:.26rem}
 .ex-b{color:var(--ink2);line-height:1.6}
 .ex-w{color:var(--red);font-size:.79rem;margin-top:.36rem}
-.ev-btn{display:none;margin-top:.42rem;background:none;border:1px solid var(--gold);color:var(--gold);font-family:'Barlow Mono',monospace;font-size:.58rem;letter-spacing:.07em;padding:.22rem .56rem;border-radius:2px;cursor:pointer;transition:all .15s}
+.ev-btn{display:none;margin-top:.42rem;background:none;border:1px solid var(--gold);color:var(--gold);font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.07em;padding:.22rem .56rem;border-radius:2px;cursor:pointer;transition:all .15s}
 .ev-btn:hover{background:var(--gold);color:#fff}
 body.lm .ev-btn{display:inline-block}
 .qdiv{border:none;border-top:1px dashed var(--border);margin:1.2rem 0}
 .wta{width:100%;min-height:115px;border:1.5px solid var(--border);border-radius:3px;resize:vertical;font-family:'Libre Baskerville',serif;font-size:.87rem;line-height:1.8;padding:.82rem .92rem;background:var(--paper);color:var(--ink);outline:none;margin-top:.52rem;display:block}
 .wta:focus{border-color:var(--ink2);background:#fffdf8}
 .wta:disabled{background:#f0ece4;color:var(--ink3)}
-.wc{text-align:right;font-family:'Barlow Mono',monospace;font-size:.62rem;color:var(--ink3);margin-top:.18rem}
+.wc{text-align:right;font-family:'DM Mono',monospace;font-size:.62rem;color:var(--ink3);margin-top:.18rem}
 .cklist{margin:.58rem 0 .38rem}
-.cki{display:flex;align-items:flex-start;gap:.36rem;font-family:'Barlow',sans-serif;font-size:.79rem;margin-bottom:.26rem;color:var(--ink2)}
+.cki{display:flex;align-items:flex-start;gap:.36rem;font-family:'DM Sans',sans-serif;font-size:.79rem;margin-bottom:.26rem;color:var(--ink2)}
 .wfb{display:none;margin-top:.7rem;padding:.8rem;background:#f7f3ec;border-left:3px solid var(--gold);border-radius:0 3px 3px 0}
 .wfb.on{display:block}
 .srow{display:flex;align-items:center;gap:.68rem;margin-bottom:.58rem}
-.sdot{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow',sans-serif;font-weight:700;font-size:.88rem;color:#fff;flex-shrink:0}
+.sdot{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.88rem;color:#fff;flex-shrink:0}
 .sdot.h{background:var(--green)}.sdot.m{background:var(--gold)}.sdot.l{background:var(--red)}
 .ma{display:none;margin-top:.72rem;padding:.78rem .88rem;background:#e8f5ee;border-left:3px solid var(--green);border-radius:0 3px 3px 0;font-size:.84rem;line-height:1.72}
 .ma.on{display:block}
-.ma-t{font-family:'Barlow Mono',monospace;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--green);font-weight:600;margin-bottom:.3rem}
+.ma-t{font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--green);font-weight:500;margin-bottom:.3rem}
+
+/* ── COMPLETION OVERLAY ── */
 #overlay{display:none;position:fixed;inset:0;background:rgba(28,24,21,.72);z-index:500;align-items:center;justify-content:center}
 #overlay.on{display:flex}
 .ov-card{background:var(--paper);border-radius:4px;padding:2rem 2.4rem;max-width:400px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.4)}
-.ov-card h2{font-family:'Barlow',sans-serif;font-weight:700;font-size:1.3rem;margin-bottom:.45rem}
-.big-score{font-family:'Barlow',sans-serif;font-size:3rem;font-weight:700;color:var(--accent);line-height:1}
-.ov-sub{font-family:'Barlow',sans-serif;font-size:.83rem;color:var(--ink3);margin:.45rem 0 1.1rem}
-.retry-note{font-family:'Barlow',sans-serif;font-size:.8rem;background:#fffae8;border:1px solid var(--ev-border);border-radius:3px;padding:.55rem .85rem;color:#856404;margin-bottom:1rem;display:none;line-height:1.55}
+.ov-card h2{font-family:'DM Sans',sans-serif;font-weight:700;font-size:1.3rem;margin-bottom:.4rem}
+.big-score{font-family:'DM Sans',sans-serif;font-size:3rem;font-weight:700;color:var(--accent);line-height:1}
+.ov-sub{font-family:'DM Sans',sans-serif;font-size:.83rem;color:var(--ink3);margin:.4rem 0 1rem}
+.retry-note{font-family:'DM Sans',sans-serif;font-size:.79rem;background:#fffae8;border:1px solid var(--ev-border);border-radius:3px;padding:.55rem .85rem;color:#856404;margin-bottom:.9rem;display:none;line-height:1.55}
 .retry-note.on{display:block}
-.ov-btns{display:flex;gap:.65rem;justify-content:center;flex-wrap:wrap}
-.obtn{font-family:'Barlow',sans-serif;font-size:.76rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.6rem 1.2rem;border-radius:3px;border:none;cursor:pointer;transition:all .15s}
+.ov-btns{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
+.obtn{font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:.58rem 1.2rem;border-radius:3px;border:none;cursor:pointer;transition:all .15s}
 .obtn-ink{background:var(--ink);color:#f0ece4}.obtn-ink:hover{background:#333}
 .obtn-out{background:none;border:1.5px solid var(--border);color:var(--ink2)}.obtn-out:hover{border-color:var(--ink);color:var(--ink)}
-.btn-import{font-family:'Barlow',sans-serif;font-size:.75rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:.5rem 1.1rem;border-radius:3px;border:1.5px solid var(--accent);color:var(--accent);background:none;cursor:pointer;transition:all .15s}
-.btn-import:hover{background:var(--accent);color:#fff}
+
+/* ── LOADING ── */
+.loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;background:var(--ink);color:#f0ece4;font-family:'DM Sans',sans-serif;gap:.6rem}
+.loading-screen .spin{width:28px;height:28px;border:3px solid #444;border-top-color:#e8834a;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── WORD POPUP ── */
 #wp{position:fixed;z-index:999;background:#1c1815;color:#f0ece4;border-radius:3px;padding:.75rem .9rem;max-width:252px;box-shadow:0 4px 20px rgba(0,0,0,.5);display:none;font-size:.82rem;pointer-events:none}
 #wp.on{display:block}
-#wp .wpw{font-family:'Barlow',sans-serif;font-weight:700;font-size:.94rem;color:#e8834a;margin-bottom:.26rem}
-#wp .wpt{font-family:'Barlow Mono',monospace;font-size:.53rem;letter-spacing:.09em;text-transform:uppercase;color:#666;margin-bottom:.14rem}
+#wp .wpw{font-family:'DM Sans',sans-serif;font-weight:700;font-size:.94rem;color:#e8834a;margin-bottom:.26rem}
+#wp .wpt{font-family:'DM Mono',monospace;font-size:.53rem;letter-spacing:.09em;text-transform:uppercase;color:#666;margin-bottom:.14rem}
 #wp .wpd{color:#ccc;line-height:1.55;margin-bottom:.24rem}
 #wp .wpe{color:#999;font-style:italic;font-size:.77rem;line-height:1.5}
+
 @media(max-width:680px){html,body{overflow:auto}#split{flex-direction:column;overflow:visible}#pane-l{width:100%;border-right:none;border-bottom:2px solid var(--border);overflow:visible;height:auto}#rh{display:none}#pane-r{overflow:visible;height:auto}}
 </style>
 </head>
-<body class="view-home">
+<body style="display:flex;flex-direction:column;height:100%">
 
-<header id="topbar">
-  <div class="logo">NY ELA <em>Trainer</em> &middot; Grade 3</div>
+<!-- LOADING SCREEN (shown while checking session) -->
+<div id="screen-loading" style="display:flex;flex:1;align-items:center;justify-content:center;background:var(--ink);flex-direction:column;gap:.8rem;font-family:'DM Sans',sans-serif;color:#f0ece4">
+  <div style="font-size:1.2rem;font-weight:700;letter-spacing:.05em">NY ELA <span style="color:#e8834a">TRAINER</span></div>
+  <div style="width:28px;height:28px;border:3px solid #444;border-top-color:#e8834a;border-radius:50%;animation:spin .7s linear infinite"></div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="screen-auth" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo">NY ELA <em>Trainer</em></div>
+    <div class="auth-sub">Grade 3 &middot; 50-Day Reading Practice</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchTab('signup')">Create Account</button>
+    </div>
+    <div id="tab-login">
+      <div class="auth-field"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="login-pw" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;"></div>
+      <button class="auth-btn" onclick="doLogin()">Sign In</button>
+      <div class="auth-msg" id="login-msg"></div>
+    </div>
+    <div id="tab-signup" style="display:none">
+      <div class="auth-field"><label>Your Name</label><input type="text" id="signup-name" placeholder="e.g. Emma"></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="signup-email" placeholder="you@example.com"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="signup-pw" placeholder="at least 6 characters"></div>
+      <button class="auth-btn" onclick="doSignup()">Create Account</button>
+      <div class="auth-msg" id="signup-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOP BAR -->
+<header id="topbar" style="display:none">
+  <div class="logo">NY ELA <em>Trainer</em></div>
   <div id="topbar-right">
     <span id="badge" class="badge exam" style="display:none">Exam Mode</span>
+    <div class="user-chip">
+      <span id="user-name-display"></span>
+      <button onclick="goHome()">&#8592; Home</button>
+      <button onclick="doLogout()">Sign Out</button>
+    </div>
     <button class="btn btn-dk" id="btn-back" style="display:none" onclick="goHome()">&#8592; Dashboard</button>
   </div>
 </header>
-<div id="pbar-strip"><div id="pbar"></div></div>
+<div id="pbar-strip" style="display:none"><div id="pbar"></div></div>
 
-<!-- HOME -->
+<!-- HOME SCREEN -->
 <div id="screen-home">
   <div class="home-inner">
     <div class="home-hero">
       <h1>50-Day ELA Practice</h1>
       <p>New York State Grade 3 &middot; 3 articles per session &middot; ~30 min each</p>
-    </div>
-    <div id="import-bar" style="margin-bottom:1.4rem">
-      <button class="btn-import" onclick="openImport()">&#43; Import AI Day</button>
-      <span style="font-family:'Barlow',sans-serif;font-size:.75rem;color:var(--ink3);margin-left:.7rem">Paste Claude-generated JSON to add a simulation day</span>
-    </div>
-
-    <!-- Import modal -->
-    <div id="import-modal" style="display:none;position:fixed;inset:0;background:rgba(28,24,21,.7);z-index:600;align-items:center;justify-content:center">
-      <div style="background:var(--paper);border-radius:4px;padding:1.8rem 2rem;max-width:560px;width:93%;box-shadow:0 8px 32px rgba(0,0,0,.4)">
-        <h3 style="font-family:'Barlow',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:.3rem">Import AI Day</h3>
-        <p style="font-family:'Barlow',sans-serif;font-size:.8rem;color:var(--ink3);margin-bottom:.9rem">Paste the JSON array generated by Claude below, then click Import.</p>
-        <textarea id="import-ta" style="width:100%;height:160px;border:1.5px solid var(--border);border-radius:3px;font-family:'Barlow Mono',monospace;font-size:.75rem;padding:.7rem;resize:vertical;outline:none;background:#faf8f4" placeholder='[{"id":"ai-mc-6","type":"mc", ...}]'></textarea>
-        <div id="import-msg" style="font-family:'Barlow',sans-serif;font-size:.8rem;margin:.5rem 0;min-height:1.2rem"></div>
-        <div style="display:flex;gap:.7rem;justify-content:flex-end;margin-top:.3rem">
-          <button class="obtn obtn-out" onclick="closeImport()">Cancel</button>
-          <button class="obtn obtn-ink" onclick="doImport()">Import Day</button>
-        </div>
-      </div>
     </div>
     <div class="stats-row">
       <div class="stat-box"><div class="stat-num" id="stat-done">0</div><div class="stat-lbl">Days Done</div></div>
@@ -210,12 +285,15 @@ body.lm .ev-btn{display:inline-block}
       <div class="stat-box"><div class="stat-num" id="stat-retry">0</div><div class="stat-lbl">Retry Pool</div></div>
       <div class="stat-box"><div class="stat-num" id="stat-acc">&#8212;</div><div class="stat-lbl">Avg Score</div></div>
     </div>
-    <div class="section-title">Your Days <span id="scroll-hint" style="font-family:'Barlow',sans-serif;font-size:.72rem;font-weight:400;color:var(--ink3);letter-spacing:0;text-transform:none;cursor:pointer" onclick="document.getElementById('today-anchor')?.scrollIntoView({behavior:'smooth'})">&#8595; Jump to today</span></div>
+    <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:1.2rem;flex-wrap:wrap">
+      <div class="section-title" style="flex:1;margin-bottom:0">Your Days</div>
+      <button class="btn-import" onclick="openImport()">&#43; Import AI Day</button>
+    </div>
     <div class="day-grid" id="day-list"></div>
   </div>
 </div>
 
-<!-- TEST -->
+<!-- TEST SCREEN -->
 <div id="screen-test">
   <div id="split">
     <div id="pane-l"></div>
@@ -224,6 +302,7 @@ body.lm .ev-btn{display:inline-block}
   </div>
 </div>
 
+<!-- BOTTOM BAR -->
 <div id="bbar" style="display:none">
   <span class="bbar-status" id="bbar-status">Answer all questions to submit</span>
   <div class="bbar-btns">
@@ -233,12 +312,13 @@ body.lm .ev-btn{display:inline-block}
   </div>
 </div>
 
+<!-- COMPLETION OVERLAY -->
 <div id="overlay">
   <div class="ov-card">
     <h2 id="ov-title">Session Complete!</h2>
     <div class="big-score" id="ov-score">&#8212;</div>
     <div class="ov-sub" id="ov-sub"></div>
-    <div class="retry-note" id="ov-retry">&#9888;&#65039; One or more articles scored below 40% and have been added to your retry pool. You&#8217;ll see them again soon.</div>
+    <div class="retry-note" id="ov-retry">&#9888;&#65039; Some articles scored below 40% and will appear again soon.</div>
     <div class="ov-btns">
       <button class="obtn obtn-out" onclick="reviewSession()">Review Answers</button>
       <button class="obtn obtn-ink" onclick="goHome()">&#8592; Dashboard</button>
@@ -246,6 +326,21 @@ body.lm .ev-btn{display:inline-block}
   </div>
 </div>
 
+<!-- IMPORT MODAL -->
+<div class="modal-backdrop" id="import-modal">
+  <div class="modal-box">
+    <h3>Import AI Day</h3>
+    <p>Paste the JSON array generated by Claude or ChatGPT below.</p>
+    <textarea class="modal-ta" id="import-ta" placeholder='[{"id":"ai-mc-6","type":"mc", ...}]'></textarea>
+    <div class="modal-msg" id="import-msg"></div>
+    <div class="modal-btns">
+      <button class="obtn obtn-out" onclick="closeImport()">Cancel</button>
+      <button class="obtn obtn-ink" onclick="doImport()">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- WORD POPUP -->
 <div id="wp">
   <div class="wpw" id="wp-w"></div>
   <div class="wpt">Simple Definition</div>
@@ -255,9 +350,21 @@ body.lm .ev-btn{display:inline-block}
 </div>
 
 <script>
-// ════════════════════════════════════════
-//  ARTICLE LIBRARY
-// ════════════════════════════════════════
+// ═══════════════════════════════════════════
+//  SUPABASE CONFIG
+// ═══════════════════════════════════════════
+const SUPABASE_URL  = 'https://ruaxyrjabbrivywcgori.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_iGo668SXmR6DJgQn8YoB3w_zVgYFKry';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ═══════════════════════════════════════════
+//  GEMINI CONFIG  (for AI article generation)
+//  Using gemini-2.0-flash FREE tier
+//  Set window.__GEMINI_KEY to enable live generation
+// ═══════════════════════════════════════════
+const GEMINI_KEY = 'AIzaSyC-P9tuiBYVQIXNOpxZF_e49eMEUBYssxc';
+const GEMINI_MODEL = 'gemini-2.0-flash';
+
 const ARTICLES = {
 
 /* ═══════════════════════════════
@@ -568,6 +675,8 @@ questions:[
 //  Format: [mc-only artId, mc+w artId, w-only artId]
 //  'AI' entries trigger AI generation at runtime
 // ════════════════════════════════════════
+
+
 const REAL_MC   = ["sea-view-star","big-moon-tortilla","crazy-about-clouds","brothers-on-ice","getting-even"];
 const REAL_MCW  = ["raccoon-den","little-red-lighthouse","just-listen"];
 const REAL_WO   = ["hide-ladybugs","north-wind-and-sun"];
@@ -600,125 +709,208 @@ for(let d=6;d<=49;d++){
   }
 }
 
+
+// ═══════════════════════════════════════════
+//  SCHEDULE HELPERS
+// ═══════════════════════════════════════════
+const AI_TOPICS = [
+  {mc:"A boy named Marcus who overcomes his fear of the dark by learning about nocturnal animals",info:"How bees make honey and why honey never spoils",writing:"Excerpt from a nonfiction book about monarch butterfly migration"},
+  {mc:"A girl named Lily who moves to a new city and makes an unexpected best friend at the library",info:"How volcanoes form and erupt",writing:"Excerpt from a nonfiction book about ocean tides and the moon"},
+  {mc:"Two siblings Ana and Theo who discover an old letter hidden in their grandmother's attic",info:"Why leaves change color from green to red and yellow in autumn",writing:"Excerpt from a nonfiction book about how desert animals survive extreme heat"},
+  {mc:"A shy student named Priya who finds confidence by joining the school garden club",info:"How different birds collect materials and build their nests",writing:"Excerpt from a nonfiction book about the human digestive system"},
+  {mc:"A dog named Biscuit and a cat named Pepper who must cooperate to find their way home after getting lost",info:"The water cycle: evaporation, clouds, and rain",writing:"Excerpt from a nonfiction book about how ancient Egyptians built the pyramids"},
+  {mc:"A girl named Zoe who learns patience by watching a caterpillar become a butterfly",info:"How earthquakes happen and how scientists measure them",writing:"Excerpt from a nonfiction book about life in the Arctic tundra"},
+  {mc:"A boy named Elijah who finds comfort in birdwatching, a hobby he shared with his grandfather",info:"How plants grow from seeds and what roots, stems, and leaves do",writing:"Excerpt from a nonfiction book about coral reefs and the animals living there"},
+];
+
 function getSched(dayIdx){
-  if(dayIdx<SCHEDULE.length) return SCHEDULE[dayIdx];
-  // Day 50+: use AI slots
-  const i=dayIdx%AI_TOPICS.length;
+  if(dayIdx < SCHEDULE.length) return SCHEDULE[dayIdx];
   return ["AI","AI","AI"];
 }
 
-// Try to load pre-generated JSON from /data/day-NNN.json (GitHub Pages mode)
-// Falls back to real-time AI generation if file not found
-async function fetchPregenerated(dayIdx){
-  const padded=String(dayIdx+1).padStart(3,'0');
-  try{
-    const r=await fetch(`data/day-${padded}.json`);
-    if(!r.ok) return null;
-    return await r.json();
-  }catch(e){return null;}
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let currentUser = null;
+let userDays    = {};   // { dayNumber: {completed, totalScore, mc_correct, mc_total} }
+let retryPool   = [];
+let streak      = 0;
+
+let currentDay  = null;
+let currentSet  = [];
+let mode        = 'exam';
+let answers     = {};
+let submitted   = false;
+const dictCache = {};
+
+// ═══════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════
+function switchTab(tab){
+  document.getElementById('tab-login').style.display  = tab==='login'  ? '' : 'none';
+  document.getElementById('tab-signup').style.display = tab==='signup' ? '' : 'none';
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='signup')));
 }
 
+async function doLogin(){
+  const email = document.getElementById('login-email').value.trim();
+  const pw    = document.getElementById('login-pw').value;
+  const msg   = document.getElementById('login-msg');
+  msg.textContent='Signing in...'; msg.className='auth-msg';
+  const {error} = await sb.auth.signInWithPassword({email, password:pw});
+  if(error){ msg.className='auth-msg err'; msg.textContent=error.message; }
+}
 
-// ════════════════════════════════════════
-//  STORAGE
-// ════════════════════════════════════════
-const SK="ela_v3";
-function loadStore(){try{return JSON.parse(localStorage.getItem(SK))||defStore();}catch(e){return defStore();}}
-function defStore(){return{days:{},retryPool:[],streak:0,lastDate:null};}
-function saveStore(s){localStorage.setItem(SK,JSON.stringify(s));}
+async function doSignup(){
+  const name  = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const pw    = document.getElementById('signup-pw').value;
+  const msg   = document.getElementById('signup-msg');
+  if(!name){ msg.className='auth-msg err'; msg.textContent='Please enter your name.'; return; }
+  msg.textContent='Creating account...'; msg.className='auth-msg';
+  const {data, error} = await sb.auth.signUp({email, password:pw, options:{data:{display_name:name}}});
+  if(error){ msg.className='auth-msg err'; msg.textContent=error.message; return; }
+  // Update display name
+  await sb.from('profiles').update({display_name:name}).eq('id',data.user.id);
+  msg.className='auth-msg ok'; msg.textContent='Account created! Signing you in...';
+}
 
-// ════════════════════════════════════════
-//  STATE
-// ════════════════════════════════════════
-let store=loadStore(),currentDay=null,currentSet=[],mode="exam",answers={},submitted=false;
-const dictCache={};
+async function doLogout(){
+  await sb.auth.signOut();
+  currentUser=null; userDays={}; retryPool=[]; streak=0;
+  showAuth();
+}
 
-// ════════════════════════════════════════
+function showAuth(){
+  document.getElementById('screen-loading').style.display='none';
+  document.getElementById('screen-auth').style.display='flex';
+  document.body.className='view-auth';
+  document.getElementById('topbar').style.display='none';
+  document.getElementById('pbar-strip').style.display='none';
+  document.getElementById('bbar').style.display='none';
+}
+
+async function onLogin(user){
+  currentUser = user;
+  // Load user data from Supabase
+  const {data} = await sb.from('day_records').select('*').eq('user_id', user.id);
+  userDays = {};
+  if(data) data.forEach(r=>{ userDays[r.day_number]={completed:true, totalScore:r.total_score, mc_correct:r.mc_correct, mc_total:r.mc_total}; });
+
+  // Compute streak
+  const days = Object.keys(userDays).map(Number).sort((a,b)=>b-a);
+  streak = 0;
+  for(let i=0;i<days.length;i++){
+    if(days[i]===days[0]-i) streak++;
+    else break;
+  }
+
+  // Get display name
+  const {data:prof} = await sb.from('profiles').select('display_name').eq('id',user.id).single();
+  const displayName = prof?.display_name || user.email.split('@')[0];
+  document.getElementById('user-name-display').textContent = displayName;
+
+  document.getElementById('topbar').style.display='flex';
+  document.getElementById('pbar-strip').style.display='block';
+  goHome();
+}
+
+// Listen for auth state changes + check existing session immediately
+sb.auth.onAuthStateChange((event, session)=>{
+  if(session?.user && event !== 'SIGNED_OUT'){
+    onLogin(session.user);
+  } else if(event==='SIGNED_OUT' || event==='INITIAL_SESSION'){
+    if(!session?.user) showAuth();
+  }
+});
+
+// Check existing session on load
+(async()=>{
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session?.user){
+    showAuth();
+  }
+  // If session exists, onAuthStateChange INITIAL_SESSION event handles login
+})();
+
+// ═══════════════════════════════════════════
 //  HOME
-// ════════════════════════════════════════
+// ═══════════════════════════════════════════
 function goHome(){
-  submitted=false;mode="exam";answers={};
-  document.body.className="view-home";
-  document.getElementById("bbar").style.display="none";
-  document.getElementById("btn-back").style.display="none";
-  document.getElementById("badge").style.display="none";
+  submitted=false; mode='exam'; answers={};
+  document.body.className='view-home';
+  document.getElementById('bbar').style.display='none';
+  document.getElementById('btn-back').style.display='none';
+  document.getElementById('badge').style.display='none';
   renderHome();
 }
 
 function renderHome(){
-  const daysDone=Object.keys(store.days).filter(d=>store.days[d].completed).length;
-  const retryCount=store.retryPool.length;
-  const scores=Object.values(store.days).filter(d=>d.completed).map(d=>d.totalScore);
-  const avg=scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):null;
-  document.getElementById("stat-done").textContent=daysDone;
-  document.getElementById("stat-streak").textContent=store.streak;
-  document.getElementById("stat-retry").textContent=retryCount;
-  document.getElementById("stat-acc").textContent=avg!==null?avg+"%":"\u2014";
+  const daysDone = Object.keys(userDays).filter(d=>userDays[d].completed).length;
+  const scores   = Object.values(userDays).filter(d=>d.completed&&d.totalScore!=null).map(d=>d.totalScore);
+  const avg      = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
 
-  const list=document.getElementById("day-list");
-  list.innerHTML="";
-  const TOTAL=999; // grows automatically past Day 50
-  // Sliding 7-day window:
-  //   - completed days are collapsed into a summary row (not shown individually)
-  //   - show: today (daysDone+1) + next 6 locked days = 7 total
-  //   - Day 50+ bonus days show after 49 is done
-  const todayDay = daysDone + 1;
-  const windowStart = todayDay;          // first visible = today
-  const windowEnd   = Math.min(todayDay + 6, TOTAL === 999 ? todayDay + 6 : 49);
+  document.getElementById('stat-done').textContent   = daysDone;
+  document.getElementById('stat-streak').textContent = streak;
+  document.getElementById('stat-retry').textContent  = retryPool.length;
+  document.getElementById('stat-acc').textContent    = avg!==null ? avg+'%' : '\u2014';
 
-  // Collapsed summary for completed days
+  const list = document.getElementById('day-list');
+  list.innerHTML = '';
+
+  // ── Completed summary (collapsed) ──
   if(daysDone > 0){
     const row = document.createElement('div');
-    row.className = 'completed-summary';
-    row.innerHTML = `<span class="cs-icon">&#10003;</span>
+    row.className='completed-summary';
+    row.innerHTML=`<span class="cs-icon">\u2713</span>
       <span class="cs-text">${daysDone} day${daysDone!==1?'s':''} completed</span>
-      <span class="cs-acc">${store.streak} &#128293; streak</span>
-      <button class="cs-toggle" onclick="toggleHistory()">View history &#9660;</button>`;
+      <span class="cs-acc">${streak} \uD83D\uDD25 streak</span>
+      <button class="cs-toggle" onclick="toggleHistory()">View history \u25be</button>`;
     list.appendChild(row);
 
-    // Hidden history list (collapsed by default)
-    const hist = document.createElement('div');
-    hist.id = 'history-wrap';
-    hist.style.display = 'none';
+    const hist=document.createElement('div');
+    hist.id='history-wrap'; hist.style.display='none';
     for(let h=1;h<=daysDone;h++){
-      const hdata=store.days[h];
+      const hd=userDays[h];
       const hrow=document.createElement('div');
       hrow.className='day-card done history-card';
       hrow.onclick=()=>startDay(h);
-      const hsrc=getSched(h-1).map(id=>ARTICLES[id]?.isReal?'Real':'Sim').filter((v,i,a)=>a.indexOf(v)===i).join('+');
+      const sched=getSched(h-1);
+      const hsrc=sched.map(id=>ARTICLES[id]?.isReal?'Real':'Sim').filter((v,i,a)=>a.indexOf(v)===i).join('+');
       hrow.innerHTML=`<div class="day-num">${h}</div>
         <div class="day-info"><div class="day-title">Day ${h}</div><div class="day-sub">${hsrc}</div></div>
-        <div class="day-right"><span class="day-score">${hdata?.totalScore??''}${hdata?.totalScore!=null?'%':''}</span><span class="dbadge done">&#10003;</span></div>`;
+        <div class="day-right"><span class="day-score">${hd?.totalScore!=null?hd.totalScore+'%':''}</span><span class="dbadge done">\u2713</span></div>`;
       hist.appendChild(hrow);
     }
     list.appendChild(hist);
   }
 
-  for(let d=windowStart;d<=windowEnd;d++){
-    const data=store.days[d];
-    const done=data&&data.completed;
-    const retryDue=!done&&store.retryPool.some(r=>r.scheduledForDay===d);
-    const locked = d > daysDone + 1;
-    const sched=getSched(d-1);
-    const arts=sched.map(id=>ARTICLES[id]).filter(Boolean);
-    const titles=arts.map(a=>a.title.replace("Excerpt from ","")).join(" \u00b7 ");
-    const src=arts.map(a=>a.isReal
-      ? a.source.replace('NYS ELA ','')
-      : 'Simulation'
-    ).join(' \u00b7 ');
+  // ── 7-day window: today + next 6 ──
+  const todayDay  = daysDone + 1;
+  const windowEnd = Math.min(todayDay + 6, 999);
+  if(windowEnd < todayDay){ return; } // safety check
 
-    const card=document.createElement("div");
-    card.className="day-card"+(done?" done":"")+(retryDue?" retry-due":"")+(locked?" locked":"");
-    if(!locked) card.onclick=()=>startDay(d);
+  for(let d=todayDay; d<=windowEnd; d++){
+    const done      = userDays[d]?.completed;
+    const locked    = d > daysDone + 1;
+    const retryDue  = !done && retryPool.some(r=>r.scheduledForDay===d);
+    const sched     = getSched(d-1);
+    const src       = sched.map(id=>id==='AI'?'Simulation':(ARTICLES[id]?.isReal ? ARTICLES[id].source.replace('NYS ELA ','') : 'Simulation')).filter((v,i,a)=>a.indexOf(v)===i).join(' \u00b7 ');
+    const isBonus   = d > 49;
+
+    const card=document.createElement('div');
+    card.className='day-card'+(locked?' locked':'')+(retryDue?' retry-due':'');
     if(d===daysDone+1) card.id='today-anchor';
+    if(!locked) card.onclick=()=>startDay(d);
 
-    let badge="";
-    if(done) badge=`<span class="dbadge done">\u2713 Done</span>`;
-    else if(retryDue) badge=`<span class="dbadge retry">\u26a0 Retry</span>`;
-    else if(d===daysDone+1) badge=`<span class="dbadge today">${d>49?'Bonus':'Today'}</span>`;
-    else badge=`<span class="dbadge upcoming">${d>49?'Bonus':'Upcoming'}</span>`;
-    const scoreStr=done?`<span class="day-score">${data.totalScore}%</span>`:"";
+    let badge='';
+    if(done)           badge=`<span class="dbadge done">\u2713 Done</span>`;
+    else if(retryDue)  badge=`<span class="dbadge retry">\u26a0 Retry</span>`;
+    else if(isBonus)   badge=`<span class="dbadge bonus">Bonus</span>`;
+    else if(!locked)   badge=`<span class="dbadge today">Today</span>`;
+    else               badge=`<span class="dbadge upcoming">Upcoming</span>`;
 
+    const scoreStr = done && userDays[d]?.totalScore!=null ? `<span class="day-score">${userDays[d].totalScore}%</span>` : '';
     card.innerHTML=`<div class="day-num">${d}</div>
       <div class="day-info"><div class="day-title">Day ${d}</div><div class="day-sub">${src}</div></div>
       <div class="day-right">${scoreStr}${badge}</div>`;
@@ -726,322 +918,308 @@ function renderHome(){
   }
 }
 
-// ════════════════════════════════════════
-//  AI ARTICLE GENERATOR
-// ════════════════════════════════════════
-// Topics pool: rotate through diverse Grade 3-appropriate subjects
-const AI_TOPICS = [
-  {mc:"A boy who overcomes his fear of the dark by learning about nocturnal animals",info:"How bees make honey",writing:"Excerpt from a nonfiction book about monarch butterfly migration"},
-  {mc:"A girl who moves to a new city and makes an unexpected friend at the library",info:"How volcanoes form and erupt",writing:"Excerpt from a nonfiction book about ocean tides"},
-  {mc:"Two siblings who discover an old letter hidden in their grandmother's attic",info:"Why leaves change color in autumn",writing:"Excerpt from a nonfiction book about desert animals surviving heat"},
-  {mc:"A shy student who finds confidence through joining the school garden club",info:"How birds build their nests",writing:"Excerpt from a nonfiction book about how the human digestive system works"},
-  {mc:"A dog and cat who must cooperate to find their way home after getting lost",info:"The water cycle: rain, evaporation, and clouds",writing:"Excerpt from a nonfiction book about ancient Egyptian pyramids"},
-  {mc:"A girl who learns patience by waiting for a caterpillar to become a butterfly",info:"How earthquakes happen and how scientists measure them",writing:"Excerpt from a nonfiction book about life in the Arctic tundra"},
-  {mc:"A boy who misses his grandfather but finds comfort in a shared hobby",info:"How plants grow from seeds",writing:"Excerpt from a nonfiction book about coral reefs and the animals living there"},
-];
-
-// Cache AI-generated articles in localStorage so they persist
-function getAICache(dayIdx){
-  try{
-    const k='ai_art_'+dayIdx;
-    const v=localStorage.getItem(k);
-    return v?JSON.parse(v):null;
-  }catch(e){return null;}
-}
-function setAICache(dayIdx,artSet){
-  try{localStorage.setItem('ai_art_'+dayIdx,JSON.stringify(artSet));}catch(e){}
+function toggleHistory(){
+  const w=document.getElementById('history-wrap');
+  const btn=document.querySelector('.cs-toggle');
+  if(!w)return;
+  const open=w.style.display!=='none';
+  w.style.display=open?'none':'block';
+  if(btn) btn.innerHTML=open?'View history \u25be':'Hide history \u25b4';
 }
 
-async
-async function generateAISet(dayIdx){
-  const topic = AI_TOPICS[dayIdx % AI_TOPICS.length];
-  const dayNum = dayIdx + 1;
-  const isFullAI = dayIdx >= 5 && ((dayIdx - 5) % 3 === 2);
-  const prompt = isFullAI ? buildFullAIPrompt(dayNum,topic) : buildWritingOnlyAIPrompt(dayNum,topic);
+// ═══════════════════════════════════════════
+//  START DAY
+// ═══════════════════════════════════════════
+async function startDay(d){
+  currentDay=d; answers={}; submitted=false; mode='exam';
+  document.body.className='view-test';
+  document.getElementById('bbar').style.display='flex';
+  document.getElementById('btn-back').style.display='none';
+  document.getElementById('badge').style.display='inline-block';
+  document.getElementById('badge').className='badge exam';
+  document.getElementById('badge').textContent='Exam Mode';
+  document.getElementById('pbar').style.cssText='width:0;background:var(--accent)';
+  document.getElementById('btn-rev').style.display='none';
+  document.getElementById('btn-lrn').style.display='none';
+  document.getElementById('btn-sub').style.display='inline-block';
 
-  const GEMINI_KEY = window.__GEMINI_KEY || '';
-  if(!GEMINI_KEY){
-    throw new Error('Gemini key not set. Add window.__GEMINI_KEY = "AIza..." to the page or use pre-generated files.');
+  const sched = getSched(d-1);
+  const needsAI = sched.includes('AI');
+
+  if(needsAI){
+    // Show loading
+    document.getElementById('pane-l').innerHTML=`<div style="padding:3rem 2rem;text-align:center;font-family:'DM Sans',sans-serif;color:var(--ink3)">
+      <div style="font-size:1.8rem;margin-bottom:.8rem">\u2699\uFE0F</div>
+      <div style="font-size:.95rem;font-weight:600;margin-bottom:.4rem">Generating today\u2019s practice set\u2026</div>
+      <div style="font-size:.8rem">Fetching from database or creating new content</div>
+    </div>`;
+    document.getElementById('pane-r').innerHTML='';
+
+    try{
+      const arts = await loadOrGenerateAI(d-1);
+      arts.forEach(a=>{ ARTICLES[a.id]=a; });
+      const newSched=sched.map((s,i)=>s==='AI'?(arts[i]?.id||s):s);
+      SCHEDULE[d-1]=newSched;
+      currentSet=arts;
+    }catch(err){
+      document.getElementById('pane-l').innerHTML=`<div style="padding:2rem;font-family:'DM Sans',sans-serif;color:var(--red)">
+        \u26a0\uFE0F Could not load content: ${err.message}.<br><br>
+        Try <strong>Import AI Day</strong> from the dashboard to add content manually.
+      </div>`;
+      return;
+    }
+  } else {
+    currentSet = sched.map(id=>ARTICLES[id]).filter(Boolean);
   }
-  const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+
+  renderPassage();
+  renderQuestions();
+  updateProg();
+  initResize();
+  document.getElementById('pane-l').addEventListener('mouseup', handleWordSel);
+}
+
+// ═══════════════════════════════════════════
+//  AI GENERATION  (Gemini → Supabase cache)
+// ═══════════════════════════════════════════
+async function loadOrGenerateAI(dayIdx){
+  const dayNum = dayIdx + 1;
+
+  // 1. Check Supabase cache first (shared across all users!)
+  const {data} = await sb.from('ai_articles').select('articles').eq('day_number', dayNum).single();
+  if(data?.articles){
+    console.log(`Day ${dayNum}: loaded from Supabase cache`);
+    return data.articles;
+  }
+
+  // 2. Generate with Gemini
+  console.log(`Day ${dayNum}: generating with Gemini...`);
+  if(!GEMINI_KEY){
+    throw new Error('No Gemini API key configured. Please use Import AI Day instead.');
+  }
+
+  const topic = AI_TOPICS[dayIdx % AI_TOPICS.length];
+  const isFullAI = dayIdx >= 5 && ((dayIdx-5)%3===2);
+  const prompt = isFullAI ? buildFullPrompt(dayNum,topic) : buildWritingPrompt(dayNum,topic);
+
+  const url=`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`;
   const resp=await fetch(url,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
+    method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
       contents:[{parts:[{text:prompt}]}],
       generationConfig:{temperature:0.7,maxOutputTokens:8192,responseMimeType:'application/json'},
     }),
   });
-  if(!resp.ok){const e=await resp.text();throw new Error(`Gemini ${resp.status}: ${e.slice(0,200)}`);}
-  const data=await resp.json();
-  const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  if(!resp.ok){ const e=await resp.text(); throw new Error(`Gemini ${resp.status}: ${e.slice(0,200)}`); }
+  const data2=await resp.json();
+  const text=data2.candidates?.[0]?.content?.parts?.[0]?.text||'';
   if(!text) throw new Error('Empty response from Gemini');
-  return JSON.parse(text.replace(/^```json\s*/i,'').replace(/\s*```$/i,'').trim());
+  const arts=JSON.parse(text.replace(/^```json\s*/i,'').replace(/\s*```$/i,'').trim());
+
+  // 3. Store in Supabase so future users get it instantly
+  await sb.from('ai_articles').upsert({day_number:dayNum, articles:arts});
+  console.log(`Day ${dayNum}: saved to Supabase`);
+  return arts;
 }
 
-function buildWritingOnlyAIPrompt(dayNum,topic){
+function buildWritingPrompt(dayNum, topic){
   return `You are an expert NYS ELA test writer for Grade 3. Generate ONE nonfiction excerpt as a writing-only practice piece.
 Topic: ${topic.writing}
-- ~280 words, 8-12 numbered paragraphs with section headings (<div class="sh">Heading</div>)
-- Vocabulary boxes: <div class="vb">word = definition</div>
+- ~280 words, 8-12 numbered paragraphs, 2-3 section headings (<div class="sh">Heading</div>)
+- Vocab boxes after relevant paragraphs: <div class="vb">word = definition</div>
 - End with: <div class="diagram-note">&#9711; Diagram: [description]</div>
 - Paragraph HTML: <div class="pr"><span class="pn">N</span><span class="pt" id="RN">Text.</span></div>
-- HTML entities for quotes: &#8220; &#8221; &#8216; &#8217; &#8230;
-- 3 written response questions (2 pts), each requiring TWO text details
+- HTML entities for ALL quotes: &#8220; &#8221; &#8216; &#8217; &#8230;
+- 3 written response questions (2 pts each) requiring TWO text details each
 Return a JSON ARRAY with exactly ONE object: [{"id":"ai-wo-${dayNum}","type":"w-only","isReal":false,"source":"Simulation","title":"...","byline":"by ...","directions":"Read this passage. Then answer questions 14 through 16.","context":null,"passageHTML":"...","questions":[],"writings":[{"id":"ai-w1-${dayNum}","pts":2,"prompt":"... <strong>two</strong> ...","prompt_plain":"...","rubric":["...","...","..."],"modelAnswer":"..."},{"id":"ai-w2-${dayNum}","pts":2,"prompt":"...","prompt_plain":"...","rubric":["...","...","..."],"modelAnswer":"..."},{"id":"ai-w3-${dayNum}","pts":2,"prompt":"...","prompt_plain":"...","rubric":["...","...","..."],"modelAnswer":"..."}]}]`;
 }
 
-function buildFullAIPrompt(dayNum,topic){
+function buildFullPrompt(dayNum, topic){
   return `You are an expert NYS ELA test writer for Grade 3. Generate a complete 3-article practice set.
-ART1 (mc): Literary story ~300w, 6 MC questions. Topic: ${topic.mc}
+ART1 (mc): Literary story ~300w, 6 MC. Topic: ${topic.mc}
 ART2 (mc+w): Informational ~250w, 5 MC + 2 written (2pts). Topic: ${topic.info}
 ART3 (w-only): Nonfiction ~280w, 3 written (2pts). Topic: ${topic.writing}
-Paragraph HTML: <div class="pr"><span class="pn">N</span><span class="pt" id="XN">Text.</span></div>
+Paragraphs: <div class="pr"><span class="pn">N</span><span class="pt" id="XN">Text.</span></div>
 Art1 IDs: P1,P2... Art2: Q1,Q2... Art3: R1,R2...
 Vocab: <div class="vb">word = def</div>  Headings: <div class="sh">Title</div>
-HTML entities for ALL quotes: &#8220; &#8221; &#8216; &#8217; &#8230;
+Art3 ends with: <div class="diagram-note">&#9711; Diagram: ...</div>
+ALL quote characters: &#8220; &#8221; &#8216; &#8217; &#8230; NO raw " or ' in passageHTML.
 MC: {id,stem,choices[4],correct(0-3),ev[],expl,wrong:{1,2,3}}
 Writing: {id,pts:2,prompt(with <strong>two</strong>),prompt_plain,rubric[3],modelAnswer}
-Return JSON ARRAY of exactly 3 objects: [{id,type,isReal:false,source:"Simulation",title,byline,directions,context:null,passageHTML,questions,writings}]`;
+Return JSON ARRAY of exactly 3: [{id,type,isReal:false,source:"Simulation",title,byline,directions,context:null,passageHTML,questions,writings}]`;
 }
 
-
-function startDay(d){
-  currentDay=d;answers={};submitted=false;mode="exam";
-  const sched=getSched(d-1);
-  // Check if this day has an 'AI' slot
-  const needsAI=sched.includes("AI");
-  if(needsAI){
-    // Check cache first
-    const cached=getAICache(d-1);
-    if(cached){
-      currentSet=cached;
-      _finishStartDay(d);
-    } else {
-      // Show loading state
-      document.body.className="view-test";
-      document.getElementById("bbar").style.display="flex";
-      document.getElementById("btn-back").style.display="inline-block";
-      document.getElementById("badge").style.display="inline-block";
-      document.getElementById("badge").className="badge exam";
-      document.getElementById("badge").textContent="Generating...";
-      document.getElementById("pane-l").innerHTML=`<div style="padding:3rem 2rem;text-align:center;font-family:'Barlow',sans-serif;color:var(--ink3)">
-        <div style="font-size:1.5rem;margin-bottom:.8rem">&#9881;&#65039;</div>
-        <div style="font-size:.95rem;margin-bottom:.4rem">Generating today’s practice set…</div>
-        <div style="font-size:.8rem">This takes about 15–30 seconds</div>
-      </div>`;
-      document.getElementById("pane-r").innerHTML="";
-      // First try pre-generated file, then fall back to live generation
-      const tryLoad = fetchPregenerated(d-1).then(prebuilt=>{
-        if(prebuilt) return prebuilt;
-        return generateAISet(d-1);
-      });
-      tryLoad.then(arts=>{
-        // Register new articles
-        arts.forEach(a=>{ ARTICLES[a.id]=a; });
-        // Update schedule slot
-        const newSched=sched.map((id,i)=>id==="AI"?arts[i]?.id||id:id);
-        SCHEDULE[d-1]=newSched;
-        setAICache(d-1,arts);
-        currentSet=arts;
-        _finishStartDay(d);
-      }).catch(err=>{
-        document.getElementById("pane-l").innerHTML=`<div style="padding:2rem;font-family:'Barlow',sans-serif;color:var(--red)">
-          &#9888;&#65039; Could not generate content: ${err.message}. Please try again.
-        </div>`;
-      });
-    }
-    return;
-  }
-  currentSet=sched.map(id=>ARTICLES[id]).filter(Boolean);
-  _finishStartDay(d);
-}
-
-function _finishStartDay(d){
-  document.body.className="view-test";
-  document.getElementById("bbar").style.display="flex";
-  document.getElementById("btn-back").style.display="inline-block";
-  document.getElementById("badge").style.display="inline-block";
-  document.getElementById("badge").className="badge exam";
-  document.getElementById("badge").textContent="Exam Mode";
-  document.getElementById("pbar").style.cssText="width:0;background:var(--accent)";
-  document.getElementById("btn-rev").style.display="none";
-  document.getElementById("btn-lrn").style.display="none";
-  document.getElementById("btn-sub").style.display="inline-block";
-  updateProg();initResize();
-  document.getElementById("pane-l").addEventListener("mouseup",handleWordSel);
-}  // end _finishStartDay
-
-// ════════════════════════════════════════
-//  RENDER
-// ════════════════════════════════════════
+// ═══════════════════════════════════════════
+//  RENDER PASSAGE + QUESTIONS
+// ═══════════════════════════════════════════
 function renderPassage(){
-  let html="";
+  let html='';
   currentSet.forEach((art,i)=>{
     if(i>0) html+='<hr class="art-div">';
-    const srcTag = art.isReal
-      ? `<div class="art-src real-src">&#128197; ${art.source}</div>`
-      : `<div class="art-src sim-src">&#9733; Simulation</div>`;
-    html+=`<div class="art-hd">${srcTag}<div class="art-dir">${art.directions}</div>${art.context?`<div class="art-ctx">${art.context}</div>`:""}<div class="art-ttl">${art.title}</div><div class="art-byl">${art.byline}</div></div>`;
+    const srcTag=art.isReal
+      ? `<div class="art-src real-src">\uD83D\uDCC5 ${art.source}</div>`
+      : `<div class="art-src sim-src">\u2605 Simulation</div>`;
+    html+=`<div class="art-hd">${srcTag}<div class="art-dir">${art.directions}</div>${art.context?`<div class="art-ctx">${art.context}</div>`:''}<div class="art-ttl">${art.title}</div><div class="art-byl">${art.byline}</div></div>`;
     html+=art.passageHTML;
   });
-  document.getElementById("pane-l").innerHTML=html;
+  document.getElementById('pane-l').innerHTML=html;
 }
 
 function renderQuestions(){
-  let html="",n=1;
+  let html='',n=1;
   currentSet.forEach((art,ai)=>{
-    const short=art.title.replace("Excerpt from ","").replace(/['"]/g,"");
+    const short=art.title.replace('Excerpt from ','').replace(/[\u201c\u201d]/g,'');
     if(ai>0) html+='<hr class="qdiv">';
     if(art.questions.length>0){
       html+=`<div class="ql">${short} \u2014 Questions ${n}\u2013${n+art.questions.length-1} \u00b7 Multiple Choice</div>`;
       art.questions.forEach(q=>{html+=buildMCQ(q,n);n++;});
     }
-    if(art.writings&&art.writings.length>0){
+    if(art.writings?.length>0){
       html+=`<hr class="qdiv"><div class="ql">${short} \u2014 Questions ${n}\u2013${n+art.writings.length-1} \u00b7 Written Response</div>`;
       art.writings.forEach(w=>{html+=buildW(w,n);n++;});
     }
   });
-  document.getElementById("pane-r").innerHTML=html;
+  document.getElementById('pane-r').innerHTML=html;
   wireQ();
 }
 
 function buildMCQ(q,n){
-  const ch=q.choices.map((c,i)=>`<button class="cb" data-qid="${q.id}" data-k="${i}"><span class="ck">${"ABCD"[i]}</span>${c}</button>`).join("");
+  const ch=q.choices.map((c,i)=>`<button class="cb" data-qid="${q.id}" data-k="${i}"><span class="ck">${'ABCD'[i]}</span>${c}</button>`).join('');
   return `<div class="qb" id="qb-${q.id}"><div class="qs"><span class="qn">${n}.</span>${q.stem}</div><div class="chs">${ch}</div>
-    <div class="ex" id="ex-${q.id}"><div class="ex-t">&#128218; Explanation</div><div class="ex-b" id="eb-${q.id}">${q.expl}<div class="ex-w" id="ew-${q.id}"></div></div>
-    <button class="ev-btn" onclick="shEv(${JSON.stringify(q.ev)})">&#128269; Show Evidence</button></div></div>`;
+    <div class="ex" id="ex-${q.id}"><div class="ex-t">\u{1F4D6} Explanation</div><div class="ex-b" id="eb-${q.id}">${q.expl}<div class="ex-w" id="ew-${q.id}"></div></div>
+    <button class="ev-btn" onclick="shEv(${JSON.stringify(q.ev)})">\u{1F50D} Show Evidence</button></div></div>`;
 }
 
 function buildW(w,n){
-  const ck=w.rubric.map((r,i)=>`<div class="cki" id="ck-${w.id}-${i}"><span>&#9633;</span><span>${r}</span></div>`).join("");
+  const ck=w.rubric.map((r,i)=>`<div class="cki" id="ck-${w.id}-${i}"><span>\u25a1</span><span>${r}</span></div>`).join('');
   return `<div class="qb" id="qb-${w.id}"><div class="qs"><span class="qn">${n}.</span>${w.prompt} <span class="qpts">${w.pts} pts</span></div>
     <textarea class="wta" id="wta-${w.id}" placeholder="Write your response here\u2026"></textarea>
     <div class="wc" id="wc-${w.id}">0 words</div>
     <div class="cklist">${ck}</div>
-    <div class="wfb" id="wfb-${w.id}"><div class="srow"><div class="sdot m" id="sd-${w.id}">\u2014</div><div id="sl-${w.id}" style="font-family:'Barlow',sans-serif;font-size:.83rem;color:var(--ink2)"></div></div>
-    <div class="ma" id="ma-${w.id}"><div class="ma-t">&#11088; Model Response</div>${w.modelAnswer}</div></div></div>`;
+    <div class="wfb" id="wfb-${w.id}"><div class="srow"><div class="sdot m" id="sd-${w.id}">\u2014</div><div id="sl-${w.id}" style="font-family:'DM Sans',sans-serif;font-size:.83rem;color:var(--ink2)"></div></div>
+    <div class="ma" id="ma-${w.id}"><div class="ma-t">\u2b50 Model Response</div>${w.modelAnswer}</div></div></div>`;
 }
 
 function wireQ(){
-  document.querySelectorAll(".cb").forEach(b=>{
-    b.addEventListener("click",()=>{
+  document.querySelectorAll('.cb').forEach(b=>{
+    b.addEventListener('click',()=>{
       if(submitted)return;
       const qid=b.dataset.qid,k=parseInt(b.dataset.k);
       answers[qid]=k;
-      document.querySelectorAll(`[data-qid="${qid}"]`).forEach(x=>x.classList.remove("sel"));
-      b.classList.add("sel");updateProg();
+      document.querySelectorAll(`[data-qid="${qid}"]`).forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel'); updateProg();
     });
   });
   currentSet.forEach(art=>{
     (art.writings||[]).forEach(w=>{
-      const ta=document.getElementById("wta-"+w.id);
-      if(ta) ta.addEventListener("input",()=>{
-        const n=ta.value.trim()===""?0:ta.value.trim().split(/\s+/).length;
-        document.getElementById("wc-"+w.id).textContent=n+" word"+(n!==1?"s":"");
+      const ta=document.getElementById('wta-'+w.id);
+      if(ta) ta.addEventListener('input',()=>{
+        const n=ta.value.trim()===''?0:ta.value.trim().split(/\s+/).length;
+        document.getElementById('wc-'+w.id).textContent=n+' word'+(n!==1?'s':'');
       });
     });
   });
 }
 
-function allMCQs(){return currentSet.flatMap(a=>a.questions);}
+function allMCQs(){ return currentSet.flatMap(a=>a.questions); }
 
 function updateProg(){
   const total=allMCQs().length,done=Object.keys(answers).length;
-  if(total===0){document.getElementById("pbar").style.width="100%";document.getElementById("bbar-status").textContent="Complete written responses and submit";document.getElementById("btn-sub").style.opacity="1";return;}
-  document.getElementById("pbar").style.width=(done/total*100)+"%";
+  if(total===0){document.getElementById('pbar').style.width='100%';document.getElementById('bbar-status').textContent='Complete written responses and submit';document.getElementById('btn-sub').style.opacity='1';return;}
+  document.getElementById('pbar').style.width=(done/total*100)+'%';
   const ready=done===total;
-  document.getElementById("btn-sub").style.opacity=ready?"1":"0.55";
-  document.getElementById("bbar-status").textContent=ready?"All MC answered \u2014 ready to submit!":`${done}/${total} multiple choice answered`;
+  document.getElementById('btn-sub').style.opacity=ready?'1':'0.55';
+  document.getElementById('bbar-status').textContent=ready?'All MC answered \u2014 ready to submit!':`${done}/${total} multiple choice answered`;
 }
 
-// ════════════════════════════════════════
-//  SUBMIT
-// ════════════════════════════════════════
-function submitAll(){
+// ═══════════════════════════════════════════
+//  SUBMIT + SAVE TO SUPABASE
+// ═══════════════════════════════════════════
+async function submitAll(){
   const mcqs=allMCQs();
   if(mcqs.length>0&&Object.keys(answers).length<mcqs.length){
-    if(!confirm("You haven't answered all multiple choice questions. Submit anyway?"))return;
+    if(!confirm('You haven\u2019t answered all multiple choice questions. Submit anyway?'))return;
   }
   submitted=true;
-  applyColors("review");
+  applyColors('review');
   currentSet.forEach(art=>{
     (art.writings||[]).forEach(w=>{
-      document.getElementById("wfb-"+w.id).classList.add("on");
-      const ta=document.getElementById("wta-"+w.id);
+      document.getElementById('wfb-'+w.id).classList.add('on');
+      const ta=document.getElementById('wta-'+w.id);
       if(ta)ta.disabled=true;
       gradeW(w);
     });
   });
-  document.getElementById("btn-sub").style.display="none";
-  document.getElementById("btn-rev").style.display="inline-block";
-  document.getElementById("btn-lrn").style.display="inline-block";
-  document.getElementById("pbar").style.background="var(--green)";
-  setMode("review");
-
-  // per-article MC scores + retry check
-  const artScores={};
-  const retried=[];
-  currentSet.forEach(art=>{
-    if(art.questions.length===0){artScores[art.id]=null;return;}
-    const correct=art.questions.filter(q=>answers[q.id]===q.correct).length;
-    const pct=Math.round(correct/art.questions.length*100);
-    artScores[art.id]=pct;
-    if(pct<40){
-      const nextDay=currentDay+Math.floor(Math.random()*3)+2;
-      store.retryPool.push({artId:art.id,failedDay:currentDay,scheduledForDay:nextDay});
-      retried.push(art.title.replace("Excerpt from ",""));
-    }
-  });
+  document.getElementById('btn-sub').style.display='none';
+  document.getElementById('btn-rev').style.display='inline-block';
+  document.getElementById('btn-lrn').style.display='inline-block';
+  document.getElementById('pbar').style.background='var(--green)';
+  setMode('review');
 
   const mcTotal=allMCQs().length;
   const mcCorrect=allMCQs().filter(q=>answers[q.id]===q.correct).length;
   const totalScore=mcTotal>0?Math.round(mcCorrect/mcTotal*100):0;
 
-  store.days[currentDay]={completed:true,date:new Date().toLocaleDateString(),scores:artScores,totalScore};
-  const today=new Date().toDateString();
-  if(store.lastDate!==today){
-    store.streak=store.lastDate===new Date(Date.now()-86400000).toDateString()?store.streak+1:1;
-    store.lastDate=today;
+  // Retry pool
+  const retried=[];
+  currentSet.forEach(art=>{
+    if(art.questions.length===0)return;
+    const correct=art.questions.filter(q=>answers[q.id]===q.correct).length;
+    const pct=Math.round(correct/art.questions.length*100);
+    if(pct<40){
+      const nextDay=currentDay+Math.floor(Math.random()*3)+2;
+      retryPool.push({artId:art.id,failedDay:currentDay,scheduledForDay:nextDay});
+      retried.push(art.title.replace('Excerpt from ',''));
+    }
+  });
+
+  // Save to Supabase
+  if(currentUser){
+    await sb.from('day_records').upsert({
+      user_id: currentUser.id,
+      day_number: currentDay,
+      total_score: totalScore,
+      mc_correct: mcCorrect,
+      mc_total: mcTotal,
+    }, {onConflict: 'user_id,day_number'});
+    userDays[currentDay]={completed:true,totalScore,mc_correct:mcCorrect,mc_total:mcTotal};
+    // Update streak
+    streak = Object.keys(userDays).filter(d=>userDays[d].completed).length;
   }
-  saveStore(store);
+
   showOv(totalScore,mcTotal,mcCorrect,retried);
 }
 
 function showOv(score,total,correct,retried){
-  document.getElementById("ov-title").textContent=`Day ${currentDay} Complete!`;
-  document.getElementById("ov-score").textContent=total>0?score+"%":"\u2014";
-  let sub=total>0?`${correct} of ${total} multiple choice correct`:"Written responses submitted";
-  if(currentDay>=49&&score!==null&&score<60){
-    sub+=" \u2014 Bonus day added to your schedule!";
-  }
-  document.getElementById("ov-sub").textContent=sub;
-  document.getElementById("ov-retry").classList.toggle("on",retried.length>0);
-  document.getElementById("overlay").classList.add("on");
+  document.getElementById('ov-title').textContent=`Day ${currentDay} Complete!`;
+  document.getElementById('ov-score').textContent=total>0?score+'%':'\u2014';
+  document.getElementById('ov-sub').textContent=total>0?`${correct} of ${total} multiple choice correct`:'Written responses submitted';
+  document.getElementById('ov-retry').classList.toggle('on',retried.length>0);
+  document.getElementById('overlay').classList.add('on');
 }
 
-function reviewSession(){document.getElementById("overlay").classList.remove("on");setMode("learn");}
+function reviewSession(){document.getElementById('overlay').classList.remove('on');setMode('learn');}
 
-// ════════════════════════════════════════
+// ═══════════════════════════════════════════
 //  MODE
-// ════════════════════════════════════════
+// ═══════════════════════════════════════════
 function setMode(m){
   mode=m;
-  document.getElementById("badge").className="badge "+m;
-  document.getElementById("badge").textContent=m==="exam"?"Exam Mode":m==="review"?"Review Mode":"Learning Mode";
-  document.body.classList.toggle("lm",m==="learn");
-  document.getElementById("pane-l").classList.toggle("lmode",m==="learn");
+  document.getElementById('badge').className='badge '+m;
+  document.getElementById('badge').textContent=m==='exam'?'Exam Mode':m==='review'?'Review Mode':'Learning Mode';
+  document.body.classList.toggle('lm',m==='learn');
+  document.getElementById('pane-l').classList.toggle('lmode',m==='learn');
   applyColors(m);
   allMCQs().forEach(q=>{
-    const ex=document.getElementById("ex-"+q.id);
+    const ex=document.getElementById('ex-'+q.id);
     if(!ex)return;
-    if(m==="learn"){ex.classList.add("on");buildExpl(q);}
-    else ex.classList.remove("on");
+    if(m==='learn'){ex.classList.add('on');buildExpl(q);}
+    else ex.classList.remove('on');
   });
   currentSet.forEach(art=>{
     (art.writings||[]).forEach(w=>{
-      const ma=document.getElementById("ma-"+w.id);
-      if(ma)ma.classList.toggle("on",m==="learn");
+      const ma=document.getElementById('ma-'+w.id);
+      if(ma)ma.classList.toggle('on',m==='learn');
     });
   });
   manageRetry(m);
@@ -1051,256 +1229,196 @@ function applyColors(m){
   allMCQs().forEach(q=>{
     const chosen=answers[q.id];
     document.querySelectorAll(`[data-qid="${q.id}"]`).forEach(b=>{
-      b.disabled=true;b.classList.remove("sel","correct","wrong","show-correct");
+      b.disabled=true; b.classList.remove('sel','correct','wrong','show-correct');
       const k=parseInt(b.dataset.k);
-      if(m==="review"){
-        if(chosen!==undefined&&k===chosen&&k!==q.correct)b.classList.add("wrong");
-        if(k===q.correct&&chosen===q.correct)b.classList.add("correct");
-      }else if(m==="learn"){
-        if(chosen!==undefined&&k===chosen&&k!==q.correct)b.classList.add("wrong");
-        if(k===q.correct)b.classList.add(chosen===q.correct?"correct":"show-correct");
+      if(m==='review'){
+        if(chosen!==undefined&&k===chosen&&k!==q.correct)b.classList.add('wrong');
+        if(k===q.correct&&chosen===q.correct)b.classList.add('correct');
+      }else if(m==='learn'){
+        if(chosen!==undefined&&k===chosen&&k!==q.correct)b.classList.add('wrong');
+        if(k===q.correct)b.classList.add(chosen===q.correct?'correct':'show-correct');
       }
     });
   });
 }
 
 function buildExpl(q){
-  const chosen=answers[q.id],ew=document.getElementById("ew-"+q.id);
+  const chosen=answers[q.id],ew=document.getElementById('ew-'+q.id);
   if(ew&&chosen!==undefined&&chosen!==q.correct&&q.wrong&&q.wrong[chosen])
-    ew.textContent="\u274c Why ("+("ABCD"[chosen])+") was incorrect: "+q.wrong[chosen];
+    ew.textContent='\u274c Why ('+'ABCD'[chosen]+') was incorrect: '+q.wrong[chosen];
 }
 
 function manageRetry(m){
-  document.querySelectorAll(".retry-b").forEach(b=>b.remove());
-  if(m!=="review")return;
+  document.querySelectorAll('.retry-b').forEach(b=>b.remove());
+  if(m!=='review')return;
   allMCQs().forEach(q=>{
     if(answers[q.id]!==undefined&&answers[q.id]!==q.correct){
-      const wrap=document.getElementById("qb-"+q.id);
-      const btn=document.createElement("button");
-      btn.className="btn btn-dk retry-b";btn.style.cssText="margin-top:.46rem;font-size:.67rem";
-      btn.textContent="\u21ba Retry";btn.onclick=()=>retryQ(q,btn);
+      const wrap=document.getElementById('qb-'+q.id);
+      const btn=document.createElement('button');
+      btn.className='btn btn-dk retry-b'; btn.style.cssText='margin-top:.46rem;font-size:.67rem';
+      btn.textContent='\u21ba Retry'; btn.onclick=()=>retryQ(q,btn);
       wrap.appendChild(btn);
     }
   });
 }
 
 function retryQ(q,btn){
-  delete answers[q.id];btn.remove();
+  delete answers[q.id]; btn.remove();
   document.querySelectorAll(`[data-qid="${q.id}"]`).forEach(b=>{
-    b.disabled=false;b.classList.remove("wrong","correct","show-correct","sel");
-    b.addEventListener("click",()=>{
-      const k=parseInt(b.dataset.k);answers[q.id]=k;
-      document.querySelectorAll(`[data-qid="${q.id}"]`).forEach(x=>{x.classList.remove("sel");x.disabled=true;});
-      b.classList.add("sel");
+    b.disabled=false; b.classList.remove('wrong','correct','show-correct','sel');
+    b.addEventListener('click',()=>{
+      const k=parseInt(b.dataset.k); answers[q.id]=k;
+      document.querySelectorAll(`[data-qid="${q.id}"]`).forEach(x=>{x.classList.remove('sel');x.disabled=true;});
+      b.classList.add('sel');
       document.querySelectorAll(`[data-qid="${q.id}"]`).forEach(x=>{
-        x.classList.remove("sel","correct","wrong");
+        x.classList.remove('sel','correct','wrong');
         const xk=parseInt(x.dataset.k);
-        if(xk===k&&xk!==q.correct)x.classList.add("wrong");
-        if(xk===q.correct&&k===q.correct)x.classList.add("correct");
+        if(xk===k&&xk!==q.correct)x.classList.add('wrong');
+        if(xk===q.correct&&k===q.correct)x.classList.add('correct');
       });
-      document.querySelectorAll(".retry-b").forEach(rb=>{if(rb.closest("#qb-"+q.id))rb.remove();});
+      document.querySelectorAll('.retry-b').forEach(rb=>{if(rb.closest('#qb-'+q.id))rb.remove();});
       if(k!==q.correct){
-        const wrap=document.getElementById("qb-"+q.id);
-        const nb=document.createElement("button");
-        nb.className="btn btn-dk retry-b";nb.style.cssText="margin-top:.46rem;font-size:.67rem";
-        nb.textContent="\u21ba Retry";nb.onclick=()=>retryQ(q,nb);
+        const wrap=document.getElementById('qb-'+q.id);
+        const nb=document.createElement('button');
+        nb.className='btn btn-dk retry-b'; nb.style.cssText='margin-top:.46rem;font-size:.67rem';
+        nb.textContent='\u21ba Retry'; nb.onclick=()=>retryQ(q,nb);
         wrap.appendChild(nb);
       }
     },{once:true});
   });
 }
 
-// ════════════════════════════════════════
-//  EVIDENCE
-// ════════════════════════════════════════
+// ═══════════════════════════════════════════
+//  EVIDENCE HIGHLIGHT
+// ═══════════════════════════════════════════
 function shEv(ids){
-  document.querySelectorAll(".pt").forEach(p=>p.classList.remove("ev"));
+  document.querySelectorAll('.pt').forEach(p=>p.classList.remove('ev'));
   ids.forEach(id=>{
     const el=document.getElementById(id);
-    if(el){el.classList.add("ev");el.scrollIntoView({behavior:"smooth",block:"center"});}
+    if(el){el.classList.add('ev');el.scrollIntoView({behavior:'smooth',block:'center'});}
   });
-  setTimeout(()=>document.querySelectorAll(".pt").forEach(p=>p.classList.remove("ev")),4500);
+  setTimeout(()=>document.querySelectorAll('.pt').forEach(p=>p.classList.remove('ev')),4500);
 }
 
-// ════════════════════════════════════════
-//  WORD POPUP
-// ════════════════════════════════════════
-const wpEl=document.getElementById("wp");
+// ═══════════════════════════════════════════
+//  WORD POPUP (Claude API — learning mode)
+// ═══════════════════════════════════════════
+const wpEl=document.getElementById('wp');
 function handleWordSel(e){
-  if(mode!=="learn")return;
+  if(mode!=='learn')return;
   const sel=window.getSelection().toString().trim();
   if(!sel||sel.split(/\s+/).length!==1||sel.length<3||!/^[a-zA-Z]/.test(sel))return;
-  const w=sel.replace(/[^a-zA-Z']/g,"").toLowerCase();
+  const w=sel.replace(/[^a-zA-Z']/g,'').toLowerCase();
   if(!w)return;
-  document.getElementById("wp-w").textContent=sel;
-  document.getElementById("wp-d").textContent="Loading\u2026";
-  document.getElementById("wp-e").textContent="";
-  wpEl.classList.add("on");posWp(e.clientX,e.clientY);
+  document.getElementById('wp-w').textContent=sel;
+  document.getElementById('wp-d').textContent='Loading\u2026';
+  document.getElementById('wp-e').textContent='';
+  wpEl.classList.add('on'); posWp(e.clientX,e.clientY);
   if(dictCache[w]){applyWp(dictCache[w]);return;}
   fetchDef(w).then(d=>{dictCache[w]=d;applyWp(d);});
 }
-function applyWp(d){document.getElementById("wp-d").textContent=d.def||"No definition found.";document.getElementById("wp-e").textContent=d.ex||"";}
-function posWp(x,y){const pw=252,ph=125,vw=window.innerWidth,vh=window.innerHeight;let l=x+14,t=y+14;if(l+pw>vw-8)l=x-pw-14;if(t+ph>vh-8)t=y-ph-14;wpEl.style.left=l+"px";wpEl.style.top=t+"px";}
-document.addEventListener("click",e=>{if(!e.target.closest("#wp"))wpEl.classList.remove("on");});
-document.addEventListener("scroll",()=>wpEl.classList.remove("on"),true);
+function applyWp(d){document.getElementById('wp-d').textContent=d.def||'No definition found.';document.getElementById('wp-e').textContent=d.ex||'';}
+function posWp(x,y){const pw=252,ph=125,vw=window.innerWidth,vh=window.innerHeight;let l=x+14,t=y+14;if(l+pw>vw-8)l=x-pw-14;if(t+ph>vh-8)t=y-ph-14;wpEl.style.left=l+'px';wpEl.style.top=t+'px';}
+document.addEventListener('click',e=>{if(!e.target.closest('#wp'))wpEl.classList.remove('on');});
+document.addEventListener('scroll',()=>wpEl.classList.remove('on'),true);
+
 async function fetchDef(word){
   try{
-    const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:200,
-        messages:[{role:"user",content:`Define "${word}" simply for a 3rd-grade English learner. Reply ONLY in valid JSON, no markdown: {"def":"1-2 sentence definition","ex":"short example sentence"}`}]})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,
+        messages:[{role:'user',content:`Define "${word}" simply for a 3rd-grade English learner. Reply ONLY in valid JSON: {"def":"1-2 sentence definition","ex":"short example sentence"}`}]
+      })
+    });
     const d=await r.json();
-    return JSON.parse((d.content?.[0]?.text||"{}").replace(/```json|```/g,"").trim());
-  }catch(e){return{def:"Definition unavailable.",ex:""};}
+    return JSON.parse((d.content?.[0]?.text||'{}'). replace(/```json|```/g,'').trim());
+  }catch(e){return{def:'Definition unavailable.',ex:''};} 
 }
 
-// ════════════════════════════════════════
-//  AI GRADER
-// ════════════════════════════════════════
+// ═══════════════════════════════════════════
+//  AI WRITING GRADER (Claude API)
+// ═══════════════════════════════════════════
 async function gradeW(w){
-  const essay=(document.getElementById("wta-"+w.id)||{}).value||"";
-  const sd=document.getElementById("sd-"+w.id),sl=document.getElementById("sl-"+w.id);
-  sd.textContent="\u2026";sd.className="sdot m";
+  const essay=(document.getElementById('wta-'+w.id)||{}).value||'';
+  const sd=document.getElementById('sd-'+w.id),sl=document.getElementById('sl-'+w.id);
+  sd.textContent='\u2026'; sd.className='sdot m';
   sl.innerHTML='<span style="font-size:.76rem">Grading\u2026</span>';
-  if(!essay.trim()||essay.trim().split(/\s+/).length<5){sd.textContent="0/2";sd.className="sdot l";sl.textContent="No response provided.";return;}
+  if(!essay.trim()||essay.trim().split(/\s+/).length<5){sd.textContent='0/2';sd.className='sdot l';sl.textContent='No response provided.';return;}
   try{
-    const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,
-        messages:[{role:"user",content:`You are an NY State ELA scorer for grade 3. Score 0-2 points. Prompt: "${w.prompt_plain}" Response: "${essay}" Checklist: ${JSON.stringify(w.rubric)} Reply ONLY in valid JSON, no markdown: {"score":1,"label":"Short label","checklist":[true,false,true],"feedback":"One specific feedback sentence."}`}]})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,
+        messages:[{role:'user',content:`You are an NYS ELA scorer for grade 3. Score 0-2 points. Prompt: "${w.prompt_plain}" Response: "${essay}" Checklist: ${JSON.stringify(w.rubric)} Reply ONLY in valid JSON: {"score":1,"label":"Short label","checklist":[true,false,true],"feedback":"One specific feedback sentence."}`}]
+      })
+    });
     const d=await r.json();
-    const obj=JSON.parse((d.content?.[0]?.text||"{}").replace(/```json|```/g,"").trim());
+    const obj=JSON.parse((d.content?.[0]?.text||'{}'). replace(/```json|```/g,'').trim());
     const score=obj.score??0;
-    sd.textContent=score+"/2";sd.className="sdot "+(score>=2?"h":score>=1?"m":"l");
-    sl.innerHTML=`<strong style="font-family:'Barlow',sans-serif">${obj.label||""}</strong><br><span style="font-size:.78rem">${obj.feedback||""}</span>`;
-    if(obj.checklist)w.rubric.forEach((_,i)=>{const el=document.getElementById(`ck-${w.id}-${i}`);if(el)el.querySelector("span").textContent=obj.checklist[i]?"\u2705":"\u274c";});
-  }catch(e){sd.textContent="?";sl.textContent="Could not grade automatically.";}
+    sd.textContent=score+'/2'; sd.className='sdot '+(score>=2?'h':score>=1?'m':'l');
+    sl.innerHTML=`<strong style="font-family:'DM Sans',sans-serif">${obj.label||''}</strong><br><span style="font-size:.78rem">${obj.feedback||''}</span>`;
+    if(obj.checklist)w.rubric.forEach((_,i)=>{const el=document.getElementById(`ck-${w.id}-${i}`);if(el)el.querySelector('span').textContent=obj.checklist[i]?'\u2705':'\u274c';});
+  }catch(e){sd.textContent='?';sl.textContent='Could not grade automatically.';}
 }
 
-// ════════════════════════════════════════
-//  RESIZE
-// ════════════════════════════════════════
-function initResize(){
-  const rh=document.getElementById("rh"),pL=document.getElementById("pane-l"),sp=document.getElementById("split");
-  let drag=false,sx=0,sw=0;
-  rh.onmousedown=e=>{drag=true;sx=e.clientX;sw=pL.getBoundingClientRect().width;document.body.style.cssText="cursor:col-resize;user-select:none"};
-  document.onmousemove=e=>{if(!drag)return;const tw=sp.getBoundingClientRect().width;pL.style.width=Math.min(Math.max(sw+(e.clientX-sx),220),tw-220)+"px";};
-  document.onmouseup=()=>{drag=false;document.body.style.cssText="";};
-}
-
-// ════════════════════════════════════════
+// ═══════════════════════════════════════════
 //  IMPORT JSON
-// ════════════════════════════════════════
+// ═══════════════════════════════════════════
 function openImport(){
-  document.getElementById('import-modal').style.display='flex';
+  document.getElementById('import-modal').classList.add('on');
   document.getElementById('import-ta').value='';
   document.getElementById('import-msg').textContent='';
 }
-function closeImport(){
-  document.getElementById('import-modal').style.display='none';
-}
+function closeImport(){document.getElementById('import-modal').classList.remove('on');}
 
-function doImport(){
+async function doImport(){
   const raw=document.getElementById('import-ta').value.trim();
   const msg=document.getElementById('import-msg');
-  if(!raw){msg.style.color='var(--red)';msg.textContent='Please paste JSON first.';return;}
-
+  if(!raw){msg.className='modal-msg err';msg.textContent='Please paste JSON first.';return;}
   let arts;
-  try{
-    arts=JSON.parse(raw);
-    if(!Array.isArray(arts)||arts.length===0) throw new Error('Expected a JSON array of articles.');
-  }catch(e){
-    msg.style.color='var(--red)';
-    msg.textContent='Invalid JSON: '+e.message;
-    return;
-  }
-
-  // Validate basic structure
+  try{arts=JSON.parse(raw);}
+  catch(e){msg.className='modal-msg err';msg.textContent='Invalid JSON: '+e.message;return;}
+  if(!Array.isArray(arts)||arts.length===0){msg.className='modal-msg err';msg.textContent='Expected a JSON array of articles.';return;}
   for(const a of arts){
-    if(!a.id||!a.type||!a.passageHTML){
-      msg.style.color='var(--red)';
-      msg.textContent='Missing required fields (id, type, passageHTML) in one article.';
-      return;
-    }
+    if(!a.id||!a.type||!a.passageHTML){msg.className='modal-msg err';msg.textContent='Missing fields in article.';return;}
   }
-
-  // Register articles
   arts.forEach(a=>{ARTICLES[a.id]=a;});
 
-  // Find the next day that needs AI content and assign this set
-  // Look for first SCHEDULE slot that still has an 'AI' entry and is not yet done
-  const daysDone=Object.keys(store.days).filter(d=>store.days[d].completed).length;
+  // Find next AI slot
+  const daysDone=Object.keys(userDays).filter(d=>userDays[d].completed).length;
   let assigned=false;
   for(let i=daysDone+1;i<SCHEDULE.length;i++){
-    const slot=SCHEDULE[i];
-    if(slot.includes('AI')){
-      // Replace AI slots with actual article ids based on type
-      const byType={mc:null,'mc+w':null,'w-only':null};
+    if(SCHEDULE[i].includes('AI')){
+      const byType={};
       arts.forEach(a=>{byType[a.type]=a.id;});
-      SCHEDULE[i]=slot.map(s=>{
-        if(s!=='AI') return s;
-        // find matching type from imported arts
-        const match=arts.find(a=>a.type==='mc'&&byType.mc===a.id)||
-                     arts.find(a=>a.type==='mc+w'&&byType['mc+w']===a.id)||
-                     arts.find(a=>a.type==='w-only'&&byType['w-only']===a.id);
-        if(s==='AI'&&byType.mc&&!ARTICLES[slot[0]]?.type) return byType.mc||s;
-        return s;
-      });
-      // simpler: just replace entire slot
-      const ordered=[
-        arts.find(a=>a.type==='mc')?.id,
-        arts.find(a=>a.type==='mc+w')?.id,
-        arts.find(a=>a.type==='w-only')?.id,
-      ].filter(Boolean);
-      if(ordered.length>0){
-        // fill slots with AI content, keep real articles where present
-        const newSlot=slot.map((s,idx)=>s==='AI'?(ordered[idx]||ordered[0]||s):s);
-        SCHEDULE[i]=newSlot;
-      }
-      // Cache it
-      setAICache(i, arts);
-      assigned=true;
-      msg.style.color='var(--green)';
-      msg.textContent=`Saved! Will appear on Day ${i+1}.`;
-      break;
+      SCHEDULE[i]=SCHEDULE[i].map(s=>s==='AI'?(byType['mc'||'mc+w'||'w-only']||arts[0]?.id||s):s);
+      // Simpler: replace all AI slots with matching types
+      const ordered=[arts.find(a=>a.type==='mc')?.id,arts.find(a=>a.type==='mc+w')?.id,arts.find(a=>a.type==='w-only')?.id].filter(Boolean);
+      if(ordered.length){SCHEDULE[i]=SCHEDULE[i].map((s,idx)=>s==='AI'?(ordered[idx]||ordered[0]||s):s);}
+      // Also save to Supabase
+      await sb.from('ai_articles').upsert({day_number:i+1,articles:arts});
+      msg.className='modal-msg ok'; msg.textContent=`Saved! Will appear on Day ${i+1}.`;
+      assigned=true; break;
     }
   }
-
   if(!assigned){
-    // No AI slot found — add as a new bonus day
-    const ordered=[
-      arts.find(a=>a.type==='mc')?.id||'AI',
-      arts.find(a=>a.type==='mc+w')?.id||'AI',
-      arts.find(a=>a.type==='w-only')?.id||'AI',
-    ];
-    SCHEDULE.push(ordered);
-    setAICache(SCHEDULE.length-1, arts);
-    msg.style.color='var(--green)';
-    msg.textContent=`Saved as bonus Day ${SCHEDULE.length}!`;
+    SCHEDULE.push(arts.map(a=>a.id));
+    await sb.from('ai_articles').upsert({day_number:SCHEDULE.length,articles:arts});
+    msg.className='modal-msg ok'; msg.textContent=`Saved as bonus Day ${SCHEDULE.length}!`;
   }
-
   setTimeout(()=>{closeImport();renderHome();},1200);
 }
+document.getElementById('import-modal').addEventListener('click',function(e){if(e.target===this)closeImport();});
 
-// Close modal on backdrop click
-document.getElementById('import-modal')?.addEventListener('click',function(e){
-  if(e.target===this) closeImport();
-});
-
-// ════════════════════════════════════════
-//  HISTORY TOGGLE
-// ════════════════════════════════════════
-function toggleHistory(){
-  const w=document.getElementById('history-wrap');
-  const btn=document.querySelector('.cs-toggle');
-  if(!w) return;
-  const open=w.style.display!=='none';
-  w.style.display=open?'none':'block';
-  if(btn) btn.innerHTML=open?'View history &#9660;':'Hide history &#9650;';
+// ═══════════════════════════════════════════
+//  RESIZE
+// ═══════════════════════════════════════════
+function initResize(){
+  const rh=document.getElementById('rh'),pL=document.getElementById('pane-l'),sp=document.getElementById('split');
+  let drag=false,sx=0,sw=0;
+  rh.onmousedown=e=>{drag=true;sx=e.clientX;sw=pL.getBoundingClientRect().width;document.body.style.cssText='cursor:col-resize;user-select:none'};
+  document.onmousemove=e=>{if(!drag)return;const tw=sp.getBoundingClientRect().width;pL.style.width=Math.min(Math.max(sw+(e.clientX-sx),220),tw-220)+'px';};
+  document.onmouseup=()=>{drag=false;document.body.style.cssText='';};
 }
-
-// ════════════════════════════════════════
-//  GO
-// ════════════════════════════════════════
-renderHome();
 </script>
 </body>
 </html>

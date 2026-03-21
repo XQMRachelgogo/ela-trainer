@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NY ELA Trainer &middot; Grade 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Barlow:wght@300;400;500;600;700&family=Barlow+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#faf8f4;--cream:#f2ede4;--ink:#1c1815;--ink2:#4a3f35;--ink3:#8a7a6a;--border:#ddd5c8;--accent:#b5451b;--gold:#9a7b2e;--shadow:rgba(28,24,21,.1);--green:#2a6048;--red:#b5451b;--ev-bg:#fffae8;--ev-border:#e8c84a}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Libre Baskerville',Georgia,serif;background:var(--cream);color:var(--ink);font-size:14.5px;line-height:1.8;display:flex;flex-direction:column}
+#topbar{height:48px;flex-shrink:0;background:var(--ink);color:#f0ece4;display:flex;align-items:center;justify-content:space-between;padding:0 1.2rem;box-shadow:0 2px 8px var(--shadow);z-index:200}
+.logo{font-family:'Barlow',sans-serif;font-weight:700;font-size:.88rem;letter-spacing:.07em;text-transform:uppercase}
+.logo em{color:#e8834a;font-style:normal}
+#topbar-right{display:flex;align-items:center;gap:.7rem}
+.badge{font-family:'Barlow Mono',monospace;font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.2rem .65rem;border-radius:2px;transition:all .3s}
+.badge.exam{background:#b5451b;color:#fff}.badge.review{background:#1a3a5c;color:#acd}.badge.learn{background:var(--green);color:#ade}
+#pbar-strip{height:3px;background:#2a2622;flex-shrink:0}
+#pbar{height:100%;background:var(--accent);width:0;transition:width .35s}
+#screen-home,#screen-test{display:none;flex:1;min-height:0;overflow:hidden;flex-direction:column}
+#screen-home{overflow-y:auto;align-items:center;padding:2.5rem 1.5rem 4rem;background:var(--cream)}
+body.view-home #screen-home{display:flex}
+body.view-test #screen-test{display:flex}
+.home-inner{width:100%;max-width:680px}
+.home-hero{text-align:center;margin-bottom:2rem}
+.home-hero h1{font-family:'Barlow',sans-serif;font-weight:700;font-size:1.7rem;color:var(--ink);letter-spacing:.02em}
+.home-hero p{font-family:'Barlow',sans-serif;font-size:.9rem;color:var(--ink3);margin-top:.4rem}
+.stats-row{display:flex;gap:1rem;margin-bottom:1.8rem;flex-wrap:wrap}
+.stat-box{flex:1;min-width:110px;background:var(--paper);border:1.5px solid var(--border);border-radius:4px;padding:.9rem 1rem;text-align:center}
+.stat-num{font-family:'Barlow',sans-serif;font-weight:700;font-size:1.6rem;color:var(--accent)}
+.stat-lbl{font-family:'Barlow Mono',monospace;font-size:.6rem;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-top:.1rem}
+.section-title{font-family:'Barlow',sans-serif;font-weight:600;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:.65rem;display:flex;align-items:center;gap:.6rem}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.day-grid{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.8rem}
+.day-card{background:var(--paper);border:1.5px solid var(--border);border-radius:4px;padding:.75rem 1rem;display:flex;align-items:center;gap:.85rem;cursor:pointer;transition:border-color .15s,background .15s}
+.day-card:hover{border-color:var(--ink2);background:#ede8df}
+.day-card.done{border-color:var(--green);background:#f0f8f4}
+.day-card.retry-due{border-color:#e8c84a;background:#fffae8}
+.day-card.locked{opacity:.4;cursor:default;pointer-events:none}
+.day-num{font-family:'Barlow',sans-serif;font-weight:700;font-size:1.05rem;color:var(--accent);min-width:1.8rem}
+.day-info{flex:1;min-width:0}
+.day-title{font-family:'Barlow',sans-serif;font-weight:600;font-size:.86rem;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.day-sub{font-family:'Barlow Mono',monospace;font-size:.6rem;color:var(--ink3);margin-top:.08rem}
+.day-right{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+.day-score{font-family:'Barlow',sans-serif;font-size:.78rem;color:var(--ink3)}
+.dbadge{font-family:'Barlow Mono',monospace;font-size:.58rem;letter-spacing:.07em;text-transform:uppercase;padding:.16rem .5rem;border-radius:2px}
+.dbadge.done{background:#dff0e8;color:var(--green);border:1px solid #b8dbc9}
+.dbadge.retry{background:#fff3cd;color:#856404;border:1px solid #e8c84a}
+.dbadge.today{background:var(--ink);color:#f0ece4}
+.dbadge.upcoming{background:#f0ece4;color:var(--ink3);border:1px solid var(--border)}
+#split{flex:1;display:flex;min-height:0;overflow:hidden}
+#pane-l{width:52%;flex-shrink:0;overflow-y:auto;background:var(--paper);border-right:1px solid var(--border);padding:1.3rem 1.4rem 3rem}
+#rh{width:5px;flex-shrink:0;cursor:col-resize;background:var(--border);transition:background .15s;position:relative;z-index:10}
+#rh:hover{background:var(--ink3)}
+#rh::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:2px;height:28px;background:var(--ink3);border-radius:2px;opacity:.4}
+#pane-r{flex:1;overflow-y:auto;background:var(--cream);padding:1.3rem 1.3rem 3rem}
+#bbar{height:46px;flex-shrink:0;background:var(--ink);padding:0 1.2rem;display:flex;align-items:center;justify-content:space-between;gap:.7rem;box-shadow:0 -2px 8px var(--shadow);z-index:200}
+.bbar-status{font-family:'Barlow Mono',monospace;font-size:.64rem;color:#888;letter-spacing:.04em}
+.bbar-btns{display:flex;gap:.5rem}
+.btn{font-family:'Barlow',sans-serif;font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.44rem .95rem;border-radius:2px;border:1.5px solid;cursor:pointer;transition:all .15s;background:none}
+.btn-dk{color:#ccc;border-color:#555}.btn-dk:hover{border-color:#aaa;color:#fff}
+.btn-rev{color:#acd;border-color:#2a5a8c}.btn-rev:hover{background:#1a3a5c}
+.btn-lrn{color:#ade;border-color:var(--green)}.btn-lrn:hover{background:var(--green);color:#fff}
+.completed-summary{display:flex;align-items:center;gap:.75rem;background:var(--paper);border:1.5px solid var(--green);border-radius:4px;padding:.7rem 1rem;margin-bottom:.5rem;flex-wrap:wrap}
+.cs-icon{color:var(--green);font-size:1rem}
+.cs-text{font-family:'Barlow',sans-serif;font-weight:600;font-size:.88rem;color:var(--green);flex:1}
+.cs-acc{font-family:'Barlow Mono',monospace;font-size:.68rem;color:var(--ink3)}
+.cs-toggle{font-family:'Barlow',sans-serif;font-size:.72rem;background:none;border:1px solid var(--border);color:var(--ink3);padding:.2rem .6rem;border-radius:2px;cursor:pointer;white-space:nowrap}
+.cs-toggle:hover{border-color:var(--ink);color:var(--ink)}
+.history-card{opacity:.75}
+.history-card:hover{opacity:1}
+.completed-summary{display:flex;align-items:center;gap:.75rem;background:var(--paper);border:1.5px solid var(--green);border-radius:4px;padding:.7rem 1rem;margin-bottom:.5rem;flex-wrap:wrap}
+.cs-icon{color:var(--green);font-size:1rem}
+.cs-text{font-family:'Barlow',sans-serif;font-weight:600;font-size:.88rem;color:var(--green);flex:1}
+.cs-acc{font-family:'Barlow Mono',monospace;font-size:.68rem;color:var(--ink3)}
+.cs-toggle{font-family:'Barlow',sans-serif;font-size:.72rem;background:none;border:1px solid var(--border);color:var(--ink3);padding:.2rem .6rem;border-radius:2px;cursor:pointer;white-space:nowrap}
+.cs-toggle:hover{border-color:var(--ink);color:var(--ink)}
+.history-card{opacity:.75}
+.history-card:hover{opacity:1}
+.art-src{font-family:'Barlow Mono',monospace;font-size:.62rem;letter-spacing:.07em;text-transform:uppercase;padding:.18rem .6rem;border-radius:2px;display:inline-block;margin-bottom:.45rem}
+.real-src{background:#eef4ff;color:#1a4a8c;border:1px solid #b8cff0}
+.sim-src{background:#f5f0e8;color:var(--gold);border:1px solid #ddd0b0}
+.completed-summary{display:flex;align-items:center;gap:.75rem;background:var(--paper);border:1.5px solid var(--green);border-radius:4px;padding:.7rem 1rem;margin-bottom:.5rem;flex-wrap:wrap}
+.cs-icon{color:var(--green);font-size:1rem}
+.cs-text{font-family:'Barlow',sans-serif;font-weight:600;font-size:.88rem;color:var(--green);flex:1}
+.cs-acc{font-family:'Barlow Mono',monospace;font-size:.68rem;color:var(--ink3)}
+.cs-toggle{font-family:'Barlow',sans-serif;font-size:.72rem;background:none;border:1px solid var(--border);color:var(--ink3);padding:.2rem .6rem;border-radius:2px;cursor:pointer;white-space:nowrap}
+.cs-toggle:hover{border-color:var(--ink);color:var(--ink)}
+.history-card{opacity:.75}
+.history-card:hover{opacity:1}
+.art-src{font-family:'Barlow Mono',monospace;font-size:.6rem;letter-spacing:.07em;text-transform:uppercase;padding:.16rem .55rem;border-radius:2px;display:inline-block;margin-bottom:.4rem}
+.real-src{background:#eef4ff;color:#1a4a8c;border:1px solid #b8cff0}
+.sim-src{background:#f5f0e8;color:var(--gold);border:1px solid #ddd0b0}
+.art-hd{margin-bottom:1rem;padding-bottom:.7rem;border-bottom:2px solid var(--border)}
+.art-dir{font-family:'Barlow',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-bottom:.3rem}
+.art-ctx{font-family:'Barlow',sans-serif;font-size:.82rem;font-style:italic;color:var(--ink2);margin-bottom:.55rem;line-height:1.6}
+.art-ttl{font-family:'Barlow',sans-serif;font-size:1.1rem;font-weight:700}
+.art-byl{font-family:'Barlow',sans-serif;font-size:.76rem;color:var(--ink3);font-style:italic;margin-top:.1rem}
+.art-div{border:none;border-top:2px solid var(--border);margin:1.8rem 0}
+.pr{display:flex;gap:.65rem;margin-bottom:.78rem}
+.pn{font-family:'Barlow Mono',monospace;font-size:.63rem;color:var(--ink3);min-width:1.2rem;padding-top:.3rem;user-select:none;flex-shrink:0}
+.pt{flex:1;line-height:1.85}
+.pt.ev{background:var(--ev-bg);border-left:3px solid var(--ev-border);padding-left:.45rem;border-radius:0 2px 2px 0}
+.vb{display:inline-block;border:1.5px solid var(--border);border-radius:2px;padding:.16rem .55rem;font-family:'Barlow',sans-serif;font-size:.74rem;color:var(--ink3);margin:.04rem 0 .5rem 1.85rem;background:#f5f0e8}
+.sh{font-family:'Barlow',sans-serif;font-weight:700;font-size:.8rem;text-align:center;margin:.9rem 0 .45rem;color:var(--ink)}
+.gfx{border:1.5px solid var(--border);border-radius:3px;padding:.8rem 1rem;margin:.4rem 0 .85rem;background:#f5f0e8;font-family:'Barlow',sans-serif;font-size:.84rem}
+.gfx-r{display:flex;align-items:flex-start;gap:.5rem;margin-bottom:.32rem}.gfx-r:last-child{margin-bottom:0}
+.diagram-note{font-family:'Barlow',sans-serif;font-size:.8rem;font-style:italic;color:var(--ink3);text-align:center;margin:.6rem 0;padding:.5rem;border:1px dashed var(--border);border-radius:2px}
+#pane-l.lmode .pt{cursor:text}
+.ql{font-family:'Barlow',sans-serif;font-size:.67rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);padding-bottom:.42rem;margin-bottom:.9rem;border-bottom:1px solid var(--border)}
+.qb{margin-bottom:1.45rem}
+.qs{font-size:.9rem;font-weight:700;line-height:1.6;margin-bottom:.58rem}
+.qn{color:var(--accent);margin-right:.26rem}
+.qpts{font-family:'Barlow Mono',monospace;font-size:.56rem;background:#f0e8d8;color:var(--gold);border:1px solid #ddd0b0;padding:.07rem .3rem;border-radius:2px;margin-left:.28rem;vertical-align:middle}
+.chs{display:flex;flex-direction:column;gap:.3rem}
+.cb{display:flex;align-items:flex-start;gap:.5rem;background:var(--paper);border:1.5px solid var(--border);border-radius:3px;padding:.46rem .76rem;cursor:pointer;text-align:left;font-family:'Libre Baskerville',serif;font-size:.85rem;color:var(--ink);transition:border-color .15s,background .15s}
+.cb:hover:not(:disabled){border-color:var(--ink2);background:#ede8df}
+.ck{font-family:'Barlow Mono',monospace;font-size:.7rem;font-weight:600;color:var(--ink3);min-width:.88rem;margin-top:.08rem;flex-shrink:0}
+.cb.sel{border-color:#666;background:#ece6d8}
+.cb.correct{border-color:var(--green);background:#dff0e8}
+.cb.wrong{border-color:var(--red);background:#f8e4e0}
+.cb.show-correct{border-color:var(--green);background:#edf8f2}
+.cb:disabled{cursor:default}
+.ex{display:none;margin-top:.62rem;padding:.7rem .86rem;background:#f7f3ec;border-left:3px solid var(--gold);border-radius:0 3px 3px 0;font-size:.82rem}
+.ex.on{display:block}
+.ex-t{font-family:'Barlow Mono',monospace;font-size:.57rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.26rem}
+.ex-b{color:var(--ink2);line-height:1.6}
+.ex-w{color:var(--red);font-size:.79rem;margin-top:.36rem}
+.ev-btn{display:none;margin-top:.42rem;background:none;border:1px solid var(--gold);color:var(--gold);font-family:'Barlow Mono',monospace;font-size:.58rem;letter-spacing:.07em;padding:.22rem .56rem;border-radius:2px;cursor:pointer;transition:all .15s}
+.ev-btn:hover{background:var(--gold);color:#fff}
+body.lm .ev-btn{display:inline-block}
+.qdiv{border:none;border-top:1px dashed var(--border);margin:1.2rem 0}
+.wta{width:100%;min-height:115px;border:1.5px solid var(--border);border-radius:3px;resize:vertical;font-family:'Libre Baskerville',serif;font-size:.87rem;line-height:1.8;padding:.82rem .92rem;background:var(--paper);color:var(--ink);outline:none;margin-top:.52rem;display:block}
+.wta:focus{border-color:var(--ink2);background:#fffdf8}
+.wta:disabled{background:#f0ece4;color:var(--ink3)}
+.wc{text-align:right;font-family:'Barlow Mono',monospace;font-size:.62rem;color:var(--ink3);margin-top:.18rem}
+.cklist{margin:.58rem 0 .38rem}
+.cki{display:flex;align-items:flex-start;gap:.36rem;font-family:'Barlow',sans-serif;font-size:.79rem;margin-bottom:.26rem;color:var(--ink2)}
+.wfb{display:none;margin-top:.7rem;padding:.8rem;background:#f7f3ec;border-left:3px solid var(--gold);border-radius:0 3px 3px 0}
+.wfb.on{display:block}
+.srow{display:flex;align-items:center;gap:.68rem;margin-bottom:.58rem}
+.sdot{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow',sans-serif;font-weight:700;font-size:.88rem;color:#fff;flex-shrink:0}
+.sdot.h{background:var(--green)}.sdot.m{background:var(--gold)}.sdot.l{background:var(--red)}
+.ma{display:none;margin-top:.72rem;padding:.78rem .88rem;background:#e8f5ee;border-left:3px solid var(--green);border-radius:0 3px 3px 0;font-size:.84rem;line-height:1.72}
+.ma.on{display:block}
+.ma-t{font-family:'Barlow Mono',monospace;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--green);font-weight:600;margin-bottom:.3rem}
+#overlay{display:none;position:fixed;inset:0;background:rgba(28,24,21,.72);z-index:500;align-items:center;justify-content:center}
+#overlay.on{display:flex}
+.ov-card{background:var(--paper);border-radius:4px;padding:2rem 2.4rem;max-width:400px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.ov-card h2{font-family:'Barlow',sans-serif;font-weight:700;font-size:1.3rem;margin-bottom:.45rem}
+.big-score{font-family:'Barlow',sans-serif;font-size:3rem;font-weight:700;color:var(--accent);line-height:1}
+.ov-sub{font-family:'Barlow',sans-serif;font-size:.83rem;color:var(--ink3);margin:.45rem 0 1.1rem}
+.retry-note{font-family:'Barlow',sans-serif;font-size:.8rem;background:#fffae8;border:1px solid var(--ev-border);border-radius:3px;padding:.55rem .85rem;color:#856404;margin-bottom:1rem;display:none;line-height:1.55}
+.retry-note.on{display:block}
+.ov-btns{display:flex;gap:.65rem;justify-content:center;flex-wrap:wrap}
+.obtn{font-family:'Barlow',sans-serif;font-size:.76rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.6rem 1.2rem;border-radius:3px;border:none;cursor:pointer;transition:all .15s}
+.obtn-ink{background:var(--ink);color:#f0ece4}.obtn-ink:hover{background:#333}
+.obtn-out{background:none;border:1.5px solid var(--border);color:var(--ink2)}.obtn-out:hover{border-color:var(--ink);color:var(--ink)}
+.btn-import{font-family:'Barlow',sans-serif;font-size:.75rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:.5rem 1.1rem;border-radius:3px;border:1.5px solid var(--accent);color:var(--accent);background:none;cursor:pointer;transition:all .15s}
+.btn-import:hover{background:var(--accent);color:#fff}
+#wp{position:fixed;z-index:999;background:#1c1815;color:#f0ece4;border-radius:3px;padding:.75rem .9rem;max-width:252px;box-shadow:0 4px 20px rgba(0,0,0,.5);display:none;font-size:.82rem;pointer-events:none}
+#wp.on{display:block}
+#wp .wpw{font-family:'Barlow',sans-serif;font-weight:700;font-size:.94rem;color:#e8834a;margin-bottom:.26rem}
+#wp .wpt{font-family:'Barlow Mono',monospace;font-size:.53rem;letter-spacing:.09em;text-transform:uppercase;color:#666;margin-bottom:.14rem}
+#wp .wpd{color:#ccc;line-height:1.55;margin-bottom:.24rem}
+#wp .wpe{color:#999;font-style:italic;font-size:.77rem;line-height:1.5}
+@media(max-width:680px){html,body{overflow:auto}#split{flex-direction:column;overflow:visible}#pane-l{width:100%;border-right:none;border-bottom:2px solid var(--border);overflow:visible;height:auto}#rh{display:none}#pane-r{overflow:visible;height:auto}}
+</style>
+</head>
+<body class="view-home">
+
+<header id="topbar">
+  <div class="logo">NY ELA <em>Trainer</em> &middot; Grade 3</div>
+  <div id="topbar-right">
+    <span id="badge" class="badge exam" style="display:none">Exam Mode</span>
+    <button class="btn btn-dk" id="btn-back" style="display:none" onclick="goHome()">&#8592; Dashboard</button>
+  </div>
+</header>
+<div id="pbar-strip"><div id="pbar"></div></div>
+
+<!-- HOME -->
+<div id="screen-home">
+  <div class="home-inner">
+    <div class="home-hero">
+      <h1>50-Day ELA Practice</h1>
+      <p>New York State Grade 3 &middot; 3 articles per session &middot; ~30 min each</p>
+    </div>
+    <div id="import-bar" style="margin-bottom:1.4rem">
+      <button class="btn-import" onclick="openImport()">&#43; Import AI Day</button>
+      <span style="font-family:'Barlow',sans-serif;font-size:.75rem;color:var(--ink3);margin-left:.7rem">Paste Claude-generated JSON to add a simulation day</span>
+    </div>
+
+    <!-- Import modal -->
+    <div id="import-modal" style="display:none;position:fixed;inset:0;background:rgba(28,24,21,.7);z-index:600;align-items:center;justify-content:center">
+      <div style="background:var(--paper);border-radius:4px;padding:1.8rem 2rem;max-width:560px;width:93%;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+        <h3 style="font-family:'Barlow',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:.3rem">Import AI Day</h3>
+        <p style="font-family:'Barlow',sans-serif;font-size:.8rem;color:var(--ink3);margin-bottom:.9rem">Paste the JSON array generated by Claude below, then click Import.</p>
+        <textarea id="import-ta" style="width:100%;height:160px;border:1.5px solid var(--border);border-radius:3px;font-family:'Barlow Mono',monospace;font-size:.75rem;padding:.7rem;resize:vertical;outline:none;background:#faf8f4" placeholder='[{"id":"ai-mc-6","type":"mc", ...}]'></textarea>
+        <div id="import-msg" style="font-family:'Barlow',sans-serif;font-size:.8rem;margin:.5rem 0;min-height:1.2rem"></div>
+        <div style="display:flex;gap:.7rem;justify-content:flex-end;margin-top:.3rem">
+          <button class="obtn obtn-out" onclick="closeImport()">Cancel</button>
+          <button class="obtn obtn-ink" onclick="doImport()">Import Day</button>
+        </div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-num" id="stat-done">0</div><div class="stat-lbl">Days Done</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-streak">0</div><div class="stat-lbl">Streak</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-retry">0</div><div class="stat-lbl">Retry Pool</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-acc">&#8212;</div><div class="stat-lbl">Avg Score</div></div>
+    </div>
+    <div class="section-title">Your Days <span id="scroll-hint" style="font-family:'Barlow',sans-serif;font-size:.72rem;font-weight:400;color:var(--ink3);letter-spacing:0;text-transform:none;cursor:pointer" onclick="document.getElementById('today-anchor')?.scrollIntoView({behavior:'smooth'})">&#8595; Jump to today</span></div>
+    <div class="day-grid" id="day-list"></div>
+  </div>
+</div>
+
+<!-- TEST -->
+<div id="screen-test">
+  <div id="split">
+    <div id="pane-l"></div>
+    <div id="rh"></div>
+    <div id="pane-r"></div>
+  </div>
+</div>
+
+<div id="bbar" style="display:none">
+  <span class="bbar-status" id="bbar-status">Answer all questions to submit</span>
+  <div class="bbar-btns">
+    <button class="btn btn-dk" id="btn-sub" onclick="submitAll()">Submit</button>
+    <button class="btn btn-rev" id="btn-rev" onclick="setMode('review')" style="display:none">Review</button>
+    <button class="btn btn-lrn" id="btn-lrn" onclick="setMode('learn')" style="display:none">Learning Mode</button>
+  </div>
+</div>
+
+<div id="overlay">
+  <div class="ov-card">
+    <h2 id="ov-title">Session Complete!</h2>
+    <div class="big-score" id="ov-score">&#8212;</div>
+    <div class="ov-sub" id="ov-sub"></div>
+    <div class="retry-note" id="ov-retry">&#9888;&#65039; One or more articles scored below 40% and have been added to your retry pool. You&#8217;ll see them again soon.</div>
+    <div class="ov-btns">
+      <button class="obtn obtn-out" onclick="reviewSession()">Review Answers</button>
+      <button class="obtn obtn-ink" onclick="goHome()">&#8592; Dashboard</button>
+    </div>
+  </div>
+</div>
+
+<div id="wp">
+  <div class="wpw" id="wp-w"></div>
+  <div class="wpt">Simple Definition</div>
+  <div class="wpd" id="wp-d">Loading&#8230;</div>
+  <div class="wpt" style="margin-top:.22rem">Example</div>
+  <div class="wpe" id="wp-e"></div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+//  ARTICLE LIBRARY
+// ════════════════════════════════════════
+const ARTICLES = {
+
+/* ═══════════════════════════════
+   REAL TESTS
+═══════════════════════════════ */
+
+// 2025 S1 ─ MC only
+"sea-view-star":{id:"sea-view-star",type:"mc",isReal:true,source:"2025 NYS ELA Session 1",
+title:"Excerpt from Sea View Star",byline:"by Ali Bovis",
+directions:"Read this story. Then answer questions 1\u20136.",
+context:"Sylvie and Sammy\u2019s teacher has announced that students will do a project for \u201CMake a Difference Day.\u201D This means students will find a special way to help others. Sylvie and Sammy are doing the project together.",
+passageHTML:`<div class="pr"><span class="pn">1</span><span class="pt" id="A1">Sylvie tapped Sammy&#8217;s shoulder and pointed to the swing set. They always got their best ideas on the swings. &#8220;Race you up!&#8221; She hopped on a swing and pumped her legs. Sammy followed.</span></div>
+<div class="pr"><span class="pn">2</span><span class="pt" id="A2">Sylvie tightened her grip and kicked in the air. &#8220;We need to do something extra stellar for the animals.&#8221; &#8230;</span></div>
+<div class="vb">stellar = very special</div>
+<div class="pr"><span class="pn">3</span><span class="pt" id="A3">&#8220;Hmm.&#8221; Sammy tilted his head. &#8220;I have a few ideas too. Maybe we can look over our lists together.&#8221;</span></div>
+<div class="pr"><span class="pn">4</span><span class="pt" id="A4">Sylvie knew Sammy would be full of awesome ideas. Sammy slowed his swing and pulled out a piece of paper. He passed it to Sylvie.</span></div>
+<div class="pr"><span class="pn">5</span><span class="pt" id="A5">&#8220;An art show to raise money for animals?&#8221; asked Sylvie, waving her list. &#8220;I had the same idea! Here, number 139.&#8221;</span></div>
+<div class="pr"><span class="pn">6</span><span class="pt" id="A6">&#8220;Number 139?&#8221; asked Sammy, his mouth opened wide. &#8230;</span></div>
+<div class="pr"><span class="pn">7</span><span class="pt" id="A7">&#8220;Ready to start planning our art show for animals?&#8221; asked Sylvie. &#8220;Or &#8216;Paint Out!&#8217; Sounds more stellar, doesn&#8217;t it?&#8221;</span></div>
+<div class="pr"><span class="pn">9</span><span class="pt" id="A9">&#8220;The Paint Out. We can have it on Beach Street. People can paint portraits of their pets outside the shops. Then we can sell the paintings. We can donate the money to the Sea View Animal Shelter.&#8221;</span></div>
+<div class="pr"><span class="pn">11</span><span class="pt" id="A11">They got to work right away. Before dinner, they had gotten permission from the town to hold the Paint Out, informed the Sea View Animal Shelter of their upcoming &#8220;biggest donation ever,&#8221; and told friends and family to save the date. &#8230;</span></div>
+<div class="pr"><span class="pn">14</span><span class="pt" id="A14">&#8220;Sammy, thank goodness. It&#8217;s getting late!&#8221;</span></div>
+<div class="pr"><span class="pn">15</span><span class="pt" id="A15">Sammy looked at the clock. He made a confused face. &#8220;OK, we&#8217;re ready. Mom and Dad squeezed in the supplies you brought over yesterday into the car. And the booth for the dog.&#8221;</span></div>
+<div class="pr"><span class="pn">18</span><span class="pt" id="A18">Two hours later, Sylvie put down her glue and took in their work. She and Sammy had transformed Beach Street into the biggest Paint Out party in the history of Sea View.</span></div>
+<div class="pr"><span class="pn">27</span><span class="pt" id="A27">Before long, the Paint Out was in full swing. Empty canvases filled with color. Rainbows swirled in water jars as paintbrushes were rinsed. Dogs, cats, hamsters, and even a rat adorned the art of Sea View&#8217;s citizens.</span></div>`,
+questions:[
+{id:"svs-1",stem:'In paragraph 7, what does Sylvie mean when she says, &#8220;Sounds more stellar, doesn&#8217;t it?&#8221;',choices:["She wants people to think the event will be amazing.","She wants people to be sure art is part of the event.","She wants people to bring their own paint to the event.","She wants people to know the event will help animals."],correct:0,ev:["A7"],expl:'&#8220;Stellar&#8221; means very special. Sylvie is saying the name &#8220;Paint Out&#8221; sounds more amazing than &#8220;art show.&#8221;',wrong:{1:"She is naming the event, not emphasizing that art is included.",2:"Bringing paint is not mentioned in paragraph 7.",3:"Helping animals is the purpose, but \u2018stellar\u2019 describes how impressive the name sounds."}},
+{id:"svs-2",stem:"What do the details in paragraphs 2 and 9 show about Sylvie?",choices:["She likes playing on the swings.","She cares about animals.","She knows a lot about the town.","She is a talented artist."],correct:1,ev:["A2","A9"],expl:"Both details focus on helping animals: she wants to do something stellar for them (\xb62) and plans to donate to the shelter (\xb69).",wrong:{0:"Playing on swings is about getting ideas, not a character trait.",2:"Beach Street is a plan detail, not evidence of town knowledge.",3:"Artistic talent is never mentioned."}},
+{id:"svs-3",stem:"Based on paragraph 14, why does Sammy make a confused face in paragraph 15?",choices:["He is surprised that Sylvie thinks it is getting late.","He is disappointed that Sylvie was ready before him.","He is worried his parents did not pack everything.","He is not sure why they need a booth for the dog."],correct:0,ev:["A14","A15"],expl:"Sylvie says it\u2019s getting late, but it\u2019s only 6:15 a.m. Sammy checks the clock and is confused because there\u2019s no reason to panic.",wrong:{1:"There is no sign Sammy is disappointed.",2:"His parents did pack everything \u2014 he says \u2018we\u2019re ready.\u2019",3:"The booth comment comes after the confused face, not as its cause."}},
+{id:"svs-4",stem:"Which paragraph <em>best</em> shows that preparation is the key to success?",choices:["paragraph 1","paragraph 3","paragraph 11","paragraph 15"],correct:2,ev:["A11"],expl:"Paragraph 11 lists everything done before dinner: town permission, shelter notification, saving the date. This is thorough preparation.",wrong:{0:"Paragraph 1 shows the characters at the swings \u2014 no planning yet.",1:"Paragraph 3 shows ideas, but actual planning has not started.",3:"Paragraph 15 is the morning of the event \u2014 preparation is already done."}},
+{id:"svs-5",stem:"Which detail <em>best</em> expresses a central idea of the story?",choices:["&#8220;Hmm.&#8221; Sammy tilted his head. &#8220;I have a few ideas too.&#8221; (paragraph 3)","&#8220;Then we can sell the paintings. We can donate the money to the Sea View Animal Shelter.&#8221; (paragraph 9)","&#8220;A balloon arch spelled &#8216;Happy Make a Difference Day&#8217; from streetlight to streetlight.&#8221; (paragraph 19)","&#8220;Sylvie nodded. She squeezed in a few warm-up stretches and reached for her megaphone.&#8221; (paragraph 26)"],correct:1,ev:["A9"],expl:"The story\u2019s central idea is using teamwork to help others. Choice B directly states the purpose: donate to the shelter.",wrong:{0:"This shows Sammy having ideas, not the main message.",2:"This is a setting detail, not a theme.",3:"This shows action without expressing why it matters."}},
+{id:"svs-6",stem:"By the end of the story, how does Sylvie most likely feel about the Paint Out?",choices:["She is relieved that the planning and work are finished.","She is upset because she did most of the work.","She is concerned that they did not raise enough money.","She is proud that the event was a huge success."],correct:3,ev:["A18","A27"],expl:"Paragraph 18: they transformed Beach Street into the biggest Paint Out party ever. Paragraph 27 shows canvases filling with color. Both suggest pride.",wrong:{0:"Relief is not suggested \u2014 the focus is on success.",1:"There is no sign of upset feelings.",2:"Concern about money is never mentioned at the end."}},
+],writings:[]},
+
+// 2025 S1 ─ MC + Writing
+"raccoon-den":{id:"raccoon-den",type:"mc+w",isReal:true,source:"2025 NYS ELA Session 1",
+title:"A Raccoon in Its Den",byline:"by Meryl Magby",
+directions:"Read this passage. Then answer questions 7\u201313.",context:null,
+passageHTML:`<div class="gfx"><div class="gfx-r"><span>&#128066;</span><span>A raccoon has a great sense of hearing.</span></div><div class="gfx-r"><span>&#128065;&#65039;</span><span>A raccoon sees very well in the dark.</span></div><div class="gfx-r"><span>&#128062;</span><span>A raccoon uses its paws to get food.</span></div></div>
+<div class="pr"><span class="pn">1</span><span class="pt" id="B1">Raccoons are one of the best-known animals in the United States. This is because they live in almost every part of the country. Raccoons are easy to spot. They look like they are wearing black face masks and have bushy tails with black stripes. However, many people may have never seen a raccoon in person. This is because raccoons tend to come out at night. &#8230;</span></div>
+<div class="sh">Flexible Fingers</div><div class="vb">flexible = easy to move</div>
+<div class="pr"><span class="pn">2</span><span class="pt" id="B2">Raccoons have round bodies that are covered in thick brown or gray fur. They have black masks on their faces and black rings on their tails. They have four black paws. Raccoon paws have five fingers, just like a person&#8217;s hands do. Adults tend to weigh between 10 and 30 pounds. They are about 2 to 3 feet long from nose to tail.</span></div>
+<div class="pr"><span class="pn">3</span><span class="pt" id="B3">Raccoons are very smart and quick. They can use their flexible fingers on their front paws to do things that most other animals cannot do. These include untying knots and turning doorknobs!</span></div>
+<div class="sh">Eating Almost Anything</div>
+<div class="pr"><span class="pn">4</span><span class="pt" id="B4">Raccoons are omnivores. This means they eat both plants and animals. Exactly what a raccoon eats depends on where it lives. They may eat fruits, nuts, berries, seeds, eggs, insects, crayfish, frogs, fish, and turtles. Raccoons sometimes even catch young gophers, squirrels, mice, and rats. Raccoons living near people also eat pet food and garbage.</span></div>
+<div class="pr"><span class="pn">5</span><span class="pt" id="B5">Raccoons look for food at night. They use the many nerves on the bottoms of their paws to feel their food. Raccoons often dip their food in water before they eat it. Scientists think that this softens the raccoons&#8217; feet and makes it easier for them to feel their food. &#8230;</span></div>
+<div class="sh">Night and Day</div>
+<div class="pr"><span class="pn">6</span><span class="pt" id="B6">Raccoons are mostly nocturnal. This means that they rest during the day and are active at night. Raccoons can be pests for people in neighborhoods and cities. They tip over trash cans, dig through gardens, and pull down bird feeders looking for food. They may hide or have babies in places where they are not wanted, such as chimneys, attics, and basements.</span></div>
+<div class="pr"><span class="pn">7</span><span class="pt" id="B7">Raccoons keep safe from predators and people by hiding during the day. However, they are sometimes killed by cougars, bobcats, coyotes, dogs, owls, eagles, and snakes. They also die from hunger, being hit by cars, or getting sick.</span></div>
+<div class="vb">predators = animals that hunt other animals for food</div>
+<div class="sh">Many Different Dens</div>
+<div class="pr"><span class="pn">8</span><span class="pt" id="B8">Raccoons are thought to be solitary animals. This means adults spend most of their time alone. Raccoons tend to stay within a home range of about one square mile. In this home range, they have many hiding places that they use as dens.</span></div>
+<div class="pr"><span class="pn">9</span><span class="pt" id="B9">Unlike some other mammals, raccoons do not hibernate in the winter. During the winter, they spend a lot of time in their dens, keeping warm. However, they will leave their winter dens to find food if the weather is not too cold. Sometimes many raccoons will share a large den to keep warm and safe during a winter storm. &#8230;</span></div>
+<div class="sh">People and Raccoons</div>
+<div class="pr"><span class="pn">10</span><span class="pt" id="B10">Raccoons are in no danger of dying out in the United States. In fact, their numbers may be growing. This may be because they have adapted so well to living in neighborhoods and cities near people.</span></div>
+<div class="pr"><span class="pn">11</span><span class="pt" id="B11">You may see raccoons around your home at night. Raccoons can be fun to watch, but you should never get too close. Raccoons can sometimes spread diseases to people. If you like raccoons, try visiting them at a zoo or looking for their tracks in a park!</span></div>`,
+questions:[
+{id:"rc-7",stem:"How does the graphic support the information in paragraph 2?",choices:["by showing what raccoons look like","by explaining that raccoons have good hearing","by explaining that raccoons can see at night","by showing where some raccoons live"],correct:0,ev:["B2"],expl:"Paragraph 2 describes physical appearance (black masks, rings, paws). The graphic shows a raccoon, visually supporting those descriptions.",wrong:{1:"Hearing is in the graphic but paragraph 2 does not discuss it.",2:"Night vision is in the graphic but paragraph 2 does not mention it.",3:"Where raccoons live is not shown in the graphic."}},
+{id:"rc-8",stem:"Which sentence <em>best</em> explains why raccoons mostly come out at night?",choices:["Raccoons find their food when it is dark.","Raccoons spend most of their time alone.","Raccoons hide during the day to keep safe.","Raccoons have black masks and tail rings."],correct:2,ev:["B7"],expl:"Paragraph 7: raccoons \u2018keep safe from predators and people by hiding during the day.\u2019 That is the reason they are active at night.",wrong:{0:"Safety \u2014 not food-finding \u2014 is given as the reason.",1:"Being solitary has nothing to do with timing.",3:"Appearance has nothing to do with timing."}},
+{id:"rc-9",stem:"In which section would the reader find information about what raccoons do during the winter?",choices:["\u201CFlexible Fingers\u201D","\u201CEating Almost Anything\u201D","\u201CNight and Day\u201D","\u201CMany Different Dens\u201D"],correct:3,ev:["B9"],expl:"Paragraph 9 (in \u2018Many Different Dens\u2019) discusses staying in dens during winter and sharing dens during winter storms.",wrong:{0:"\u2018Flexible Fingers\u2019 is about their paws.",1:"\u2018Eating Almost Anything\u2019 covers diet.",2:"\u2018Night and Day\u2019 is about nocturnal habits, not specifically winter."}},
+{id:"rc-10",stem:"Animals learn to do things because of their habitat. Which sentence <em>best</em> connects to this idea?",choices:["&#8220;Raccoon paws have five fingers, just like a person&#8217;s hands do.&#8221; (paragraph 2)","&#8220;Exactly what a raccoon eats depends on where it lives.&#8221; (paragraph 4)","&#8220;They use the many nerves on the bottoms of their paws to feel their food.&#8221; (paragraph 5)","&#8220;In this home range, they have many hiding places that they use as dens.&#8221; (paragraph 8)"],correct:1,ev:["B4"],expl:"Choice B directly links behavior (what they eat) to habitat (where they live).",wrong:{0:"This is about physical appearance, not habitat-driven behavior.",2:"This is a biological ability, not shaped by habitat.",3:"Home range doesn\u2019t show habitat changing behavior."}},
+{id:"rc-11",stem:"Which detail <em>best</em> shows what the author thinks about raccoons?",choices:["&#8220;Raccoons are very smart and quick.&#8221; (paragraph 3)","&#8220;Raccoons living near people also eat pet food &#8230;&#8221; (paragraph 4)","&#8220;Raccoons often dip their food in water &#8230;&#8221; (paragraph 5)","&#8220;Raccoons can sometimes spread diseases to people.&#8221; (paragraph 11)"],correct:0,ev:["B3"],expl:"\u2018Very smart and quick\u2019 is evaluative language \u2014 the author is expressing admiration. The other choices state neutral facts.",wrong:{1:"This is a neutral fact about diet.",2:"Dipping food in water is a behavioral fact.",3:"Spreading disease is a factual warning, not an opinion."}},
+],writings:[
+{id:"rc-12",pts:2,prompt:'What does &#8220;pests&#8221; mean as it is used in paragraph 6? Use <strong>two</strong> details from the passage to support your response.',prompt_plain:'What does "pests" mean in paragraph 6? Use two details from the passage.',rubric:["Explains what \u2018pests\u2019 means in context","Uses one specific detail from the passage","Uses a second specific detail"],modelAnswer:'In paragraph 6, \u201Cpests\u201D means animals that cause trouble or problems for people. First, raccoons \u201Ctip over trash cans\u201D and \u201Cdig through gardens,\u201D creating messes. Second, they \u201Chide or have babies in places where they are not wanted, such as chimneys, attics, and basements.\u201D Both details show raccoons behave in ways that bother people.'},
+{id:"rc-13",pts:2,prompt:'What is a central idea of the passage? Use <strong>two</strong> details from the passage to support your response.',prompt_plain:'What is a central idea of the passage? Use two details from the passage.',rubric:["States a clear central idea","Uses one detail to support it","Uses a second detail to support it"],modelAnswer:'A central idea is that raccoons are highly adaptable animals. One detail: raccoons are omnivores \u2014 what they eat \u201Cdepends on where it lives.\u201D Another detail: their numbers may be growing because they have \u201Cadapted so well to living in neighborhoods and cities near people.\u201D Together, these show raccoons can thrive in many environments.'},
+]},
+
+// 2025 S2 ─ MC only
+"big-moon-tortilla":{id:"big-moon-tortilla",type:"mc",isReal:true,source:"2025 NYS ELA Session 2",
+title:"Excerpt from Big Moon Tortilla",byline:"by Joy Cowley",
+directions:"Read this story. Then answer questions 1\u20136.",
+context:"This story is about a girl named Marta and a lesson she learns.",
+passageHTML:`<div class="pr"><span class="pn">1</span><span class="pt" id="T1">Grandmother&#8217;s big moon tortillas were the best in the world!</span></div>
+<div class="pr"><span class="pn">2</span><span class="pt" id="T2">The head of Marta Enos was filled with the knowing of fresh tortillas. Oh, that sweet, crisp, little-bit-burnt smell! It went to Marta&#8217;s stomach, which rumbled and growled, and then on down to her feet, making her toes twitch towards the cookhouse.</span></div>
+<div class="pr"><span class="pn">3</span><span class="pt" id="T3">The legs of Marta Enos would not wait another minute. They were in such a hurry to run to the cookhouse that they knocked over Marta&#8217;s table, and that is when a disaster happened.</span></div>
+<div class="pr"><span class="pn">4</span><span class="pt" id="T4">The homework papers with their neat writing and beautiful drawings went out the window onto the breath of the fussing wind.</span></div>
+<div class="pr"><span class="pn">5</span><span class="pt" id="T5">The wind huffed the papers high into the air. Then, with a little cough, it spread them over the village.</span></div>
+<div class="pr"><span class="pn">8</span><span class="pt" id="T8">In no time at all, the beautiful homework papers were torn and chewed into trash.</span></div>
+<div class="pr"><span class="pn">9</span><span class="pt" id="T9">The second disaster happened when Marta tried to pull a page away from a puppy. Her glasses fell off, and she stepped on them. One arm of her glasses broke in half.</span></div>
+<div class="pr"><span class="pn">10</span><span class="pt" id="T10">She did not smell the tortillas anymore. Her head was filled up to her eyes with <strong>grief</strong> and tears as hot as chili peppers. Ruined homework! Broken glasses! Marta Enos ran to Grandmother.</span></div>
+<div class="vb">grief = sadness over losing something special</div>
+<div class="pr"><span class="pn">11</span><span class="pt" id="T11">Grandmother left her tortillas and sat down, as big as a bed and warm from the cooking. As she smoothed Marta&#8217;s hair with her floured hands, she said, &#8220;Hush! Hush! If you cry so much you&#8217;ll put out the fire.&#8221;</span></div>
+<div class="pr"><span class="pn">13</span><span class="pt" id="T13">Grandmother rocked her. &#8220;Little problems,&#8221; she said. &#8220;Too small for a big rainstorm. We&#8217;ll repair your eyeglasses.&#8221;</span></div>
+<div class="pr"><span class="pn">16</span><span class="pt" id="T16">&#8220;When we have a problem we must choose what we will be. Sometimes it is good to be a tree, to stand up tall in the desert and look all ways at once.&#8221;</span></div>
+<div class="pr"><span class="pn">19</span><span class="pt" id="T19">&#8220;Sometimes the wisest thing is to be an eagle and fly. When the eagle is high up, it sees how small the earth is. It sees how small the problem is, and it laughs and laughs.&#8221;</span></div>
+<div class="pr"><span class="pn">23</span><span class="pt" id="T23">&#8220;I have decided,&#8221; said Marta Enos, her legs doing a tortilla dance. &#8220;I am going to be the eagle.&#8221;</span></div>
+<div class="pr"><span class="pn">24</span><span class="pt" id="T24">Grandmother nodded. &#8220;That is very wise,&#8221; she said, turning the tortilla over. &#8220;Fly high and laugh. Then come back and do your homework.&#8221;</span></div>`,
+questions:[
+{id:"bmt-1",stem:"Why is the information in paragraph 3 important to the story?",choices:["It shows the cause of a problem in the story.","It gives details about the setting.","It gives a hint about how the story will end.","It introduces a new character."],correct:0,ev:["T3"],expl:"Paragraph 3 describes how Marta\u2019s legs knocked over the table, which caused her homework to fly out the window. This is the direct cause of all the disasters that follow.",wrong:{1:"Some setting details appear, but the primary purpose is to show how the disaster starts.",2:"Paragraph 3 does not hint at the solution or ending.",3:"No new character is introduced in paragraph 3."}},
+{id:"bmt-2",stem:'Which meaning of the word &#8220;spread&#8221; is used in paragraph 5?',choices:["scattered around","grew slowly","became known","shared freely"],correct:0,ev:["T5"],expl:"The wind coughed and \u2018spread\u2019 the papers over the village \u2014 meaning they were scattered in different directions by the wind.",wrong:{1:"The papers didn\u2019t grow slowly \u2014 they were blown quickly by the wind.",2:"\u2018Became known\u2019 applies in other contexts; here physical movement is described.",3:"Papers are not being shared by anyone; the wind is scattering them."}},
+{id:"bmt-3",stem:"Which detail from the story best tells why Marta begins crying?",choices:['"It went to Marta\'s stomach . . ." (paragraph 2)','"They were in such a hurry to run to the cookhouse that they knocked over Marta\'s table . . ." (paragraph 3)','"But the dogs, too, were chasing." (paragraph 7)','"Ruined homework! Broken glasses!" (paragraph 10)'],correct:3,ev:["T10"],expl:"Paragraph 10 directly states the two things that made Marta cry: her homework was ruined AND her glasses were broken.",wrong:{0:"This detail shows Marta\u2019s excitement about the smell of tortillas \u2014 she is happy, not upset.",1:"This shows the accident beginning, but more disasters happen after this.",2:"The dogs chasing is part of the story, but Marta doesn\u2019t start crying until paragraph 10."}},
+{id:"bmt-4",stem:"Which detail from the story best tells what Grandmother believes?",choices:['"Grandmother\'s big moon tortillas were the best in the world!" (paragraph 1)','"When we have a problem we must choose what we will be." (paragraph 16)','"When the eagle is high up, it sees how small the earth is." (paragraph 19)','"Grandmother wound some tape around the arm of the glasses." (paragraph 20)'],correct:1,ev:["T16"],expl:"Choice B is Grandmother\u2019s direct teaching \u2014 her belief that we have a choice in how we respond to problems. The other choices describe actions or story details, not beliefs.",wrong:{0:"This is a statement about her cooking, not her beliefs.",2:"This is one example from the song, but Choice B expresses the core belief behind the whole song.",3:"Taping the glasses is a practical action, not an expression of a belief."}},
+{id:"bmt-5",stem:"What does Marta most likely think about Grandmother\u2019s healing song?",choices:["It reminds her of a story.","It helps her make a choice.","It makes her want to dance.","It teaches her about animals."],correct:1,ev:["T23"],expl:"After hearing the song, Marta says \u2018I have decided... I am going to be the eagle.\u2019 This shows the song helped her choose how to respond to her problems.",wrong:{0:"The song contains a story, but Marta\u2019s reaction shows she\u2019s using it to make a decision.",2:"Her \u2018tortilla dance\u2019 shows happiness after her decision, not the reason for it.",3:"The song mentions animals as symbols, not for learning about them."}},
+{id:"bmt-6",stem:"Which detail would be most important to include in a summary of the story?",choices:["Marta\u2019s stomach makes loud noises.","The tortillas are in the cookhouse.","The tortillas bubble and turn brown.","Marta decides to be like an eagle."],correct:3,ev:["T23"],expl:"Marta deciding to be like an eagle is the resolution of the story \u2014 the moment she overcomes her problems. The other choices are minor details.",wrong:{0:"Marta\u2019s stomach rumbling is a small detail that sets up the beginning.",1:"The tortillas\u2019 location is a minor setting detail.",2:"The tortillas browning is a sensory detail, not an important story event."}},
+],writings:[]},
+
+// 2025 S2 ─ Writing only (poem)
+"north-wind-and-sun":{id:"north-wind-and-sun",type:"w-only",isReal:true,source:"2025 NYS ELA Session 2",
+title:"The North Wind and the Sun",byline:"by Mary Ann Hoberman",
+directions:"Read this poem. Then answer questions 14\u201316.",context:null,
+passageHTML:`<div class="pr"><span class="pn" style="min-width:1.8rem">1</span><span class="pt" id="NW1">I&#8217;m the North Wind.<br>I am cold. I am strong.<br>No one can beat me<br>When I come along.</span></div>
+<div class="pr"><span class="pn" style="min-width:1.8rem">5</span><span class="pt" id="NW5" style="padding-left:1.5rem;font-style:italic">I am the Sun.<br>I am gentle and warm.<br>That gives me more power<br>Than coldness or storm.</span></div>
+<div class="pr"><span class="pn" style="min-width:1.8rem">9</span><span class="pt" id="NW9">Silly old Sun,<br>You are not very bright!<br>Let&#8217;s have a contest<br>To see who is right.</span></div>
+<div class="pr"><span class="pn" style="min-width:1.8rem">13</span><span class="pt" id="NW13" style="padding-left:1.5rem;font-style:italic">Look down below,<br>At that bundled-up man.<br>Make him take off his coat<br>If you can.</span></div>
+<div class="pr"><span class="pn" style="min-width:1.8rem">17</span><span class="pt" id="NW17">Of course I can do that!<br>I&#8217;ll raise up a squall<br>And blow off his coat<br>With no trouble at all.</span></div>
+<div class="pr"><span class="pn" style="min-width:1.8rem">21</span><span class="pt" id="NW21" style="padding-left:1.5rem;font-style:italic">The more that you blow, Wind,<br>And show off your might,<br>The more the man shivers<br>And pulls his coat tight.</span></div>
+<div class="vb">shivers = shakes because of being cold</div>
+<div class="pr"><span class="pn" style="min-width:1.8rem">29</span><span class="pt" id="NW29" style="padding-left:1.5rem;font-style:italic">I&#8217;ll come out right now<br>From behind this big cloud<br>And warm the man up.<br>Look! He&#8217;s laughing out loud!</span></div>
+<div class="pr"><span class="pn" style="min-width:1.8rem">37</span><span class="pt" id="NW37" style="padding-left:1.5rem;font-style:italic">But look at him now!<br>Though I don&#8217;t want to gloat,<br>I have made him so hot,<br>He&#8217;s unbuttoned his coat!</span></div>
+<div class="vb">gloat = brag</div>
+<div class="pr"><span class="pn" style="min-width:1.8rem">41</span><span class="pt" id="NW41">He has taken it off!<br>You have beaten me, Sun!</span></div>
+<div class="pr"><span class="pn" style="min-width:1.8rem">43</span><span class="pt" id="NW43" style="padding-left:1.5rem;font-style:italic">So I have, silly Wind!<br>You have lost! I have won!</span></div>`,
+questions:[],
+writings:[
+{id:"nws-14",pts:2,prompt:'In &#8220;The North Wind and the Sun,&#8221; what do lines 9 through 12 show about the North Wind? Use <strong>two</strong> details from the poem to support your response.',prompt_plain:'What do lines 9 through 12 show about the North Wind? Use two details from the poem.',rubric:["States what lines 9\u201312 show about the Wind\u2019s character","Uses one specific detail from lines 9\u201312","Uses a second specific detail"],modelAnswer:'Lines 9 through 12 show that the North Wind is proud and overconfident. First, he calls the Sun \u201CSilly old Sun,\u201D showing he looks down on the Sun and thinks he is better. Second, he immediately challenges the Sun to a contest \u2014 \u201CLet\u2019s have a contest / To see who is right\u201D \u2014 showing he is so sure of himself that he doesn\u2019t even hesitate. Both details show a character who is too proud to consider that he might lose.'},
+{id:"nws-15",pts:2,prompt:'In &#8220;The North Wind and the Sun,&#8221; how does the Sun feel about having power? Use <strong>two</strong> details from the poem to support your response.',prompt_plain:'How does the Sun feel about having power? Use two details from the poem.',rubric:["States the Sun\u2019s attitude toward power","Uses one detail from the poem","Uses a second detail"],modelAnswer:'The Sun feels that gentle, warm power is stronger than forceful power. One detail is in lines 7\u20138, where the Sun says that being \u201Cgentle and warm\u201D gives it more power than \u201Ccoldness or storm.\u201D Another detail is in lines 37\u201340, where the Sun admits it doesn\u2019t want to \u201Cgloat\u201D even after winning. This shows the Sun is confident but not boastful \u2014 it believes quiet strength is more effective than showing off.'},
+{id:"nws-16",pts:2,prompt:'In the poem, how do the Sun and the North Wind show that they are alike? Use <strong>two</strong> details from the poem to support your response.',prompt_plain:'How do the Sun and the North Wind show that they are alike? Use two details from the poem.',rubric:["States one way the two characters are similar","Uses one detail from the poem","Uses a second detail"],modelAnswer:'Although the Sun and the North Wind are different, both are competitive and both believe they are stronger than the other. One detail: both agree to the contest \u2014 neither one walks away. Another detail: both boast about their abilities: the Wind says \u201CNo one can beat me when I come along,\u201D and the Sun says \u201CThat gives me more power than coldness or storm.\u201D Both characters are confident they will win, showing they share the same competitive spirit.'},
+]},
+
+// 2024 S1 ─ MC only
+"crazy-about-clouds":{id:"crazy-about-clouds",type:"mc",isReal:true,source:"2024 NYS ELA Session 1",
+title:"Excerpt from Crazy About Clouds",byline:"by Rena Korb",
+directions:"Read this passage. Then answer questions 1\u20136.",context:null,
+passageHTML:`<div class="sh">Tiny, Floating Drops</div>
+<div class="pr"><span class="pn">1</span><span class="pt" id="CC1">Look up at the sky. Do you see any clouds today?</span></div>
+<div class="pr"><span class="pn">2</span><span class="pt" id="CC2">Look! There&#8217;s one shaped like a fluffy, white bunny. A dark gray one floats by like a jellyfish.</span></div>
+<div class="pr"><span class="pn">3</span><span class="pt" id="CC3">Clouds look different. But they are all made of the same stuff&#8212;water.</span></div>
+<div class="pr"><span class="pn">4</span><span class="pt" id="CC4">Clouds form when tiny drops of water gather in the sky. Tiny chunks of ice make up clouds, too.</span></div>
+<div class="pr"><span class="pn">5</span><span class="pt" id="CC5">The tiny drops of water come together. They form heavier and heavier drops. Sometimes, the drops get too heavy to float.</span></div>
+<div class="pr"><span class="pn">6</span><span class="pt" id="CC6">Splat! Rain pours from the clouds. Or you might see drizzle, mist, or snow.</span></div>
+<div class="vb">drizzle = light rain &nbsp;&nbsp; mist = tiny drops of water that hang in the air</div>
+<div class="pr"><span class="pn">7</span><span class="pt" id="CC7">Clouds may look light and fluffy. But even the water in a small cloud weighs more than 500 tons. That&#8217;s about as heavy as 100 elephants!</span></div>
+<div class="sh">Changing Clouds</div>
+<div class="pr"><span class="pn">8</span><span class="pt" id="CC8">Watch a cloud closely. You will see it change before your very eyes.</span></div>
+<div class="pr"><span class="pn">9</span><span class="pt" id="CC9">Clouds can change shapes and sizes. They can look bright white or dark gray. Have you ever seen pink clouds at sunset?</span></div>
+<div class="pr"><span class="pn">11</span><span class="pt" id="CC11">Some clouds travel as fast as race cars!</span></div>
+<div class="sh">High Clouds, Low Clouds</div>
+<div class="pr"><span class="pn">13</span><span class="pt" id="CC13">Scientists group clouds by where they are seen in the sky. High clouds sail with the jumbo jets. Birds fly through low clouds.</span></div>
+<div class="vb">jumbo = very large</div>
+<div class="pr"><span class="pn">16</span><span class="pt" id="CC16">Fog is actually a cloud that creeps along the ground.</span></div>
+<div class="vb">creeps = moves slowly</div>
+<div class="sh">Types of Clouds</div>
+<div class="pr"><span class="pn">19</span><span class="pt" id="CC19">Stratus clouds look like a gray blanket over the sky. They often gather in cool weather. These clouds mean rain may soon be falling.</span></div>
+<div class="pr"><span class="pn">20</span><span class="pt" id="CC20">Have you ever seen bright cotton balls in the sky? These are cumulus clouds. They mostly drift along on a fine, sunny day.</span></div>
+<div class="pr"><span class="pn">22</span><span class="pt" id="CC22">Very high above your head float cirrus clouds. Their long tails curve through the sky. When you see these clouds, the weather might soon change.</span></div>
+<div class="pr"><span class="pn">25</span><span class="pt" id="CC25">Dark cumulonimbus clouds are gathering. These clouds cause powerful storms. Cumulonimbus clouds usually only stay in the sky for about an hour. As they break open, they can let out millions of buckets of water.</span></div>
+<div class="sh">Study the Clouds</div>
+<div class="pr"><span class="pn">27</span><span class="pt" id="CC27">Will it rain? Is a snowstorm coming? Clouds give clues about what the weather will be like.</span></div>
+<div class="pr"><span class="pn">31</span><span class="pt" id="CC31">No matter what, you are sure to find many wonderful shapes drifting in the sky.</span></div>`,
+questions:[
+{id:"cc-13",stem:'The phrase &#8220;change before your very eyes&#8221; in paragraph 8 suggests that clouds',choices:["can only be seen up close","can look strange to others","can make it difficult for you to see","can become different while you watch"],correct:3,ev:["CC8"],expl:"The phrase \u2018before your very eyes\u2019 means while you are watching \u2014 it emphasizes that the change happens visibly and quickly as you observe.",wrong:{0:"The phrase says nothing about distance.",2:"The phrase is about how clouds change, not how they affect your ability to see.",1:"Looking strange to others is not what the phrase means."}},
+{id:"cc-14",stem:"What claim does the author make about cumulus clouds?",choices:["They look like bright cotton balls in the sky.","They form only when it is windy for many hours.","They show that the weather might soon change.","They look pink when they form at sunset."],correct:0,ev:["CC20"],expl:"Paragraph 20 describes cumulus clouds as \u201Cbright cotton balls in the sky.\u201D This is the author\u2019s direct claim about what they look like.",wrong:{1:"This is not stated about cumulus clouds.",2:"Cirrus clouds \u2014 not cumulus \u2014 signal a weather change.",3:"Pink clouds at sunset are mentioned for clouds generally, not cumulus specifically."}},
+{id:"cc-15",stem:"In which section can the reader find information about how clouds are made?",choices:["\u201CTiny, Floating Drops\u201D","\u201CChanging Clouds\u201D","\u201CTypes of Clouds\u201D","\u201CStudy the Clouds\u201D"],correct:0,ev:["CC4","CC5"],expl:"Paragraphs 4 and 5, in \u2018Tiny, Floating Drops,\u2019 explain that clouds form when tiny drops of water gather in the sky.",wrong:{1:"\u2018Changing Clouds\u2019 is about how clouds shift shape and color.",2:"\u2018Types of Clouds\u2019 describes different categories of clouds.",3:"\u2018Study the Clouds\u2019 is about using clouds to predict weather."}},
+{id:"cc-16",stem:"Which sentence from the passage shows a cause-and-effect relationship?",choices:['"Clouds can change shapes and sizes." (paragraph 9)','"Other clouds float in the middle, and some move up and down." (paragraph 14)','"As the day warms up, fog clears away." (paragraph 17)','"Scientists study clouds to tell what kind of day you\'ll have tomorrow." (paragraph 28)'],correct:2,ev:["CC16"],expl:"This sentence shows a clear cause (the day warms up) and its effect (fog clears away). The other choices describe facts without a cause-and-effect relationship.",wrong:{0:"This is just a description of how clouds behave.",1:"This describes where clouds float, not cause and effect.",3:"This is a statement about what scientists do, not a cause-and-effect relationship."}},
+{id:"cc-17",stem:"Which detail best shows how the author feels about clouds?",choices:['"Some clouds travel as fast as race cars!" (paragraph 11)','"You can barely see the road ahead of you!" (paragraph 15)','"&#8230; cloudy nights are a little bit warmer than clear &#8230;" (paragraph 29)','"&#8230; you are sure to find many wonderful shapes &#8230;" (paragraph 31)'],correct:3,ev:["CC31"],expl:"The word \u2018wonderful\u2019 is evaluative language that shows the author\u2019s sense of delight and admiration for clouds. The other choices state facts without expressing a personal feeling.",wrong:{0:"This is an exciting fact but does not express the author\u2019s personal feelings.",1:"This describes fog, not the author\u2019s feelings about clouds in general.",2:"This is a scientific fact about temperature."}},
+{id:"cc-18",stem:"Which detail would be most important to include in a summary of the passage?",choices:["Some clouds can look like shapes of animals.","Clouds form when drops of water come together.","Clouds can appear on warm days and on cool days.","Birds fly through clouds that are low in the sky."],correct:1,ev:["CC4","CC5"],expl:"A summary should include the most important information. How clouds form (from water drops gathering in the sky) is a central idea of the passage. The other choices are minor supporting details.",wrong:{0:"Cloud shapes are a minor detail mentioned briefly.",2:"When clouds appear is a minor detail, not a central idea.",3:"Birds flying through clouds is a small detail, not important to a summary."}},
+],writings:[]},
+
+// 2024 S1 ─ MC + Writing
+"little-red-lighthouse":{id:"little-red-lighthouse",type:"mc+w",isReal:true,source:"2024 NYS ELA Session 1",
+title:"Excerpt from The Little Red Lighthouse and the Great Gray Bridge",byline:"by Hildegarde H. Swift and Lynd Ward",
+directions:"Read this story. Then answer questions 7\u201313.",
+context:"Lighthouses were once lit by gas. A gas lighthouse on the Hudson River closed and later became a park after the George Washington Bridge was built.",
+passageHTML:`<div class="pr"><span class="pn">1</span><span class="pt" id="LH1">Once upon a time a little lighthouse was built on a sharp point of the shore by the Hudson River. &#8230;</span></div>
+<div class="pr"><span class="pn">3</span><span class="pt" id="LH3">Before it sailed the boats on which the people rode. Up and down, up and down, sailed the boats. On and on and on rolled the river. All the way from Lake Tear of the Clouds, high up in the mountains, came the Hudson River. It rolled down the mountains. It rolled and rolled and rolled. It rolled past Albany. It rolled past New York. And it went on forever looking for the sea.</span></div>
+<div class="pr"><span class="pn">4</span><span class="pt" id="LH4">Now the boats on the river talked to the little red lighthouse as they passed.</span></div>
+<div class="pr"><span class="pn">7</span><span class="pt" id="LH7">But every night, just at fall of dark, a man came to tend the little red lighthouse. He took out his jingling keys. He unlocked the small red door in its side. He climbed its steep and winding stairs, up, up, up, to the very top. He took off the thick white cap that let it sleep by day. He turned on the gas with a funny small black key.</span></div>
+<div class="pr"><span class="pn">10</span><span class="pt" id="LH10">It felt big and useful and important. What would the boats do without me? it thought.</span></div>
+<div class="pr"><span class="pn">11</span><span class="pt" id="LH11">It felt VERY, VERY PROUD.</span></div>
+<div class="pr"><span class="pn">12</span><span class="pt" id="LH12">The boats saw the light and were safe. The boats saw it, and they kept to the channel. The boats were grateful to the little red lighthouse. &#8230;</span></div>
+<div class="vb">channel = deepest part of a river or harbor</div>
+<div class="pr"><span class="pn">15</span><span class="pt" id="LH15">Every day it watched the strange new gray thing beside it grow and grow. Huge towers seemed to touch the sky. Strong loops of steel swept across the river. How big it was! How wonderful! How powerful! A great gray bridge, spanning the Hudson River from shore to shore. It made the little red lighthouse feel very, very small.</span></div>
+<div class="vb">spanning = going across</div>
+<div class="pr"><span class="pn">17</span><span class="pt" id="LH17">Now I am needed no longer, thought the little red lighthouse. My light is so little and this one so big! &#8230;</span></div>
+<div class="pr"><span class="pn">19</span><span class="pt" id="LH19">Then the great gray bridge called to the little red lighthouse: &#8220;Little brother, where is your light?&#8221;</span></div>
+<div class="pr"><span class="pn">21</span><span class="pt" id="LH21">&#8220;I call to the airplanes,&#8221; cried the bridge. &#8220;I flash to the ships of the air. But you are still master of the river. Quick, let your light shine again. Each to his own place, little brother!&#8221;</span></div>
+<div class="pr"><span class="pn">24</span><span class="pt" id="LH24">Now the little red lighthouse knew that it was needed. &#8230;</span></div>
+<div class="pr"><span class="pn">26</span><span class="pt" id="LH26">And now beside the great beacon of the bridge, the small beam of the lighthouse still flashes.</span></div>
+<div class="vb">beacon = guiding light</div>`,
+questions:[
+{id:"lh-19",stem:"What does the little red lighthouse think about itself in paragraphs 10 through 13?",choices:["It believes it needs a partner to help with its job.","It feels useful and important to the boats on the river.","It wishes it were bigger so more boats could see it.","It is a building along the shore."],correct:1,ev:["LH10","LH11","LH12"],expl:"Paragraphs 10\u201312 show the lighthouse feeling \u2018big and useful and important,\u2019 thinking boats could not manage without it, and feeling \u2018VERY, VERY PROUD.\u2019 All three details show it sees itself as essential.",wrong:{0:"There is no mention of needing a partner.",2:"Wishing to be bigger is not mentioned until after the bridge appears.",3:"This is not what the lighthouse thinks about itself."}},
+{id:"lh-20",stem:"How are the details in paragraphs 1 through 6 important to the story?",choices:["The paragraphs explain the main problem to be solved in the story.","The paragraphs introduce the setting and the main character of the story.","The paragraphs show why later events will come to happen in the story.","The paragraphs hint at how the characters will change over time in the story."],correct:1,ev:["LH1","LH3","LH4"],expl:"The opening paragraphs establish the Hudson River setting and introduce the little red lighthouse as the main character. This is their primary purpose.",wrong:{0:"The main problem (the bridge arriving) is not introduced until paragraph 14.",2:"While background helps context, the primary purpose is setting and character introduction.",3:"There is no hint about character change in paragraphs 1\u20136."}},
+{id:"lh-21",stem:"How does the building of the great gray bridge affect the little red lighthouse?",choices:["The bridge makes the lighthouse feel like it is not useful anymore.","The bridge makes the lighthouse feel happy to have help with its job.","The bridge shows the lighthouse new ways to help the people of the city.","The bridge blocks out the light of the lighthouse so it is not seen by boats."],correct:0,ev:["LH15","LH17"],expl:"Paragraph 15: the bridge made the lighthouse feel \u2018very, very small.\u2019 Paragraph 17: it thinks \u2018Now I am needed no longer.\u2019 Together these show the lighthouse feels useless after the bridge arrives.",wrong:{1:"The lighthouse feels threatened, not happy about having help.",2:"The bridge does not show the lighthouse new ways to help.",3:"The passage does not say the bridge physically blocks the lighthouse light."}},
+{id:"lh-22",stem:"The great gray bridge believes that the little red lighthouse",choices:["can help it send lights into the air","should be moved to a different place","is too small to be helpful in an emergency","must continue to do its job for the boats"],correct:3,ev:["LH21"],expl:"In paragraph 21, the bridge tells the lighthouse: \u2018you are still master of the river. Quick, let your light shine again. Each to his own place.\u2019 This shows the bridge believes the lighthouse must keep doing its job.",wrong:{0:"The bridge says it handles the airplanes and ships of the air itself.",1:"The bridge tells the lighthouse to stay in its own place, not move.",2:"The bridge explicitly says the lighthouse is still needed, not too small."}},
+{id:"lh-23",stem:"Lighthouses are important because they guide boats. Which detail best shows how this idea connects to the events in the story?",choices:['"All the way from Lake Tear of the Clouds, high up in the mountains, came the Hudson River." (paragraph 3)','"Now the boats on the river talked to the little red lighthouse as they passed." (paragraph 4)','"He took off the thick white cap that let it sleep by day. He turned on the gas with a funny small black key." (paragraph 7)','"The boats saw the light and were safe. The boats saw it, and they kept to the channel." (paragraph 12)'],correct:3,ev:["LH12"],expl:"Paragraph 12 directly states that \u2018the boats saw the light and were safe.\u2019 This most clearly connects the idea of guiding boats to safety with what happens in the story.",wrong:{0:"This describes the river\u2019s geography, not how the lighthouse guides boats.",1:"Boats talking to the lighthouse is friendly interaction, not evidence of safety guidance.",2:"This describes how the lighthouse is lit, not its effect on the boats."}},
+],writings:[
+{id:"lh-24",pts:2,prompt:'What theme is best supported by paragraphs 17 through 25 of &#8220;Excerpt from The Little Red Lighthouse and the Great Gray Bridge&#8221;? Use <strong>two</strong> details from the story to support your response.',prompt_plain:'What theme is best supported by paragraphs 17 through 25? Use two details from the story.',rubric:["States a clear theme supported by paragraphs 17\u201325","Uses one specific detail from the story","Uses a second specific detail from the story"],modelAnswer:'A theme of the story is that even small things can have an important purpose. One detail that supports this theme is in paragraph 21, when the great gray bridge tells the lighthouse: \u201Cyou are still master of the river,\u201D showing that the small lighthouse has a unique and irreplaceable job. Another detail is in paragraph 24, when the lighthouse \u201Cknew that it was needed,\u201D confirming that being small does not mean being unimportant. Together these details show that every person or thing has a role that matters, no matter its size.'},
+{id:"lh-25",pts:2,prompt:'In &#8220;Excerpt from The Little Red Lighthouse and the Great Gray Bridge,&#8221; why does the little red lighthouse feel proud? Use <strong>two</strong> details from the story to support your response.',prompt_plain:'Why does the little red lighthouse feel proud? Use two details from the story.',rubric:["Explains why the lighthouse feels proud","Uses one specific detail from the story","Uses a second specific detail"],modelAnswer:'The little red lighthouse feels proud because it believes it is doing an important job that helps the boats on the river. One detail is in paragraph 10, where the lighthouse thinks, \u201CWhat would the boats do without me?\u201D showing it believes the boats depend on it. A second detail is in paragraph 12, which says \u201Cthe boats saw the light and were safe\u201D and that \u201Cthe boats were grateful.\u201D Knowing the boats are grateful and safe because of its light makes the lighthouse feel proud and important.'},
+]},
+
+// 2024 S2 ─ Writing only
+"hide-ladybugs":{id:"hide-ladybugs",type:"w-only",isReal:true,source:"2024 NYS ELA Session 2",
+title:"Excerpt from Hide with the Ladybugs",byline:"by Karen Latchana Kenney",
+directions:"Read this passage. Then answer questions 14\u201316.",context:null,
+passageHTML:`<div class="sh">Lovely Ladybug</div>
+<div class="pr"><span class="pn">1</span><span class="pt" id="C1"><em>Crawl, crawl, crawl.</em> A ladybug looks like a colorful, crawling bump. From the side, it&#8217;s shaped like half a pea. Then it opens its wings. It&#8217;s gone in a second.</span></div>
+<div class="pr"><span class="pn">2</span><span class="pt" id="C2">More than 5,000 kinds of ladybugs crawl and fly around Earth. Ladybugs gather in gardens and forests. They live almost everywhere except for very cold places.</span></div>
+<div class="pr"><span class="pn">3</span><span class="pt" id="C3">Ladybugs are a kind of beetle. Even males are called ladybugs! Ladybugs are also called lady beetles or ladybird beetles.</span></div>
+<div class="sh">Growing Ladybugs</div>
+<div class="pr"><span class="pn">4</span><span class="pt" id="C4">In the spring, a female ladybug crawls on the underside of a leaf. She is looking for a safe place to lay eggs. Here, the eggs will be safe from hungry birds or insects flying above.</span></div>
+<div class="pr"><span class="pn">5</span><span class="pt" id="C5">The mother ladybug lays her eggs. Then she flies away. The tiny, yellow eggs look like shiny jellybeans. A mother ladybug doesn&#8217;t just lay her eggs anywhere. She chooses a place with lots of tiny bugs called aphids. When the eggs hatch, her young will have plenty to eat.</span></div>
+<div class="pr"><span class="pn">6</span><span class="pt" id="C6">A few days later, larvae hatch from the eggs. These tiny creatures have legs but no wings. They are very hungry! They hunt for aphids. A larva can eat 400 aphids before it is three weeks old!</span></div>
+<div class="vb">creatures = animals</div>
+<div class="pr"><span class="pn">7</span><span class="pt" id="C7">The larvae are growing quickly. To grow, a larva breaks out of its old skin. Underneath it has new, bigger skin. This is called molting.</span></div>
+<div class="pr"><span class="pn">8</span><span class="pt" id="C8">Next, a larva finds a safe place and attaches to a leaf. A hard cover surrounds the larva. It becomes a pupa. Inside the cover, the pupa grows and changes. &#8230;</span></div>
+<div class="vb">attaches to = joins itself with</div>
+<div class="pr"><span class="pn">9</span><span class="pt" id="C9">After a few days, an adult ladybug climbs out of the hard casing. Its body is soft and pale. It does not have spots.</span></div>
+<div class="pr"><span class="pn">10</span><span class="pt" id="C10">The ladybug&#8217;s skin soon hardens into a shell. This shell protects the ladybug. Some ladybugs slowly turn red. Their black spots appear.</span></div>
+<div class="pr"><span class="pn">11</span><span class="pt" id="C11">Ladybugs can be orange, yellow, pink, or black. Some have spots. Some are spotless, and some have stripes.</span></div>
+<div class="sh">Flying and Feeling</div>
+<div class="pr"><span class="pn">12</span><span class="pt" id="C12">Soon, ladybugs are flying. Each one has two sets of wings. Unlike other insects, beetles have elytra. The elytra are hard, front wings. They cover a pair of thin, see-through back wings.</span></div>
+<div class="pr"><span class="pn">13</span><span class="pt" id="C13">To fly, the ladybug opens its front wings. Then the thin wings flutter. They lift the ladybug into the air.</span></div>
+<div class="vb">flutter = move quickly</div>
+<div class="pr"><span class="pn">16</span><span class="pt" id="C16">A ladybug uses its two antennae to explore its world. Like wands, they wave in all directions. They can feel, smell, and taste.</span></div>
+<div class="sh">Helpful Bugs</div>
+<div class="pr"><span class="pn">17</span><span class="pt" id="C17">Ladybugs eat aphids or scale bugs. These tiny creatures are pests. They harm crops. That&#8217;s why farmers and gardeners love to see ladybugs crawling around. More ladybugs means fewer pests. An adult ladybug can eat 75 aphids a day!</span></div>
+<div class="sh">Staying Safe</div>
+<div class="pr"><span class="pn">18</span><span class="pt" id="C18">The air has a chill. Winter is coming. Ladybugs find a dry place away from the wind. It can be in a house or in a dead tree. Sometimes, they form large groups.</span></div>
+<div class="pr"><span class="pn">19</span><span class="pt" id="C19">The ladybugs stay there through winter. They do not eat anything. They could stay like this for nine months.</span></div>
+<div class="diagram-note">&#9711; Diagram: <em>A Ladybug&#8217;s Body</em> \u2014 labels include Antennae, Eye, Flying Wing, and Elytra (hard front wings)</div>`,
+questions:[],
+writings:[
+{id:"lb-14",pts:2,prompt:'In &#8220;Excerpt from Hide with the Ladybugs,&#8221; how does paragraph 5 connect to paragraph 6? Use <strong>two</strong> details from the passage to support your response.',prompt_plain:'How does paragraph 5 connect to paragraph 6? Use two details from the passage.',rubric:["Explains the connection between paragraphs 5 and 6","Uses one specific detail from paragraph 5","Uses one specific detail from paragraph 6"],modelAnswer:'Paragraph 5 connects to paragraph 6 by setting up a cause and effect. In paragraph 5, the mother ladybug chooses a place \u201Cwith lots of tiny bugs called aphids\u201D so that when the eggs hatch, her young will have plenty to eat. Then in paragraph 6, the connection pays off: larvae hatch and immediately \u201Chunt for aphids,\u201D eating as many as 400 before they are three weeks old. Paragraph 5 explains the mother\u2019s preparation, and paragraph 6 shows why that preparation mattered.'},
+{id:"lb-15",pts:2,prompt:'The cold can be dangerous for animals, so they find ways to stay safe in bad weather. How does &#8220;Excerpt from Hide with the Ladybugs&#8221; develop this idea? Use <strong>two</strong> details from the passage to support your response.',prompt_plain:'How does the passage develop the idea that animals find ways to stay safe in cold weather? Use two details.',rubric:["States how the passage develops the idea","Uses one detail from the passage","Uses a second detail from the passage"],modelAnswer:'The passage shows that ladybugs have a strategy for surviving cold weather. One detail from paragraph 18: when winter is coming, ladybugs \u201Cfind a dry place away from the wind\u201D \u2014 such as a house or a dead tree. A second detail from paragraph 19: they stay there through the entire winter without eating, surviving for as long as nine months. Together, these details show that ladybugs have a specific strategy for staying safe in cold weather.'},
+{id:"lb-16",pts:2,prompt:'How does the diagram &#8220;A Ladybug&#8217;s Body&#8221; better help the reader&#8217;s understanding of the passage? Use <strong>two</strong> details from the passage to support your response.',prompt_plain:'How does the diagram help the reader understand the passage? Use two details from the passage.',rubric:["Explains how the diagram helps understanding","Connects one passage detail to a diagram label","Connects a second passage detail to a diagram label"],modelAnswer:'The diagram helps readers understand the passage by showing the parts of a ladybug that the text describes. One example: paragraph 16 explains that a ladybug uses its antennae to \u201Cfeel, smell, and taste,\u201D and the diagram shows where the antennae are located. Another example: paragraph 13 describes how the thin wings \u201Clift the ladybug into the air,\u201D and the diagram shows the thin flying wings underneath the hard elytra. Seeing the parts labeled makes it easier to understand what the text is describing.'},
+]},
+
+// 2023 S1 ─ MC only
+"brothers-on-ice":{id:"brothers-on-ice",type:"mc",isReal:true,source:"2023 NYS ELA Session 1",
+title:"Excerpt from Brothers on Ice",byline:"by John Danakas",
+directions:"Read this story. Then answer questions 1\u20136.",
+context:"In this story, Troy and his family are celebrating the birthday of his younger brother, Trent. As is their tradition, the boys\u2019 mother measures their height on the side of the door.",
+passageHTML:`<div class="pr"><span class="pn">1</span><span class="pt" id="BI1">&#8220;It&#8217;s time to see how much you&#8217;ve grown since last year,&#8221; Mom answered.</span></div>
+<div class="pr"><span class="pn">2</span><span class="pt" id="BI2">How could Trent and I have forgotten? Every year on our birthday Mom has us stand up straight against the bedroom doorjamb and she makes a mark to indicate how much we&#8217;d grown since the year before. My marks are in blue pencil crayon. Trent&#8217;s are in red.</span></div>
+<div class="pr"><span class="pn">5</span><span class="pt" id="BI5">In a hurry to get this over with, Trent trotted to the doorway and stood up against the jamb. He waited as Mom made sure he wasn&#8217;t slouching or stretching and carefully marked the spot on the jamb where the top of his head reached.</span></div>
+<div class="pr"><span class="pn">10</span><span class="pt" id="BI10">&#8220;Well,&#8221; Mom smiled, &#8220;your mark is higher than Troy&#8217;s last mark. That&#8217;s the first time that&#8217;s ever happened.&#8221;</span></div>
+<div class="pr"><span class="pn">11</span><span class="pt" id="BI11">&#8220;No way,&#8221; Trent squealed with delight.</span></div>
+<div class="pr"><span class="pn">13</span><span class="pt" id="BI13">I rushed over to the doorway and actually nudged Trent out of the way to get a better look. I couldn&#8217;t believe my eyes. The red mark was indeed a little higher than the blue.</span></div>
+<div class="pr"><span class="pn">15</span><span class="pt" id="BI15">&#8220;You must have made a mistake,&#8221; I protested to Mom. I could feel my stomach churning.</span></div>
+<div class="pr"><span class="pn">18</span><span class="pt" id="BI18">&#8220;Sure,&#8221; I volunteered. I wanted to lay this matter to rest as soon as possible.</span></div>
+<div class="pr"><span class="pn">26</span><span class="pt" id="BI26">&#8220;I think Trent is just a smidgen taller.&#8221; She coughed again. &#8220;Of course, that could be because he has more hair.&#8221;</span></div>
+<div class="vb">prodded = gently tried to get someone to do something</div>
+<div class="pr"><span class="pn">30</span><span class="pt" id="BI30">&#8220;Well, Troy, you may not like to hear this, but as far as I can tell Trent is in fact taller. Not by much, that&#8217;s for sure, but there is a difference. Nine-tenths of a centimeter, I&#8217;d say.&#8221;</span></div>
+<div class="vb">centimeter = unit of measure equal to less than 1/2 inch</div>
+<div class="pr"><span class="pn">33</span><span class="pt" id="BI33">&#8220;I can&#8217;t believe this,&#8221; I whined. &#8220;There&#8217;s just no way.&#8221; My mind raced. Something had to be wrong about this. Even Dad could make mistakes sometimes. &#8220;Bring me a mirror,&#8221; I demanded.</span></div>`,
+questions:[
+{id:"bi-1",stem:"Which detail from the story <em>best</em> shows what the measuring tradition means to the family?",choices:["Troy\u2019s marks are in blue and Trent\u2019s are in red pencil crayon.","Trent squeals with delight when he hears the news.","Mom measures the boys every year on their birthday.","Troy rushes to the doorway to see the marks himself."],correct:0,ev:["BI2"],expl:"The detail that each boy has his own color of pencil crayon shows the tradition is personal and carefully kept year after year. Answer A directly shows the care and ritual of the tradition.",wrong:{1:"Trent\u2019s delight is about the result, not the tradition itself.",2:"This is true but it is a general fact, not a detail that shows what the tradition means.",3:"Troy rushing to look shows his reaction, not what the tradition means."}},
+{id:"bi-2",stem:"Which detail from the story best shows that Trent would rather do something else than be measured?",choices:["Trent squeals with delight when he hears the news.","Trent would rather be measured later when he has had more time to grow.","Trent would rather spend time on his birthday having fun by himself.","Trent is not interested in his height until he learns that he is taller than Troy."],correct:3,ev:["BI5"],expl:"Before the measuring, Trent wants to set up his aquarium (\u2018I want to get this aquarium ready for my new discus fish\u2019). He is not interested in being measured until he finds out he is taller.",wrong:{0:"Trent\u2019s delight comes after he learns he is taller, not before the measuring.",1:"The story does not say Trent wants to wait.",2:"Trent is not described as wanting to be alone."}},
+{id:"bi-3",stem:'In paragraph 18, what does it mean when the narrator says, &#8220;I wanted to lay this matter to rest&#8230;&#8221;?',choices:["He wants to know the truth.","He is tired after many activities.","He needs time to get ready for bed.","He is worried that his father is busy."],correct:0,ev:["BI18"],expl:"\u2018Lay this matter to rest\u2019 is an idiom meaning to resolve or settle something. Troy wants the height question answered as quickly as possible.",wrong:{1:"This is a literal misreading of \u2018rest\u2019 \u2014 the phrase is an idiom.",2:"Same issue \u2014 \u2018rest\u2019 here doesn\u2019t mean sleep.",3:"There is no mention of his father being busy."}},
+{id:"bi-4",stem:"Which detail from the story shows the best evidence that Trent is taller than Troy?",choices:['"Trent trotted to the doorway and stood up against the jamb." (paragraph 5)','"The red mark was indeed a little higher than the blue." (paragraph 13)','"Trent and I turned and stepped backwards towards each other." (paragraph 20)','"Hands rested on each of our heads, keeping us in place." (paragraph 22)'],correct:1,ev:["BI13"],expl:"The red mark (Trent\u2019s) being higher than the blue mark (Troy\u2019s) is direct visual evidence that Trent is taller. The other choices describe actions in the measuring process but not the evidence itself.",wrong:{0:"This describes Trent going to be measured, not the result.",2:"This describes the back-to-back comparison setup, not the evidence.",3:"This describes Dad keeping them in place, not the height result."}},
+{id:"bi-5",stem:"How is the information in paragraph 37 (where Troy accepts the result) important to the story?",choices:["It compares the feelings of two main characters.","It explains the cause and the effect of a problem.","It tells why the setting is important to the events.","It explains how the conflict in the story is settled."],correct:3,ev:["BI33"],expl:"The conflict throughout the story is Troy\u2019s disbelief that he could be shorter than Trent. The final paragraph where Troy accepts the result resolves this conflict.",wrong:{0:"The paragraph focuses on Troy, not a comparison of two characters\u2019 feelings.",1:"The problem\u2019s cause was established earlier; this paragraph is about resolution.",3:"The setting (the bedroom doorjamb) is not the focus of this paragraph."}},
+{id:"bi-6",stem:"Which detail would be best to include in a summary of the story?",choices:["Trent is excited about his new fish.","Trent\u2019s mark on the door is higher than Troy\u2019s.","Troy is tired of being measured on his birthday.","Troy\u2019s hair is different than Trent\u2019s."],correct:1,ev:["BI13"],expl:"The most important event in the story is that Trent\u2019s mark is higher \u2014 this is the central conflict that drives all of Troy\u2019s reactions. The other choices are minor details.",wrong:{0:"Trent\u2019s fish is a minor detail that sets up why he doesn\u2019t want to be measured.",2:"There is no evidence Troy is tired of being measured; he is upset about the result.",3:"The hair comment is a small, humorous detail, not a key event."}},
+],writings:[]},
+
+// 2022 S1 ─ MC only
+"getting-even":{id:"getting-even",type:"mc",isReal:true,source:"2022 NYS ELA Session 1",
+title:"Getting Even",byline:"by Deb Westgate-Silva",
+directions:"Read this story. Then answer questions 1\u20136.",context:null,
+passageHTML:`<div class="pr"><span class="pn">1</span><span class="pt" id="GE1">&#8220;Want to go to the pool tomorrow?&#8221; Rosa asked Stephanie during recess. The pool at the YMCA was one of their favorite places.</span></div>
+<div class="pr"><span class="pn">2</span><span class="pt" id="GE2">Rosa and Stephanie did everything together. They rode the school bus together. They sat together during lunch. They took dance lessons together and even went to the same summer camp. They were best friends. Most of the time.</span></div>
+<div class="pr"><span class="pn">3</span><span class="pt" id="GE3">Sometimes, though, when Stephanie was with other friends, she ignored Rosa or treated her like a little kid, even though they were the same age. Rosa and Stephanie had played together since they were babies, but sometimes Stephanie didn&#8217;t act like a friend.</span></div>
+<div class="pr"><span class="pn">5</span><span class="pt" id="GE5">&#8220;Sorry. I&#8217;m already going to the pool,&#8221; Stephanie said. &#8220;Toni and Vanessa and I are going.&#8221; She smiled, but it wasn&#8217;t her nice smile. She walked away to join Toni and Vanessa, and Rosa was left standing alone.</span></div>
+<div class="pr"><span class="pn">7</span><span class="pt" id="GE7">Then she noticed Kiara, the new girl, standing with one leg up on the barre. Rosa joined her and began stretching, too. Kiara smiled, and Rosa smiled back. Rosa tried not to check the mirror to see if Stephanie had noticed. <em>I hope she feels left out,</em> Rosa thought.</span></div>
+<div class="pr"><span class="pn">8</span><span class="pt" id="GE8">The next morning, when Rosa boarded the bus, Stephanie was waiting in their usual seat. Stephanie quickly moved her backpack off the seat to make room for Rosa. But Rosa walked past her and slid into the empty seat next to Kiara. <em>How does it feel now?</em> Rosa thought.</span></div>
+<div class="pr"><span class="pn">16</span><span class="pt" id="GE16">&#8220;I&#8217;m already going,&#8221; she said. &#8220;Kiara and I are going together.&#8221; She smiled. Somehow she knew it wasn&#8217;t her nice smile. <em>There,</em> she thought.</span></div>
+<div class="pr"><span class="pn">18</span><span class="pt" id="GE18">Rosa&#8217;s heart sank and her cheeks began to burn.</span></div>
+<div class="pr"><span class="pn">19</span><span class="pt" id="GE19">Why didn&#8217;t she feel happy? Getting even is what she&#8217;d wanted, wasn&#8217;t it?</span></div>
+<div class="pr"><span class="pn">20</span><span class="pt" id="GE20">I could walk away with my new friend and not look back, Rosa thought. But it was too late. She had seen Stephanie&#8217;s face. Getting even didn&#8217;t feel the way she&#8217;d expected. It didn&#8217;t feel good at all. &#8220;Um,&#8221; she said instead, &#8220;maybe we could all go together.&#8221;</span></div>
+<div class="pr"><span class="pn">21</span><span class="pt" id="GE21">Stephanie brightened. &#8220;I&#8217;d like that.&#8221;</span></div>
+<div class="pr"><span class="pn">22</span><span class="pt" id="GE22">Rosa smiled. &#8220;Kiara, meet my friend Stephanie.&#8221;</span></div>`,
+questions:[
+{id:"ge-1",stem:"In paragraph 3, what is most likely the narrator\u2019s point of view of Stephanie?",choices:["Stephanie likes to talk with many people on the bus.","Sometimes Stephanie acts younger than she really is.","Stephanie likes to stay friends with people for a long time.","Sometimes Stephanie acts in a mean way toward a friend."],correct:3,ev:["GE3"],expl:"Paragraph 3 says Stephanie \u2018ignored Rosa or treated her like a little kid.\u2019 This shows the narrator\u2019s view that Stephanie sometimes acts unkindly toward her friend.",wrong:{0:"Talking with many people is not mentioned in paragraph 3.",1:"Stephanie is described as treating Rosa like a little kid, not acting younger herself.",2:"The paragraph actually describes the opposite \u2014 Stephanie not always acting like a friend."}},
+{id:"ge-2",stem:'What does the phrase &#8220;left out&#8221; mean as used in paragraph 7?',choices:["watched","alone","troubled","careful"],correct:1,ev:["GE7"],expl:"Rosa hopes Stephanie feels \u2018left out\u2019 \u2014 meaning excluded or alone, the same way Rosa felt when Stephanie walked away with other friends.",wrong:{0:"\u2018Watched\u2019 does not capture the meaning of being excluded.",2:"\u2018Troubled\u2019 is too general; the specific meaning is being excluded from a group.",3:"\u2018Careful\u2019 has no connection to the phrase."}},
+{id:"ge-3",stem:"Which quotation best shows how Rosa and Stephanie usually act with each other?",choices:['"Rosa and Stephanie did everything together." (paragraph 2)','"She walked away to join Toni and Vanessa, and Rosa was left standing alone." (paragraph 5)','"Rosa tried not to check the mirror to see if Stephanie had noticed." (paragraph 7)','"But Rosa walked past her and slid into the empty seat next to Kiara." (paragraph 8)'],correct:0,ev:["GE2"],expl:"Paragraph 2 describes their normal relationship: they do everything together. The other choices describe the conflict in the story, not their usual behavior.",wrong:{1:"This describes Stephanie acting badly \u2014 not how they usually act.",2:"This shows Rosa\u2019s revenge thoughts \u2014 not normal behavior.",3:"This shows Rosa also acting badly \u2014 not their usual relationship."}},
+{id:"ge-4",stem:"In paragraphs 16 through 20, the reader can see that Rosa changes from",choices:["trying to avoid someone to making new friends","feeling sad about something to having a good time","wanting to upset her friend to wanting to include her","having a good time to feeling angry at someone"],correct:2,ev:["GE16","GE20"],expl:"In paragraph 16 Rosa tells Stephanie she already has plans, wanting to upset her. By paragraph 20 she realizes getting even feels bad and invites Stephanie along instead \u2014 she changes from wanting to hurt to wanting to include.",wrong:{0:"Rosa is not trying to avoid anyone \u2014 she is trying to get even.",1:"Rosa is not having a good time; she feels conflicted throughout.",3:"Rosa starts feeling conflicted, not angry, and ends wanting to include Stephanie."}},
+{id:"ge-5",stem:'In paragraph 21, what does the phrase &#8220;Stephanie brightened&#8221; mean?',choices:["She became smarter.","She moved into the sunlight.","She changed into dressy clothes.","She became happier."],correct:3,ev:["GE21"],expl:"\u2018Brightened\u2019 is used figuratively to mean her mood improved \u2014 she became happier. Context confirms this: she responds positively to Rosa\u2019s invitation.",wrong:{0:"This is a literal misreading of \u2018bright.\u2019",1:"There is no mention of sunlight.",2:"There is no mention of clothing."}},
+{id:"ge-6",stem:"Which sentence best supports the central message of the story?",choices:["Stephanie makes room for Rosa to sit next to her on the bus.","Stephanie tells Rosa that she is going to the pool with someone else.","Rosa tells Stephanie that she has plans with Kiara.","Rosa asks Stephanie if she wants to go to the pool with her and Kiara."],correct:3,ev:["GE20","GE21"],expl:"The central message is that kindness and inclusion are better than getting even. Rosa\u2019s decision to invite Stephanie along best demonstrates this lesson.",wrong:{0:"Stephanie making room shows she wants to repair things, but this is not about the central message.",1:"This is an example of the problem, not the message.",2:"Rosa telling Stephanie she has plans is part of getting even, not the message."}},
+],writings:[]},
+
+// 2022 S1 ─ MC + Writing
+"just-listen":{id:"just-listen",type:"mc+w",isReal:true,source:"2022 NYS ELA Session 1",
+title:"Just Listen",byline:"by Kathleen Weidner Zoehfeld",
+directions:"Read this passage. Then answer questions 7\u201313.",context:null,
+passageHTML:`<div class="pr"><span class="pn">1</span><span class="pt" id="JL1">Psssst! Your friend leans close and whispers a secret. Woof! Woof! His dog barks as a car zooms past. Beep beep! The driver honks her horn to say hello. People and animals and things are making sounds all the time. I hear birds singing. Is that rumbling sound thunder? Some sounds are as quiet as a leaf rustling in the breeze. Others are so loud you might cover your ears.</span></div>
+<div class="pr"><span class="pn">2</span><span class="pt" id="JL2">Pluck a guitar string or a rubber band stretched between your fingers. You see the string or rubber band go back and forth very fast. It is vibrating. You can&#8217;t see it, but the vibration makes waves in the air, like you make waves in a bathtub of water when you waggle your hand up and down quickly.</span></div>
+<div class="pr"><span class="pn">3</span><span class="pt" id="JL3">Every sound is made by vibrations. Place your fingertips lightly on the front of your throat. Say or shout a few words. Feel the tiny, quick, shaking movements? That is the vibration of the vocal cords in your throat. It makes the sound of your voice.</span></div>
+<div class="pr"><span class="pn">4</span><span class="pt" id="JL4">Your ears are sound wave collectors. Sit very quietly. Listen to all the different sounds you can hear.</span></div>
+<div class="pr"><span class="pn">5</span><span class="pt" id="JL5">The sound waves your ear collects travel through your ear canal. At the end of the canal is a thin piece of skin called your eardrum. The sound waves make your eardrum vibrate. Special nerve hairs further inside your ear pick up the vibrations. They send signals to your brain. Your brain makes sense of all the sounds you hear. The faster your eardrum vibrates, the higher the sound you will hear. If the vibration is slower, you will hear a lower sound.</span></div>
+<div class="pr"><span class="pn">6</span><span class="pt" id="JL6">Sound waves travel not only through air but also through water. They can even travel through solid things, like wood. Knock on your tabletop. Listen to the sound. Now put one ear down on your table and knock again the same way. Does the knock sound different? Sound waves are traveling to your ear through the table top. They travel even faster through wood or metal than they do through air.</span></div>
+<div class="pr"><span class="pn">7</span><span class="pt" id="JL7">In outer space, there is no air. And guess what. There are no sounds, either, because there is nothing for sound waves to travel through. If an astronaut bangs a hammer on the outside of a spaceship, people inside the spaceship may hear it. But there will be no sound outside the ship&#8212;no matter how hard the astronaut hammers! Because there is no air, the hammering creates no sound waves. There is only silence.</span></div>
+<div class="pr"><span class="pn">8</span><span class="pt" id="JL8">Sometimes your ear collects a sound twice. If you make a wave of water in the tub, it will go to the edge and bounce back. Sometimes sound waves bounce back, too. If you clap your hands in an empty room, you hear the clap as soon as your hands come together. But you may hear it again, a split second later, as the sound waves travel to the wall and bounce back to your ear. It&#8217;s called an echo.</span></div>`,
+questions:[
+{id:"jl-7",stem:"What question does paragraph 3 help to answer?",choices:["How do ears take in sounds?","What do eardrums do?","How do noises travel?","What do sounds feel like?"],correct:3,ev:["JL3"],expl:"Paragraph 3 tells you to place your fingertips on your throat and feel vibrations. This directly answers the question \u2018What do sounds feel like?\u2019 \u2014 they feel like tiny, quick, shaking movements.",wrong:{0:"How ears take in sounds is discussed in paragraph 5.",1:"What eardrums do is discussed in paragraph 5.",2:"How noises travel is discussed in paragraphs 5 and 6."}},
+{id:"jl-8",stem:"Which sentence explains why there are no sounds in outer space?",choices:["Sound waves cannot travel fast enough to be heard in space.","Sound waves cannot bounce off things in space.","There is no air in space for sound waves to travel through.","There are no people or animals in space to hear sound waves."],correct:2,ev:["JL7"],expl:"Paragraph 7 directly states that \u2018there is nothing for sound waves to travel through\u2019 because there is no air. This is the specific reason given.",wrong:{0:"Speed is not the reason given in the passage.",1:"Bouncing (echoes) is a separate topic covered in paragraph 8.",3:"The passage says an astronaut banging a hammer inside might be heard \u2014 people in space can hear things."}},
+{id:"jl-9",stem:"What happens right after sound waves cause the eardrum to vibrate?",choices:["The brain makes sense of what is heard.","Nerve hairs send signals to the brain.","Sound waves travel through the ear canal.","Some sound waves cause lower sounds."],correct:1,ev:["JL5"],expl:"Paragraph 5 gives the sequence: sound waves enter the ear canal, make the eardrum vibrate, then \u2018special nerve hairs further inside your ear pick up the vibrations.\u2019 Nerve hairs are the next step after the eardrum.",wrong:{0:"The brain making sense is the final step, not the one right after the eardrum.",2:"Sound waves travel through the ear canal before reaching the eardrum, not after.",3:"Higher/lower sounds describe the result of vibration speed, not the next step."}},
+{id:"jl-10",stem:'Which phrase from the passage best explains the meaning of &#8220;silence&#8221; as it is used in paragraph 7?',choices:['"There are no sounds" (paragraph 7)','"Because there is no air" (paragraph 7)','"sound waves bounce back" (paragraph 8)','"clap your hands in an empty room" (paragraph 8)'],correct:0,ev:["JL7"],expl:"The word \u2018silence\u2019 follows the sentence explaining there is no air. The phrase \u2018there are no sounds\u2019 in the same paragraph is the direct definition of silence in this context.",wrong:{1:"This explains the cause of silence, not the meaning of the word itself.",2:"Bouncing sound waves describe echoes, not silence.",3:"Clapping in an empty room can produce an echo \u2014 the opposite of silence."}},
+{id:"jl-11",stem:"Which sentence best states the main idea of the passage?",choices:["Some noises are loud and others are quiet.","Sound waves do not travel through all things the same way.","Vibrations create sound waves that let us hear noises.","There is no air or sound in outer space."],correct:2,ev:["JL2","JL3","JL5"],expl:"The passage begins with vibrations, explains how they create sound waves, and describes how ears receive those waves. Choice C captures this central topic. The other choices are supporting details, not the main idea.",wrong:{0:"Loud vs. quiet sounds are mentioned briefly but are not the main idea.",1:"Travel through different materials is a supporting detail, not the main idea.",3:"Outer space is one example, not the main idea."}},
+{id:"jl-12",stem:"Based on the passage, what does the author most likely think about how people hear?",choices:["Learning how people understand sounds is very interesting.","It is strange that all sounds do not return to where they start.","It is hard to find out how people make sense of sounds.","The fact that there is no sound in space is a problem."],correct:0,ev:["JL1","JL3","JL4"],expl:"The author uses exclamation points, questions to invite readers to try experiments, and enthusiastic language like \u2018Psssst!\u2019 and \u2018Just listen!\u2019 These all suggest the author finds the topic fascinating and interesting.",wrong:{1:"Sounds not returning is about echoes, a minor detail, not the author\u2019s main view.",2:"The author makes hearing sound easy to understand, not hard.",3:"No sound in space is presented as a fact, not a problem."}},
+],writings:[
+{id:"jl-cr1",pts:2,prompt:'What question does the diagram &#8220;How Ears and Hearing Work&#8221; help to answer? Use <strong>two</strong> details from &#8220;Just Listen&#8221; to support your response.',prompt_plain:'What question does the diagram help to answer? Use two details from the passage.',rubric:["States a question the diagram helps answer","Uses one specific detail from the passage","Uses a second specific detail from the passage"],modelAnswer:'The diagram helps answer the question: What parts of the ear are used to hear sounds? One detail from the passage that connects to the diagram is from paragraph 5, which explains that sound waves travel through the \u201Cear canal\u201D \u2014 and the diagram shows where the ear canal is located. Another detail is the description of \u201Cnerve hairs\u201D in paragraph 5 that \u201Csend signals to your brain\u201D \u2014 the diagram shows these nerve hairs and labels how they change sound waves into messages the brain can understand. Together, the diagram and the passage explain the path sound takes through the ear.'},
+{id:"jl-cr2",pts:2,prompt:'How does the author of &#8220;Just Listen&#8221; help the reader understand how sound works? Use <strong>two</strong> details from the passage to support your response.',prompt_plain:'How does the author help the reader understand how sound works? Use two details from the passage.',rubric:["States how the author helps the reader understand","Uses one specific detail from the passage","Uses a second specific detail"],modelAnswer:'The author helps the reader understand sound by using hands-on examples that readers can try themselves. One detail is in paragraph 3, where the author says to \u201Cplace your fingertips lightly on the front of your throat\u201D and speak, so you can feel the vibrations. Another detail is in paragraph 6, where the author suggests knocking on a table normally and then with your ear down, so you can hear the difference in how sound waves travel. By inviting the reader to try these activities, the author makes an invisible process \u2014 how sound waves move \u2014 easier to understand through experience.'},
+]}
+
+};  // end ARTICLES
+
+// ════════════════════════════════════════
+//  49-DAY SCHEDULE
+//  Format: [mc-only artId, mc+w artId, w-only artId]
+//  'AI' entries trigger AI generation at runtime
+// ════════════════════════════════════════
+const REAL_MC   = ["sea-view-star","big-moon-tortilla","crazy-about-clouds","brothers-on-ice","getting-even"];
+const REAL_MCW  = ["raccoon-den","little-red-lighthouse","just-listen"];
+const REAL_WO   = ["hide-ladybugs","north-wind-and-sun"];
+
+// We have enough real content for 2 complete days (min of 2,3,2 => 2)
+// Days 1-2 are fully real. Days 3-49 are AI-generated sets (injected at runtime by the AI generator)
+// For now, cycle what we have and mark AI slots
+
+const SCHEDULE = [];
+// Day 1: 2025 S1 full set
+SCHEDULE.push(["sea-view-star","raccoon-den","hide-ladybugs"]);
+// Day 2: 2025 S2 + 2024
+SCHEDULE.push(["big-moon-tortilla","little-red-lighthouse","north-wind-and-sun"]);
+// Day 3: 2024 S1 + 2023 + 2022 mix
+SCHEDULE.push(["crazy-about-clouds","just-listen","AI"]);
+// Day 4
+SCHEDULE.push(["brothers-on-ice","raccoon-den","hide-ladybugs"]);
+// Day 5
+SCHEDULE.push(["getting-even","little-red-lighthouse","north-wind-and-sun"]);
+// Days 6-49: mix real articles with AI-generated slots
+// Every 3rd day is a full AI day; others use real MC + real MC+W + AI writing
+for(let d=6;d<=49;d++){
+  const i=d-6;
+  const mc  = REAL_MC [i%REAL_MC.length];
+  const mcw = REAL_MCW[i%REAL_MCW.length];
+  if(i%3===2){
+    SCHEDULE.push(["AI","AI","AI"]);  // full AI day
+  } else {
+    SCHEDULE.push([mc, mcw, "AI"]);   // real MC + real MC+W + AI writing
+  }
+}
+
+function getSched(dayIdx){
+  if(dayIdx<SCHEDULE.length) return SCHEDULE[dayIdx];
+  // Day 50+: use AI slots
+  const i=dayIdx%AI_TOPICS.length;
+  return ["AI","AI","AI"];
+}
+
+// Try to load pre-generated JSON from /data/day-NNN.json (GitHub Pages mode)
+// Falls back to real-time AI generation if file not found
+async function fetchPregenerated(dayIdx){
+  const padded=String(dayIdx+1).padStart(3,'0');
+  try{
+    const r=await fetch(`data/day-${padded}.json`);
+    if(!r.ok) return null;
+    return await r.json();
+  }catch(e){return null;}
+}
+
+
+// ════════════════════════════════════════
+//  STORAGE
+// ════════════════════════════════════════
+const SK="ela_v3";
+function loadStore(){try{return JSON.parse(localStorage.getItem(SK))||defStore();}catch(e){return defStore();}}
+function defStore(){return{days:{},retryPool:[],streak:0,lastDate:null};}
+function saveStore(s){localStorage.setItem(SK,JSON.stringify(s));}
+
+// ════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════
+let store=loadStore(),currentDay=null,currentSet=[],mode="exam",answers={},submitted=false;
+const dictCache={};
+
+// ════════════════════════════════════════
+//  HOME
+// ════════════════════════════════════════
+function goHome(){
+  submitted=false;mode="exam";answers={};
+  document.body.className="view-home";
+  document.getElementById("bbar").style.display="none";
+  document.getElementById("btn-back").style.display="none";
+  document.getElementById("badge").style.display="none";
+  renderHome();
+}
+
+function renderHome(){
+  const daysDone=Object.keys(store.days).filter(d=>store.days[d].completed).length;
+  const retryCount=store.retryPool.length;
+  const scores=Object.values(store.days).filter(d=>d.completed).map(d=>d.totalScore);
+  const avg=scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):null;
+  document.getElementById("stat-done").textContent=daysDone;
+  document.getElementById("stat-streak").textContent=store.streak;
+  document.getElementById("stat-retry").textContent=retryCount;
+  document.getElementById("stat-acc").textContent=avg!==null?avg+"%":"\u2014";
+
+  const list=document.getElementById("day-list");
+  list.innerHTML="";
+  const TOTAL=999; // grows automatically past Day 50
+  // Sliding 7-day window:
+  //   - completed days are collapsed into a summary row (not shown individually)
+  //   - show: today (daysDone+1) + next 6 locked days = 7 total
+  //   - Day 50+ bonus days show after 49 is done
+  const todayDay = daysDone + 1;
+  const windowStart = todayDay;          // first visible = today
+  const windowEnd   = Math.min(todayDay + 6, TOTAL === 999 ? todayDay + 6 : 49);
+
+  // Collapsed summary for completed days
+  if(daysDone > 0){
+    const row = document.createElement('div');
+    row.className = 'completed-summary';
+    row.innerHTML = `<span class="cs-icon">&#10003;</span>
+      <span class="cs-text">${daysDone} day${daysDone!==1?'s':''} completed</span>
+      <span class="cs-acc">${store.streak} &#128293; streak</span>
+      <button class="cs-toggle" onclick="toggleHistory()">View history &#9660;</button>`;
+    list.appendChild(row);
+
+    // Hidden history list (collapsed by default)
+    const hist = document.createElement('div');
+    hist.id = 'history-wrap';
+    hist.style.display = 'none';
+    for(let h=1;h<=daysDone;h++){
+      const hdata=store.days[h];
+      const hrow=document.createElement('div');
+      hrow.className='day-card done history-card';
+      hrow.onclick=()=>startDay(h);
+      const hsrc=getSched(h-1).map(id=>ARTICLES[id]?.isReal?'Real':'Sim').filter((v,i,a)=>a.indexOf(v)===i).join('+');
+      hrow.innerHTML=`<div class="day-num">${h}</div>
+        <div class="day-info"><div class="day-title">Day ${h}</div><div class="day-sub">${hsrc}</div></div>
+        <div class="day-right"><span class="day-score">${hdata?.totalScore??''}${hdata?.totalScore!=null?'%':''}</span><span class="dbadge done">&#10003;</span></div>`;
+      hist.appendChild(hrow);
+    }
+    list.appendChild(hist);
+  }
+
+  for(let d=windowStart;d<=windowEnd;d++){
+    const data=store.days[d];
+    const done=data&&data.completed;
+    const retryDue=!done&&store.retryPool.some(r=>r.scheduledForDay===d);
+    const locked = d > daysDone + 1;
+    const sched=getSched(d-1);
+    const arts=sched.map(id=>ARTICLES[id]).filter(Boolean);
+    const titles=arts.map(a=>a.title.replace("Excerpt from ","")).join(" \u00b7 ");
+    const src=arts.map(a=>a.isReal
+      ? a.source.replace('NYS ELA ','')
+      : 'Simulation'
+    ).join(' \u00b7 ');
+
+    const card=document.createElement("div");
+    card.className="day-card"+(done?" done":"")+(retryDue?" retry-due":"")+(locked?" locked":"");
+    if(!locked) card.onclick=()=>startDay(d);
+    if(d===daysDone+1) card.id='today-anchor';
+
+    let badge="";
+    if(done) badge=`<span class="dbadge done">\u2713 Done</span>`;
+    else if(retryDue) badge=`<span class="dbadge retry">\u26a0 Retry</span>`;
+    else if(d===daysDone+1) badge=`<span class="dbadge today">${d>49?'Bonus':'Today'}</span>`;
+    else badge=`<span class="dbadge upcoming">${d>49?'Bonus':'Upcoming'}</span>`;
+    const scoreStr=done?`<span class="day-score">${data.totalScore}%</span>`:"";
+
+    card.innerHTML=`<div class="day-num">${d}</div>
+      <div class="day-info"><div class="day-title">Day ${d}</div><div class="day-sub">${src}</div></div>
+      <div class="day-right">${scoreStr}${badge}</div>`;
+    list.appendChild(card);
+  }
+}
+
+// ════════════════════════════════════════
+//  AI ARTICLE GENERATOR
+// ════════════════════════════════════════
+// Topics pool: rotate through diverse Grade 3-appropriate subjects
+const AI_TOPICS = [
+  {mc:"A boy who overcomes his fear of the dark by learning about nocturnal animals",info:"How bees make honey",writing:"Excerpt from a nonfiction book about monarch butterfly migration"},
+  {mc:"A girl who moves to a new city and makes an unexpected friend at the library",info:"How volcanoes form and erupt",writing:"Excerpt from a nonfiction book about ocean tides"},
+  {mc:"Two siblings who discover an old letter hidden in their grandmother's attic",info:"Why leaves change color in autumn",writing:"Excerpt from a nonfiction book about desert animals surviving heat"},
+  {mc:"A shy student who finds confidence through joining the school garden club",info:"How birds build their nests",writing:"Excerpt from a nonfiction book about how the human digestive system works"},
+  {mc:"A dog and cat who must cooperate to find their way home after getting lost",info:"The water cycle: rain, evaporation, and clouds",writing:"Excerpt from a nonfiction book about ancient Egyptian pyramids"},
+  {mc:"A girl who learns patience by waiting for a caterpillar to become a butterfly",info:"How earthquakes happen and how scientists measure them",writing:"Excerpt from a nonfiction book about life in the Arctic tundra"},
+  {mc:"A boy who misses his grandfather but finds comfort in a shared hobby",info:"How plants grow from seeds",writing:"Excerpt from a nonfiction book about coral reefs and the animals living there"},
+];
+
+// Cache AI-generated articles in localStorage so they persist
+function getAICache(dayIdx){
+  try{
+    const k='ai_art_'+dayIdx;
+    const v=localStorage.getItem(k);
+    return v?JSON.parse(v):null;
+  }catch(e){return null;}
+}
+function setAICache(dayIdx,artSet){
+  try{localStorage.setItem('ai_art_'+dayIdx,JSON.stringify(artSet));}catch(e){}
+}
+
+async
+async function generateAISet(dayIdx){
+  const topic = AI_TOPICS[dayIdx % AI_TOPICS.length];
+  const dayNum = dayIdx + 1;
+  const isFullAI = dayIdx >= 5 && ((dayIdx - 5) % 3 === 2);
+  const prompt = isFullAI ? buildFullAIPrompt(dayNum,topic) : buildWritingOnlyAIPrompt(dayNum,topic);
+
+  const GEMINI_KEY = window.__GEMINI_KEY || '';
+  if(!GEMINI_KEY){
+    throw new Error('Gemini key not set. Add window.__GEMINI_KEY = "AIza..." to the page or use pre-generated files.');
+  }
+  const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+  const resp=await fetch(url,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      contents:[{parts:[{text:prompt}]}],
+      generationConfig:{temperature:0.7,maxOutputTokens:8192,responseMimeType:'application/json'},
+    }),
+  });
+  if(!resp.ok){const e=await resp.text();throw new Error(`Gemini ${resp.status}: ${e.slice(0,200)}`);}
+  const data=await resp.json();
+  const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  if(!text) throw new Error('Empty response from Gemini');
+  return JSON.parse(text.replace(/^```json\s*/i,'').replace(/\s*```$/i,'').trim());
+}
+
+function buildWritingOnlyAIPrompt(dayNum,topic){
+  return `You are an expert NYS ELA test writer for Grade 3. Generate ONE nonfiction excerpt as a writing-only practice piece.
+Topic: ${topic.writing}
+- ~280 words, 8-12 numbered paragraphs with section headings (<div class="sh">Heading</div>)
+- Vocabulary boxes: <div class="vb">word = definition</div>
+- End with: <div class="diagram-note">&#9711; Diagram: [description]</div>
+- Paragraph HTML: <div class="pr"><span class="pn">N</span><span class="pt" id="RN">Text.</span></div>
+- HTML entities for quotes: &#8220; &#8221; &#8216; &#8217; &#8230;
+- 3 written response questions (2 pts), each requiring TWO text details
+Return a JSON ARRAY with exactly ONE object: [{"id":"ai-wo-${dayNum}","type":"w-only","isReal":false,"source":"Simulation","title":"...","byline":"by ...","directions":"Read this passage. Then answer questions 14 through 16.","context":null,"passageHTML":"...","questions":[],"writings":[{"id":"ai-w1-${dayNum}","pts":2,"prompt":"... <strong>two</strong> ...","prompt_plain":"...","rubric":["...","...","..."],"modelAnswer":"..."},{"id":"ai-w2-${dayNum}","pts":2,"prompt":"...","prompt_plain":"...","rubric":["...","...","..."],"modelAnswer":"..."},{"id":"ai-w3-${dayNum}","pts":2,"prompt":"...","prompt_plain":"...","rubric":["...","...","..."],"modelAnswer":"..."}]}]`;
+}
+
+function buildFullAIPrompt(dayNum,topic){
+  return `You are an expert NYS ELA test writer for Grade 3. Generate a complete 3-article practice set.
+ART1 (mc): Literary story ~300w, 6 MC questions. Topic: ${topic.mc}
+ART2 (mc+w): Informational ~250w, 5 MC + 2 written (2pts). Topic: ${topic.info}
+ART3 (w-only): Nonfiction ~280w, 3 written (2pts). Topic: ${topic.writing}
+Paragraph HTML: <div class="pr"><span class="pn">N</span><span class="pt" id="XN">Text.</span></div>
+Art1 IDs: P1,P2... Art2: Q1,Q2... Art3: R1,R2...
+Vocab: <div class="vb">word = def</div>  Headings: <div class="sh">Title</div>
+HTML entities for ALL quotes: &#8220; &#8221; &#8216; &#8217; &#8230;
+MC: {id,stem,choices[4],correct(0-3),ev[],expl,wrong:{1,2,3}}
+Writing: {id,pts:2,prompt(with <strong>two</strong>),prompt_plain,rubric[3],modelAnswer}
+Return JSON ARRAY of exactly 3 objects: [{id,type,isReal:false,source:"Simulation",title,byline,directions,context:null,passageHTML,questions,writings}]`;
+}
+
+
+function startDay(d){
+  currentDay=d;answers={};submitted=false;mode="exam";
+  const sched=getSched(d-1);
+  // Check if this day has an 'AI' slot
+  const needsAI=sched.includes("AI");
+  if(needsAI){
+    // Check cache first
+    const cached=getAICache(d-1);
+    if(cached){
+      currentSet=cached;
+      _finishStartDay(d);
+    } else {
+      // Show loading state
+      document.body.className="view-test";
+      document.getElementById("bbar").style.display="flex";
+      document.getElementById("btn-back").style.display="inline-block";
+      document.getElementById("badge").style.display="inline-block";
+      document.getElementById("badge").className="badge exam";
+      document.getElementById("badge").textContent="Generating...";
+      document.getElementById("pane-l").innerHTML=`<div style="padding:3rem 2rem;text-align:center;font-family:'Barlow',sans-serif;color:var(--ink3)">
+        <div style="font-size:1.5rem;margin-bottom:.8rem">&#9881;&#65039;</div>
+        <div style="font-size:.95rem;margin-bottom:.4rem">Generating today’s practice set…</div>
+        <div style="font-size:.8rem">This takes about 15–30 seconds</div>
+      </div>`;
+      document.getElementById("pane-r").innerHTML="";
+      // First try pre-generated file, then fall back to live generation
+      const tryLoad = fetchPregenerated(d-1).then(prebuilt=>{
+        if(prebuilt) return prebuilt;
+        return generateAISet(d-1);
+      });
+      tryLoad.then(arts=>{
+        // Register new articles
+        arts.forEach(a=>{ ARTICLES[a.id]=a; });
+        // Update schedule slot
+        const newSched=sched.map((id,i)=>id==="AI"?arts[i]?.id||id:id);
+        SCHEDULE[d-1]=newSched;
+        setAICache(d-1,arts);
+        currentSet=arts;
+        _finishStartDay(d);
+      }).catch(err=>{
+        document.getElementById("pane-l").innerHTML=`<div style="padding:2rem;font-family:'Barlow',sans-serif;color:var(--red)">
+          &#9888;&#65039; Could not generate content: ${err.message}. Please try again.
+        </div>`;
+      });
+    }
+    return;
+  }
+  currentSet=sched.map(id=>ARTICLES[id]).filter(Boolean);
+  _finishStartDay(d);
+}
+
+function _finishStartDay(d){
+  document.body.className="view-test";
+  document.getElementById("bbar").style.display="flex";
+  document.getElementById("btn-back").style.display="inline-block";
+  document.getElementById("badge").style.display="inline-block";
+  document.getElementById("badge").className="badge exam";
+  document.getElementById("badge").textContent="Exam Mode";
+  document.getElementById("pbar").style.cssText="width:0;background:var(--accent)";
+  document.getElementById("btn-rev").style.display="none";
+  document.getElementById("btn-lrn").style.display="none";
+  document.getElementById("btn-sub").style.display="inline-block";
+  updateProg();initResize();
+  document.getElementById("pane-l").addEventListener("mouseup",handleWordSel);
+}  // end _finishStartDay
+
+// ════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════
+function renderPassage(){
+  let html="";
+  currentSet.forEach((art,i)=>{
+    if(i>0) html+='<hr class="art-div">';
+    const srcTag = art.isReal
+      ? `<div class="art-src real-src">&#128197; ${art.source}</div>`
+      : `<div class="art-src sim-src">&#9733; Simulation</div>`;
+    html+=`<div class="art-hd">${srcTag}<div class="art-dir">${art.directions}</div>${art.context?`<div class="art-ctx">${art.context}</div>`:""}<div class="art-ttl">${art.title}</div><div class="art-byl">${art.byline}</div></div>`;
+    html+=art.passageHTML;
+  });
+  document.getElementById("pane-l").innerHTML=html;
+}
+
+function renderQuestions(){
+  let html="",n=1;
+  currentSet.forEach((art,ai)=>{
+    const short=art.title.replace("Excerpt from ","").replace(/['"]/g,"");
+    if(ai>0) html+='<hr class="qdiv">';
+    if(art.questions.length>0){
+      html+=`<div class="ql">${short} \u2014 Questions ${n}\u2013${n+art.questions.length-1} \u00b7 Multiple Choice</div>`;
+      art.questions.forEach(q=>{html+=buildMCQ(q,n);n++;});
+    }
+    if(art.writings&&art.writings.length>0){
+      html+=`<hr class="qdiv"><div class="ql">${short} \u2014 Questions ${n}\u2013${n+art.writings.length-1} \u00b7 Written Response</div>`;
+      art.writings.forEach(w=>{html+=buildW(w,n);n++;});
+    }
+  });
+  document.getElementById("pane-r").innerHTML=html;
+  wireQ();
+}
+
+function buildMCQ(q,n){
+  const ch=q.choices.map((c,i)=>`<button class="cb" data-qid="${q.id}" data-k="${i}"><span class="ck">${"ABCD"[i]}</span>${c}</button>`).join("");
+  return `<div class="qb" id="qb-${q.id}"><div class="qs"><span class="qn">${n}.</span>${q.stem}</div><div class="chs">${ch}</div>
+    <div class="ex" id="ex-${q.id}"><div class="ex-t">&#128218; Explanation</div><div class="ex-b" id="eb-${q.id}">${q.expl}<div class="ex-w" id="ew-${q.id}"></div></div>
+    <button class="ev-btn" onclick="shEv(${JSON.stringify(q.ev)})">&#128269; Show Evidence</button></div></div>`;
+}
+
+function buildW(w,n){
+  const ck=w.rubric.map((r,i)=>`<div class="cki" id="ck-${w.id}-${i}"><span>&#9633;</span><span>${r}</span></div>`).join("");
+  return `<div class="qb" id="qb-${w.id}"><div class="qs"><span class="qn">${n}.</span>${w.prompt} <span class="qpts">${w.pts} pts</span></div>
+    <textarea class="wta" id="wta-${w.id}" placeholder="Write your response here\u2026"></textarea>
+    <div class="wc" id="wc-${w.id}">0 words</div>
+    <div class="cklist">${ck}</div>
+    <div class="wfb" id="wfb-${w.id}"><div class="srow"><div class="sdot m" id="sd-${w.id}">\u2014</div><div id="sl-${w.id}" style="font-family:'Barlow',sans-serif;font-size:.83rem;color:var(--ink2)"></div></div>
+    <div class="ma" id="ma-${w.id}"><div class="ma-t">&#11088; Model Response</div>${w.modelAnswer}</div></div></div>`;
+}
+
+function wireQ(){
+  document.querySelectorAll(".cb").forEach(b=>{
+    b.addEventListener("click",()=>{
+      if(submitted)return;
+      const qid=b.dataset.qid,k=parseInt(b.dataset.k);
+      answers[qid]=k;
+      document.querySelectorAll(`[data-qid="${qid}"]`).forEach(x=>x.classList.remove("sel"));
+      b.classList.add("sel");updateProg();
+    });
+  });
+  currentSet.forEach(art=>{
+    (art.writings||[]).forEach(w=>{
+      const ta=document.getElementById("wta-"+w.id);
+      if(ta) ta.addEventListener("input",()=>{
+        const n=ta.value.trim()===""?0:ta.value.trim().split(/\s+/).length;
+        document.getElementById("wc-"+w.id).textContent=n+" word"+(n!==1?"s":"");
+      });
+    });
+  });
+}
+
+function allMCQs(){return currentSet.flatMap(a=>a.questions);}
+
+function updateProg(){
+  const total=allMCQs().length,done=Object.keys(answers).length;
+  if(total===0){document.getElementById("pbar").style.width="100%";document.getElementById("bbar-status").textContent="Complete written responses and submit";document.getElementById("btn-sub").style.opacity="1";return;}
+  document.getElementById("pbar").style.width=(done/total*100)+"%";
+  const ready=done===total;
+  document.getElementById("btn-sub").style.opacity=ready?"1":"0.55";
+  document.getElementById("bbar-status").textContent=ready?"All MC answered \u2014 ready to submit!":`${done}/${total} multiple choice answered`;
+}
+
+// ════════════════════════════════════════
+//  SUBMIT
+// ════════════════════════════════════════
+function submitAll(){
+  const mcqs=allMCQs();
+  if(mcqs.length>0&&Object.keys(answers).length<mcqs.length){
+    if(!confirm("You haven't answered all multiple choice questions. Submit anyway?"))return;
+  }
+  submitted=true;
+  applyColors("review");
+  currentSet.forEach(art=>{
+    (art.writings||[]).forEach(w=>{
+      document.getElementById("wfb-"+w.id).classList.add("on");
+      const ta=document.getElementById("wta-"+w.id);
+      if(ta)ta.disabled=true;
+      gradeW(w);
+    });
+  });
+  document.getElementById("btn-sub").style.display="none";
+  document.getElementById("btn-rev").style.display="inline-block";
+  document.getElementById("btn-lrn").style.display="inline-block";
+  document.getElementById("pbar").style.background="var(--green)";
+  setMode("review");
+
+  // per-article MC scores + retry check
+  const artScores={};
+  const retried=[];
+  currentSet.forEach(art=>{
+    if(art.questions.length===0){artScores[art.id]=null;return;}
+    const correct=art.questions.filter(q=>answers[q.id]===q.correct).length;
+    const pct=Math.round(correct/art.questions.length*100);
+    artScores[art.id]=pct;
+    if(pct<40){
+      const nextDay=currentDay+Math.floor(Math.random()*3)+2;
+      store.retryPool.push({artId:art.id,failedDay:currentDay,scheduledForDay:nextDay});
+      retried.push(art.title.replace("Excerpt from ",""));
+    }
+  });
+
+  const mcTotal=allMCQs().length;
+  const mcCorrect=allMCQs().filter(q=>answers[q.id]===q.correct).length;
+  const totalScore=mcTotal>0?Math.round(mcCorrect/mcTotal*100):0;
+
+  store.days[currentDay]={completed:true,date:new Date().toLocaleDateString(),scores:artScores,totalScore};
+  const today=new Date().toDateString();
+  if(store.lastDate!==today){
+    store.streak=store.lastDate===new Date(Date.now()-86400000).toDateString()?store.streak+1:1;
+    store.lastDate=today;
+  }
+  saveStore(store);
+  showOv(totalScore,mcTotal,mcCorrect,retried);
+}
+
+function showOv(score,total,correct,retried){
+  document.getElementById("ov-title").textContent=`Day ${currentDay} Complete!`;
+  document.getElementById("ov-score").textContent=total>0?score+"%":"\u2014";
+  let sub=total>0?`${correct} of ${total} multiple choice correct`:"Written responses submitted";
+  if(currentDay>=49&&score!==null&&score<60){
+    sub+=" \u2014 Bonus day added to your schedule!";
+  }
+  document.getElementById("ov-sub").textContent=sub;
+  document.getElementById("ov-retry").classList.toggle("on",retried.length>0);
+  document.getElementById("overlay").classList.add("on");
+}
+
+function reviewSession(){document.getElementById("overlay").classList.remove("on");setMode("learn");}
+
+// ════════════════════════════════════════
+//  MODE
+// ════════════════════════════════════════
+function setMode(m){
+  mode=m;
+  document.getElementById("badge").className="badge "+m;
+  document.getElementById("badge").textContent=m==="exam"?"Exam Mode":m==="review"?"Review Mode":"Learning Mode";
+  document.body.classList.toggle("lm",m==="learn");
+  document.getElementById("pane-l").classList.toggle("lmode",m==="learn");
+  applyColors(m);
+  allMCQs().forEach(q=>{
+    const ex=document.getElementById("ex-"+q.id);
+    if(!ex)return;
+    if(m==="learn"){ex.classList.add("on");buildExpl(q);}
+    else ex.classList.remove("on");
+  });
+  currentSet.forEach(art=>{
+    (art.writings||[]).forEach(w=>{
+      const ma=document.getElementById("ma-"+w.id);
+      if(ma)ma.classList.toggle("on",m==="learn");
+    });
+  });
+  manageRetry(m);
+}
+
+function applyColors(m){
+  allMCQs().forEach(q=>{
+    const chosen=answers[q.id];
+    document.querySelectorAll(`[data-qid="${q.id}"]`).forEach(b=>{
+      b.disabled=true;b.classList.remove("sel","correct","wrong","show-correct");
+      const k=parseInt(b.dataset.k);
+      if(m==="review"){
+        if(chosen!==undefined&&k===chosen&&k!==q.correct)b.classList.add("wrong");
+        if(k===q.correct&&chosen===q.correct)b.classList.add("correct");
+      }else if(m==="learn"){
+        if(chosen!==undefined&&k===chosen&&k!==q.correct)b.classList.add("wrong");
+        if(k===q.correct)b.classList.add(chosen===q.correct?"correct":"show-correct");
+      }
+    });
+  });
+}
+
+function buildExpl(q){
+  const chosen=answers[q.id],ew=document.getElementById("ew-"+q.id);
+  if(ew&&chosen!==undefined&&chosen!==q.correct&&q.wrong&&q.wrong[chosen])
+    ew.textContent="\u274c Why ("+("ABCD"[chosen])+") was incorrect: "+q.wrong[chosen];
+}
+
+function manageRetry(m){
+  document.querySelectorAll(".retry-b").forEach(b=>b.remove());
+  if(m!=="review")return;
+  allMCQs().forEach(q=>{
+    if(answers[q.id]!==undefined&&answers[q.id]!==q.correct){
+      const wrap=document.getElementById("qb-"+q.id);
+      const btn=document.createElement("button");
+      btn.className="btn btn-dk retry-b";btn.style.cssText="margin-top:.46rem;font-size:.67rem";
+      btn.textContent="\u21ba Retry";btn.onclick=()=>retryQ(q,btn);
+      wrap.appendChild(btn);
+    }
+  });
+}
+
+function retryQ(q,btn){
+  delete answers[q.id];btn.remove();
+  document.querySelectorAll(`[data-qid="${q.id}"]`).forEach(b=>{
+    b.disabled=false;b.classList.remove("wrong","correct","show-correct","sel");
+    b.addEventListener("click",()=>{
+      const k=parseInt(b.dataset.k);answers[q.id]=k;
+      document.querySelectorAll(`[data-qid="${q.id}"]`).forEach(x=>{x.classList.remove("sel");x.disabled=true;});
+      b.classList.add("sel");
+      document.querySelectorAll(`[data-qid="${q.id}"]`).forEach(x=>{
+        x.classList.remove("sel","correct","wrong");
+        const xk=parseInt(x.dataset.k);
+        if(xk===k&&xk!==q.correct)x.classList.add("wrong");
+        if(xk===q.correct&&k===q.correct)x.classList.add("correct");
+      });
+      document.querySelectorAll(".retry-b").forEach(rb=>{if(rb.closest("#qb-"+q.id))rb.remove();});
+      if(k!==q.correct){
+        const wrap=document.getElementById("qb-"+q.id);
+        const nb=document.createElement("button");
+        nb.className="btn btn-dk retry-b";nb.style.cssText="margin-top:.46rem;font-size:.67rem";
+        nb.textContent="\u21ba Retry";nb.onclick=()=>retryQ(q,nb);
+        wrap.appendChild(nb);
+      }
+    },{once:true});
+  });
+}
+
+// ════════════════════════════════════════
+//  EVIDENCE
+// ════════════════════════════════════════
+function shEv(ids){
+  document.querySelectorAll(".pt").forEach(p=>p.classList.remove("ev"));
+  ids.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.classList.add("ev");el.scrollIntoView({behavior:"smooth",block:"center"});}
+  });
+  setTimeout(()=>document.querySelectorAll(".pt").forEach(p=>p.classList.remove("ev")),4500);
+}
+
+// ════════════════════════════════════════
+//  WORD POPUP
+// ════════════════════════════════════════
+const wpEl=document.getElementById("wp");
+function handleWordSel(e){
+  if(mode!=="learn")return;
+  const sel=window.getSelection().toString().trim();
+  if(!sel||sel.split(/\s+/).length!==1||sel.length<3||!/^[a-zA-Z]/.test(sel))return;
+  const w=sel.replace(/[^a-zA-Z']/g,"").toLowerCase();
+  if(!w)return;
+  document.getElementById("wp-w").textContent=sel;
+  document.getElementById("wp-d").textContent="Loading\u2026";
+  document.getElementById("wp-e").textContent="";
+  wpEl.classList.add("on");posWp(e.clientX,e.clientY);
+  if(dictCache[w]){applyWp(dictCache[w]);return;}
+  fetchDef(w).then(d=>{dictCache[w]=d;applyWp(d);});
+}
+function applyWp(d){document.getElementById("wp-d").textContent=d.def||"No definition found.";document.getElementById("wp-e").textContent=d.ex||"";}
+function posWp(x,y){const pw=252,ph=125,vw=window.innerWidth,vh=window.innerHeight;let l=x+14,t=y+14;if(l+pw>vw-8)l=x-pw-14;if(t+ph>vh-8)t=y-ph-14;wpEl.style.left=l+"px";wpEl.style.top=t+"px";}
+document.addEventListener("click",e=>{if(!e.target.closest("#wp"))wpEl.classList.remove("on");});
+document.addEventListener("scroll",()=>wpEl.classList.remove("on"),true);
+async function fetchDef(word){
+  try{
+    const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:200,
+        messages:[{role:"user",content:`Define "${word}" simply for a 3rd-grade English learner. Reply ONLY in valid JSON, no markdown: {"def":"1-2 sentence definition","ex":"short example sentence"}`}]})});
+    const d=await r.json();
+    return JSON.parse((d.content?.[0]?.text||"{}").replace(/```json|```/g,"").trim());
+  }catch(e){return{def:"Definition unavailable.",ex:""};}
+}
+
+// ════════════════════════════════════════
+//  AI GRADER
+// ════════════════════════════════════════
+async function gradeW(w){
+  const essay=(document.getElementById("wta-"+w.id)||{}).value||"";
+  const sd=document.getElementById("sd-"+w.id),sl=document.getElementById("sl-"+w.id);
+  sd.textContent="\u2026";sd.className="sdot m";
+  sl.innerHTML='<span style="font-size:.76rem">Grading\u2026</span>';
+  if(!essay.trim()||essay.trim().split(/\s+/).length<5){sd.textContent="0/2";sd.className="sdot l";sl.textContent="No response provided.";return;}
+  try{
+    const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:400,
+        messages:[{role:"user",content:`You are an NY State ELA scorer for grade 3. Score 0-2 points. Prompt: "${w.prompt_plain}" Response: "${essay}" Checklist: ${JSON.stringify(w.rubric)} Reply ONLY in valid JSON, no markdown: {"score":1,"label":"Short label","checklist":[true,false,true],"feedback":"One specific feedback sentence."}`}]})});
+    const d=await r.json();
+    const obj=JSON.parse((d.content?.[0]?.text||"{}").replace(/```json|```/g,"").trim());
+    const score=obj.score??0;
+    sd.textContent=score+"/2";sd.className="sdot "+(score>=2?"h":score>=1?"m":"l");
+    sl.innerHTML=`<strong style="font-family:'Barlow',sans-serif">${obj.label||""}</strong><br><span style="font-size:.78rem">${obj.feedback||""}</span>`;
+    if(obj.checklist)w.rubric.forEach((_,i)=>{const el=document.getElementById(`ck-${w.id}-${i}`);if(el)el.querySelector("span").textContent=obj.checklist[i]?"\u2705":"\u274c";});
+  }catch(e){sd.textContent="?";sl.textContent="Could not grade automatically.";}
+}
+
+// ════════════════════════════════════════
+//  RESIZE
+// ════════════════════════════════════════
+function initResize(){
+  const rh=document.getElementById("rh"),pL=document.getElementById("pane-l"),sp=document.getElementById("split");
+  let drag=false,sx=0,sw=0;
+  rh.onmousedown=e=>{drag=true;sx=e.clientX;sw=pL.getBoundingClientRect().width;document.body.style.cssText="cursor:col-resize;user-select:none"};
+  document.onmousemove=e=>{if(!drag)return;const tw=sp.getBoundingClientRect().width;pL.style.width=Math.min(Math.max(sw+(e.clientX-sx),220),tw-220)+"px";};
+  document.onmouseup=()=>{drag=false;document.body.style.cssText="";};
+}
+
+// ════════════════════════════════════════
+//  IMPORT JSON
+// ════════════════════════════════════════
+function openImport(){
+  document.getElementById('import-modal').style.display='flex';
+  document.getElementById('import-ta').value='';
+  document.getElementById('import-msg').textContent='';
+}
+function closeImport(){
+  document.getElementById('import-modal').style.display='none';
+}
+
+function doImport(){
+  const raw=document.getElementById('import-ta').value.trim();
+  const msg=document.getElementById('import-msg');
+  if(!raw){msg.style.color='var(--red)';msg.textContent='Please paste JSON first.';return;}
+
+  let arts;
+  try{
+    arts=JSON.parse(raw);
+    if(!Array.isArray(arts)||arts.length===0) throw new Error('Expected a JSON array of articles.');
+  }catch(e){
+    msg.style.color='var(--red)';
+    msg.textContent='Invalid JSON: '+e.message;
+    return;
+  }
+
+  // Validate basic structure
+  for(const a of arts){
+    if(!a.id||!a.type||!a.passageHTML){
+      msg.style.color='var(--red)';
+      msg.textContent='Missing required fields (id, type, passageHTML) in one article.';
+      return;
+    }
+  }
+
+  // Register articles
+  arts.forEach(a=>{ARTICLES[a.id]=a;});
+
+  // Find the next day that needs AI content and assign this set
+  // Look for first SCHEDULE slot that still has an 'AI' entry and is not yet done
+  const daysDone=Object.keys(store.days).filter(d=>store.days[d].completed).length;
+  let assigned=false;
+  for(let i=daysDone+1;i<SCHEDULE.length;i++){
+    const slot=SCHEDULE[i];
+    if(slot.includes('AI')){
+      // Replace AI slots with actual article ids based on type
+      const byType={mc:null,'mc+w':null,'w-only':null};
+      arts.forEach(a=>{byType[a.type]=a.id;});
+      SCHEDULE[i]=slot.map(s=>{
+        if(s!=='AI') return s;
+        // find matching type from imported arts
+        const match=arts.find(a=>a.type==='mc'&&byType.mc===a.id)||
+                     arts.find(a=>a.type==='mc+w'&&byType['mc+w']===a.id)||
+                     arts.find(a=>a.type==='w-only'&&byType['w-only']===a.id);
+        if(s==='AI'&&byType.mc&&!ARTICLES[slot[0]]?.type) return byType.mc||s;
+        return s;
+      });
+      // simpler: just replace entire slot
+      const ordered=[
+        arts.find(a=>a.type==='mc')?.id,
+        arts.find(a=>a.type==='mc+w')?.id,
+        arts.find(a=>a.type==='w-only')?.id,
+      ].filter(Boolean);
+      if(ordered.length>0){
+        // fill slots with AI content, keep real articles where present
+        const newSlot=slot.map((s,idx)=>s==='AI'?(ordered[idx]||ordered[0]||s):s);
+        SCHEDULE[i]=newSlot;
+      }
+      // Cache it
+      setAICache(i, arts);
+      assigned=true;
+      msg.style.color='var(--green)';
+      msg.textContent=`Saved! Will appear on Day ${i+1}.`;
+      break;
+    }
+  }
+
+  if(!assigned){
+    // No AI slot found — add as a new bonus day
+    const ordered=[
+      arts.find(a=>a.type==='mc')?.id||'AI',
+      arts.find(a=>a.type==='mc+w')?.id||'AI',
+      arts.find(a=>a.type==='w-only')?.id||'AI',
+    ];
+    SCHEDULE.push(ordered);
+    setAICache(SCHEDULE.length-1, arts);
+    msg.style.color='var(--green)';
+    msg.textContent=`Saved as bonus Day ${SCHEDULE.length}!`;
+  }
+
+  setTimeout(()=>{closeImport();renderHome();},1200);
+}
+
+// Close modal on backdrop click
+document.getElementById('import-modal')?.addEventListener('click',function(e){
+  if(e.target===this) closeImport();
+});
+
+// ════════════════════════════════════════
+//  HISTORY TOGGLE
+// ════════════════════════════════════════
+function toggleHistory(){
+  const w=document.getElementById('history-wrap');
+  const btn=document.querySelector('.cs-toggle');
+  if(!w) return;
+  const open=w.style.display!=='none';
+  w.style.display=open?'none':'block';
+  if(btn) btn.innerHTML=open?'View history &#9660;':'Hide history &#9650;';
+}
+
+// ════════════════════════════════════════
+//  GO
+// ════════════════════════════════════════
+renderHome();
+</script>
+</body>
+</html>

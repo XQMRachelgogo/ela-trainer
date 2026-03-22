@@ -982,12 +982,11 @@ function showAuth(){
 }
 
 function onLogin(user){
-  hideLoading();
   currentUser = user;
   document.getElementById('screen-auth').style.display='none';
   document.getElementById('topbar').style.display='flex';
   document.getElementById('pbar-strip').style.display='block';
-  // Keep loading screen until data is ready
+  // Keep loading spinner visible until data loads
 
   // Load data async then navigate - return Promise so callers can await it
   return (async function(){
@@ -1191,7 +1190,7 @@ async function startDayReview(d){
     document.getElementById('btn-rev').style.display='inline-block';
     document.getElementById('btn-lrn').style.display='inline-block';
     document.getElementById('pbar').style.background='var(--green)';
-    setMode('learning');
+    setMode('learn');
   }, 600);
 }
 

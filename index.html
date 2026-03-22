@@ -1169,7 +1169,7 @@ async function loadOrGenerateAI(dayIdx){
   const dayNum = dayIdx + 1;
 
   // 1. Check Supabase cache first
-  const {data} = await sb.from('ai_articles').select('articles').eq('day_number', dayNum).single();
+  const {data} = await sb.from('ai_articles').select('articles').eq('grade',3).eq('day_number', dayNum).single();
   if(data?.articles){
     console.log(`Day ${dayNum}: loaded from Supabase`);
     return data.articles;
@@ -1180,7 +1180,7 @@ async function loadOrGenerateAI(dayIdx){
     console.log(`Day ${dayNum}: generating personalized content...`);
     await pregenNextDay(dayNum, 0);
     // Try loading again after generation
-    const {data:fresh} = await sb.from('ai_articles').select('articles').eq('day_number', dayNum).single();
+    const {data:fresh} = await sb.from('ai_articles').select('articles').eq('grade',3).eq('day_number', dayNum).single();
     if(fresh?.articles) return fresh.articles;
     throw new Error('Personalized generation failed. Please try again.');
   }
@@ -1212,7 +1212,7 @@ async function loadOrGenerateAI(dayIdx){
   const arts=Array.isArray(parsed)?parsed:Array.isArray(parsed.articles)?parsed.articles:null;
   if(!arts) throw new Error('Could not parse articles from Gemini response');
 
-  await sb.from('ai_articles').upsert({day_number:dayNum, articles:arts});
+  await sb.from('ai_articles').upsert({grade:3, day_number:dayNum, articles:arts});
   console.log(`Day ${dayNum}: saved to Supabase`);
   return arts;
 }
@@ -1258,7 +1258,7 @@ async function pregenNextDay(nextDayNum, lastScore){
   // Check Supabase cache
   try{
     const {data:cached} = await sb.from('ai_articles')
-      .select('day_number').eq('day_number', nextDayNum).single();
+      .select('day_number').eq('grade',3).eq('day_number', nextDayNum).single();
     if(cached){ console.log('Day '+nextDayNum+' already cached'); return; }
   }catch(e){}
 
@@ -1309,7 +1309,7 @@ async function pregenNextDay(nextDayNum, lastScore){
     const parsed = JSON.parse(clean);
     const arts = Array.isArray(parsed)?parsed:Array.isArray(parsed.articles)?parsed.articles:null;
     if(!arts) throw new Error('No articles array');
-    await sb.from('ai_articles').upsert({day_number:nextDayNum, articles:arts});
+    await sb.from('ai_articles').upsert({grade:3, day_number:nextDayNum, articles:arts});
     arts.forEach(a=>{ ARTICLES[a.id]=a; });
     if(!SCHEDULE[nextDayNum-1]) SCHEDULE[nextDayNum-1]=arts.map(a=>a.id);
     console.log('Day '+nextDayNum+' personalized and saved!');
@@ -1725,14 +1725,14 @@ async function doImport(){
       const ordered=[arts.find(a=>a.type==='mc')?.id,arts.find(a=>a.type==='mc+w')?.id,arts.find(a=>a.type==='w-only')?.id].filter(Boolean);
       if(ordered.length){SCHEDULE[i]=SCHEDULE[i].map((s,idx)=>s==='AI'?(ordered[idx]||ordered[0]||s):s);}
       // Also save to Supabase
-      await sb.from('ai_articles').upsert({day_number:i+1,articles:arts});
+      await sb.from('ai_articles').upsert({grade:3, day_number:i+1, articles:arts});
       msg.className='modal-msg ok'; msg.textContent=`Saved! Will appear on Day ${i+1}.`;
       assigned=true; break;
     }
   }
   if(!assigned){
     SCHEDULE.push(arts.map(a=>a.id));
-    await sb.from('ai_articles').upsert({day_number:SCHEDULE.length,articles:arts});
+    await sb.from('ai_articles').upsert({grade:3, day_number:SCHEDULE.length, articles:arts});
     msg.className='modal-msg ok'; msg.textContent=`Saved as bonus Day ${SCHEDULE.length}!`;
   }
   setTimeout(()=>{closeImport();renderHome();},1200);

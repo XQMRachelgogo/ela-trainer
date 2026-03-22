@@ -1197,17 +1197,33 @@ async function loadOrGenerateAI(dayIdx){
   const {data} = await cacheQ.maybeSingle();
   if(data?.articles){
     console.log(`Day ${dayNum}: loaded from Supabase`);
-    console.log('Article structure check:', data.articles?.map(a=>({type:a.type,title:a.title,qs:a.questions?.length,ws:a.writings?.length})));
-    // Normalize articles - ensure required fields exist
+    // Normalize articles - fill in missing fields from Gemini
     const arts = data.articles;
     if(Array.isArray(arts)){
-      arts.forEach(a=>{
-        if(!a.title) a.title = a.type === 'mc' ? 'Reading Passage' : a.type === 'mc+w' ? 'Informational Passage' : 'Extended Passage';
+      arts.forEach((a,i)=>{
+        if(!a.id) a.id = `ai-${a.type||'mc'}-${dayNum}-${i}`;
+        if(!a.title) a.title = a.type==='mc'?'Reading Story':a.type==='mc+w'?'Reading Passage':'Extended Reading';
+        if(!a.byline) a.byline = '';
+        if(a.isReal===undefined) a.isReal = false;
+        if(!a.source) a.source = 'AI Generated';
+        if(a.context===undefined) a.context = null;
         if(!a.questions) a.questions = [];
         if(!a.writings) a.writings = [];
         if(!a.passageHTML) a.passageHTML = '';
         if(!a.directions) a.directions = '';
-        if(!a.id) a.id = `ai-${a.type}-${dayNum}`;
+        a.questions.forEach(q=>{
+          if(!q.choices) q.choices=[];
+          if(q.correct===undefined) q.correct=0;
+          if(!q.ev) q.ev=[];
+          if(!q.expl) q.expl='';
+          if(!q.wrong) q.wrong={};
+        });
+        a.writings.forEach(w=>{
+          if(!w.rubric) w.rubric=[];
+          if(!w.modelAnswer) w.modelAnswer='';
+          if(!w.prompt_plain) w.prompt_plain=w.prompt||'';
+          if(!w.pts) w.pts=2;
+        });
       });
     }
     return arts;
@@ -1436,7 +1452,7 @@ function buildPersonalizedPrompt(dayNum, topic, weakSkills){
     ? 'SKILL FOCUS: This student struggles most with: '+weakSkills.map(s=>skillNames[s]||s).join('; ')+'. Design at least 4 of 6 MC questions in Article 1 and 3 of 5 in Article 2 to target these skills.'
     : 'Vary MC question types evenly across all skill areas.';
 
-  return 'You are an expert NYS ELA test writer for Grade 3 (ages 8-9).\nGenerate a 3-article practice set for Day '+dayNum+'.\n\n'+focusLine+'\n\nARTICLE 1 (mc): Story ~300 words, 6 MC questions, 0 written.\nARTICLE 2 (mc+w): Informational ~280 words, 5 MC + 2 written.\nARTICLE 3 (w-only): Nonfiction ~280 words, 0 MC + 3 written.\n\nParagraph HTML: <div class=\"pr\"><span class=\"pn\">N</span><span class=\"pt\" id=\"XN\">Text.</span></div>\nArticle 1 IDs: D'+dayNum+'P1... Article 2: D'+dayNum+'Q1... Article 3: D'+dayNum+'R1...\nVocab: <div class=\"vb\">word = definition</div>\nHeadings: <div class=\"sh\">Heading</div>\nArticle 3 ends: <div class=\"diagram-note\">&#9711; Diagram: description</div>\nAll quotes: &#8220; &#8221; &#8216; &#8217; — no raw quotes in passageHTML.\nMC fields: id, stem, choices[4], correct(0-3), ev[], expl, wrong:{1,2,3}\nWriting fields: id, pts:2, prompt(with <strong>two</strong>), prompt_plain, rubric[3], modelAnswer\nDirections: mc=\"Read this story. Then answer questions 1 through 6.\"\n            mc+w=\"Read this passage. Then answer questions 7 through 13.\"\n            w-only=\"Read this passage. Then answer questions 14 through 16.\"\n\nReturn JSON: {\"articles\":[mc, mcw, wo]}. No markdown.';
+  return 'You are an expert NYS ELA test writer for Grade 3 (ages 8-9).\nGenerate a 3-article practice set for Day '+dayNum+'.\n\n'+focusLine+'\n\nARTICLE 1 (mc): Story ~300 words, 6 MC questions, 0 written.\nARTICLE 2 (mc+w): Informational ~280 words, 5 MC + 2 written.\nARTICLE 3 (w-only): Nonfiction ~280 words, 0 MC + 3 written.\n\nParagraph HTML: <div class=\"pr\"><span class=\"pn\">N</span><span class=\"pt\" id=\"XN\">Text.</span></div>\nArticle 1 IDs: D'+dayNum+'P1... Article 2: D'+dayNum+'Q1... Article 3: D'+dayNum+'R1...\nVocab: <div class=\"vb\">word = definition</div>\nHeadings: <div class=\"sh\">Heading</div>\nArticle 3 ends: <div class=\"diagram-note\">&#9711; Diagram: description</div>\nAll quotes: &#8220; &#8221; &#8216; &#8217; — no raw quotes in passageHTML.\nMC fields: id, stem, choices[4], correct(0-3), ev[], expl, wrong:{1,2,3}\nWriting fields: id, pts:2, prompt(with <strong>two</strong>), prompt_plain, rubric[3], modelAnswer\nDirections: mc=\"Read this story. Then answer questions 1 through 6.\"\n            mc+w=\"Read this passage. Then answer questions 7 through 13.\"\n            w-only=\"Read this passage. Then answer questions 14 through 16.\"\n\nEach article must have ALL these fields: id, type, isReal(false), source("AI Generated"), title, byline, directions, context(null), passageHTML, questions[], writings[].\nReturn JSON: {\"articles\":[mc, mcw, wo]}. No markdown, output only the JSON object.';
 }
 
 function buildWritingPrompt(dayNum, topic){

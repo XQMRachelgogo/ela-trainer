@@ -989,8 +989,8 @@ function onLogin(user){
   document.getElementById('topbar').style.display='flex';
   document.getElementById('pbar-strip').style.display='block';
 
-  // Load data async then navigate
-  (async function(){
+  // Load data async then navigate - return Promise so callers can await it
+  return (async function(){
     try{
       const {data} = await sb.from('day_records').select('*').eq('user_id', user.id);
       userDays = {};

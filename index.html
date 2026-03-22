@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD: v2025-fix-auth-v4 -->
+<!-- BUILD: v2025-debug-v5 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1257,6 +1257,7 @@ function buildRetrySchedule(d, retryArts){
 
 // Open a completed day directly in Learning Mode (read-only review)
 async function startDayReview(d){
+  console.log('startDayReview called for day', d);
   currentDay = d; answers = {}; submitted = false; mode = 'exam';
   document.getElementById('screen-home').style.display='none';
   document.getElementById('screen-test').style.display='flex';
@@ -1823,6 +1824,7 @@ async function submitAll(){
       mc_total: mcTotal,
       article_ids: currentSet.map(a => a.id),
     }, {onConflict: 'user_id,day_number'});
+    console.log('Saved day record with article_ids:', currentSet.map(a=>a.id));
     userDays[currentDay]={completed:true,totalScore,mc_correct:mcCorrect,mc_total:mcTotal};
     streak = Object.keys(userDays).filter(d=>userDays[d].completed).length;
 

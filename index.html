@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD: v9 -->
+<!-- BUILD: v10 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -990,6 +990,7 @@ function onLogin(user){
 
   // Load data async then navigate - return Promise so callers can await it
   return (async function(){
+    if(dataReady && currentUser?.id === user.id){ goHome(); return; } // already loaded
     try{
       const {data} = await sb.from('day_records').select('*').eq('user_id', user.id);
       userDays = {};
@@ -1010,8 +1011,8 @@ function onLogin(user){
 
 // Listen for auth state changes + check existing session immediately
 sb.auth.onAuthStateChange((event, session)=>{
-  if(event === 'SIGNED_IN' && !currentUser && session?.user){
-    // Fresh login (not page reload/token refresh)
+  if(event === 'SIGNED_IN' && !currentUser && !dataReady && session?.user){
+    // Fresh login only - not page reload (dataReady would be false AND currentUser null)
     onLogin(session.user);
   } else if(event === 'SIGNED_OUT'){
     currentUser = null;

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD: v8-debug -->
+<!-- BUILD: v9 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1124,7 +1124,7 @@ function renderHome(){ console.log('renderHome: userDays keys='+Object.keys(user
     const card=document.createElement('div');
     card.className='day-card'+(locked?' locked':'')+(retryDue?' retry-due':'');
     if(d===daysDone+1) card.id='today-anchor';
-    if(!locked) card.onclick=()=>{ console.log('Card clicked: day='+d+' done='+done+' userDays='+JSON.stringify(userDays[d])); if(done) startDayReview(d); else startDay(d); };
+    if(!locked) card.onclick=()=>{ const isDone=!!userDays[d]?.completed; console.log('Card clicked: day='+d+' isDone='+isDone+' userDays='+JSON.stringify(userDays[d])); if(isDone) startDayReview(d); else startDay(d); };
 
     let badge='';
     if(done)           badge=`<span class="dbadge done">\u2713 Done</span>`;

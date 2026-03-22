@@ -832,19 +832,11 @@ let selectedGrade = 3;
 let gradeConfirmed = false;
 
 function showGradeSelector(){
-  // If not yet logged in (first login flow), show as full overlay before home
-  if(!gradeConfirmed){
-    document.getElementById('screen-auth').style.display  = 'none';
-    document.getElementById('screen-loading').style.display = 'none';
-    document.getElementById('screen-home').style.display  = 'flex';
-    document.getElementById('screen-test').style.display  = 'none';
-    if(currentUser){
-      document.getElementById('topbar').style.display = 'flex';
-      document.getElementById('pbar-strip').style.display = 'block';
-    }
-  }
-  // Show grade overlay on top of current screen
+  // Hide auth/loading, show grade overlay on top
+  document.getElementById('screen-auth').style.display  = 'none';
+  document.getElementById('screen-loading').style.display = 'none';
   document.getElementById('screen-grade').style.display = 'flex';
+  // Don't show screen-home yet - wait for confirmGrade()
   if(currentUser){
     const name = currentUser.user_metadata?.display_name || currentUser.email?.split('@')[0] || 'Student';
     document.getElementById('grade-username').textContent = name;

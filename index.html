@@ -1270,7 +1270,7 @@ async function startDayReview(d){
   document.getElementById('btn-lrn').style.display='none';
   document.getElementById('btn-sub').style.display='none';
 
-  document.getElementById('pane-l').innerHTML='<div style="padding:3rem 2rem;text-align:center;font-family:\'DM Sans\',sans-serif;color:var(--ink3)"><div style="font-size:1.8rem;margin-bottom:.8rem">\u{1F4D6}</div><div style="font-size:.95rem;font-weight:600">Loading your previous session\u2026</div></div>';
+  document.getElementById('pane-l').innerHTML='<div style="padding:3rem 2rem;text-align:center;font-family:\'DM Sans\',sans-serif;color:var(--ink3)"><div style="font-size:1.8rem;margin-bottom:.8rem">📖</div><div style="font-size:.95rem;font-weight:600">Loading your previous session\u2026</div></div>';
   document.getElementById('pane-r').innerHTML='';
 
   try{
@@ -1726,8 +1726,8 @@ function renderQuestions(){
 function buildMCQ(q,n){
   const ch=q.choices.map((c,i)=>`<button class="cb" data-qid="${q.id}" data-k="${i}"><span class="ck">${'ABCD'[i]}</span>${c}</button>`).join('');
   return `<div class="qb" id="qb-${q.id}"><div class="qs"><span class="qn">${n}.</span>${q.stem}</div><div class="chs">${ch}</div>
-    <div class="ex" id="ex-${q.id}"><div class="ex-t">\u{1F4D6} Explanation</div><div class="ex-b" id="eb-${q.id}">${q.expl}<div class="ex-w" id="ew-${q.id}"></div></div>
-    <button class="ev-btn" onclick="shEv(${JSON.stringify(q.ev)})">\u{1F50D} Show Evidence</button></div></div>`;
+    <div class="ex" id="ex-${q.id}"><div class="ex-t">📖 Explanation</div><div class="ex-b" id="eb-${q.id}">${q.expl}<div class="ex-w" id="ew-${q.id}"></div></div>
+    <button class="ev-btn" onclick="shEv(${JSON.stringify(q.ev)})">🔍 Show Evidence</button></div></div>`;
 }
 
 function buildW(w,n){

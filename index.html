@@ -1260,24 +1260,21 @@ async function startDayReview(d){
   // Load the day content
   await startDay(d);
   // Switch to learning mode after render - no answers needed, just show explanations
-  setTimeout(()=>{
-    submitted = true;
-    // Don't apply colors (no answers to color)
-    // Show writing boxes as read-only
-    currentSet.forEach(art=>{
-      (art.writings||[]).forEach(w=>{
-        const fb = document.getElementById('wfb-'+w.id);
-        if(fb) fb.classList.add('on');
-        const ta = document.getElementById('wta-'+w.id);
-        if(ta){ ta.disabled = true; ta.placeholder = 'Review mode — submit again to get new grading.'; }
-      });
+  // Switch to learning mode after content renders
+  submitted = true;
+  currentSet.forEach(art=>{
+    (art.writings||[]).forEach(w=>{
+      const fb = document.getElementById('wfb-'+w.id);
+      if(fb) fb.classList.add('on');
+      const ta = document.getElementById('wta-'+w.id);
+      if(ta){ ta.disabled = true; ta.placeholder = 'Review mode — submit again to get new grading.'; }
     });
-    document.getElementById('btn-sub').style.display='none';
-    document.getElementById('btn-rev').style.display='inline-block';
-    document.getElementById('btn-lrn').style.display='inline-block';
-    document.getElementById('pbar').style.background='var(--green)';
-    setMode('learn');
-  }, 600);
+  });
+  document.getElementById('btn-sub').style.display='none';
+  document.getElementById('btn-rev').style.display='inline-block';
+  document.getElementById('btn-lrn').style.display='inline-block';
+  document.getElementById('pbar').style.background='var(--green)';
+  setMode('learn');
 }
 
 async function startDay(d){
@@ -1324,14 +1321,7 @@ async function startDay(d){
       }
     }
     // Save which articles were used today
-    if(currentUser && currentSet.length > 0){
-      const artIds = currentSet.map(a => a.id);
-      sb.from('day_records').upsert({
-        user_id: currentUser.id,
-        day_number: d,
-        article_ids: artIds,
-      }, {onConflict: 'user_id,day_number'}).then(()=>{});
-    }
+    // Article IDs saved in submitAll with full score data
   }catch(err){
     document.getElementById('pane-l').innerHTML=`<div style="padding:2rem;font-family:'DM Sans',sans-serif;color:var(--red)">
       \u26a0\uFE0F Could not load content: ${err.message}.
@@ -1557,7 +1547,7 @@ async function saveGeminiKey(){
   status.textContent = 'Testing key...'; status.className='gk-status';
   try{
     const r = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
       {method:'POST', headers:{'Content-Type':'application/json'},
        body: JSON.stringify({contents:[{parts:[{text:'say ok'}]}], generationConfig:{maxOutputTokens:5}})}
     );

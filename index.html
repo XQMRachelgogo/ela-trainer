@@ -1257,23 +1257,57 @@ function buildRetrySchedule(d, retryArts){
 
 // Open a completed day directly in Learning Mode (read-only review)
 async function startDayReview(d){
-  // Load the day content
-  await startDay(d);
-  // Switch to learning mode after render - no answers needed, just show explanations
-  // Switch to learning mode after content renders
+  currentDay = d; answers = {}; submitted = false; mode = 'exam';
+  document.getElementById('screen-home').style.display='none';
+  document.getElementById('screen-test').style.display='flex';
+  document.getElementById('bbar').style.display='flex';
+  document.getElementById('btn-back').style.display='none';
+  document.getElementById('badge').style.display='inline-block';
+  document.getElementById('badge').className='badge learn';
+  document.getElementById('badge').textContent='Learning Mode';
+  document.getElementById('pbar').style.cssText='width:100%;background:var(--green)';
+  document.getElementById('btn-rev').style.display='none';
+  document.getElementById('btn-lrn').style.display='none';
+  document.getElementById('btn-sub').style.display='none';
+
+  document.getElementById('pane-l').innerHTML='<div style="padding:3rem 2rem;text-align:center;font-family:\'DM Sans\',sans-serif;color:var(--ink3)"><div style="font-size:1.8rem;margin-bottom:.8rem">\u{1F4D6}</div><div style="font-size:.95rem;font-weight:600">Loading your previous session\u2026</div></div>';
+  document.getElementById('pane-r').innerHTML='';
+
+  try{
+    const {data:rec} = await sb.from('day_records')
+      .select('article_ids').eq('user_id', currentUser.id).eq('day_number', d).maybeSingle();
+    const artIds = rec?.article_ids;
+    if(artIds && artIds.length > 0){
+      await loadPool();
+      currentSet = [];
+      for(const id of artIds){
+        if(ARTICLES[id]){
+          currentSet.push(ARTICLES[id]);
+        } else {
+          const allPool = [...poolCache.mc, ...poolCache['mc+w'], ...poolCache['w-only']];
+          const poolRow = allPool.find(r => r.article_id === id);
+          if(poolRow?.article){ ARTICLES[id] = poolRow.article; currentSet.push(poolRow.article); }
+        }
+      }
+    }
+    if(currentSet.length === 0){
+      const picked = await pickDailySet(d);
+      currentSet = Object.values(picked).filter(Boolean).map(r => r.article || ARTICLES[r.article_id]).filter(Boolean);
+    }
+  }catch(e){ console.error('startDayReview error:', e); }
+
+  renderPassage(); renderQuestions(); updateProg(); initResize();
+  document.getElementById('pane-l').addEventListener('mouseup', handleWordSel);
+
   submitted = true;
   currentSet.forEach(art=>{
     (art.writings||[]).forEach(w=>{
-      const fb = document.getElementById('wfb-'+w.id);
+      const ta=document.getElementById('wta-'+w.id);
+      if(ta){ ta.disabled=true; ta.placeholder='Review mode — submit again to re-grade.'; }
+      const fb=document.getElementById('wfb-'+w.id);
       if(fb) fb.classList.add('on');
-      const ta = document.getElementById('wta-'+w.id);
-      if(ta){ ta.disabled = true; ta.placeholder = 'Review mode — submit again to get new grading.'; }
     });
   });
-  document.getElementById('btn-sub').style.display='none';
-  document.getElementById('btn-rev').style.display='inline-block';
-  document.getElementById('btn-lrn').style.display='inline-block';
-  document.getElementById('pbar').style.background='var(--green)';
   setMode('learn');
 }
 
@@ -1787,6 +1821,7 @@ async function submitAll(){
       total_score: totalScore,
       mc_correct: mcCorrect,
       mc_total: mcTotal,
+      article_ids: currentSet.map(a => a.id),
     }, {onConflict: 'user_id,day_number'});
     userDays[currentDay]={completed:true,totalScore,mc_correct:mcCorrect,mc_total:mcTotal};
     streak = Object.keys(userDays).filter(d=>userDays[d].completed).length;

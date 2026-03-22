@@ -1040,6 +1040,7 @@ function goHome(){
   document.getElementById('screen-home').style.display='flex';
   document.getElementById('screen-test').style.display='none';
   document.getElementById('bbar').style.display='none';
+  document.getElementById('overlay').classList.remove('on');
   // Show Gemini key notice if no key set
   const keyNotice = document.getElementById('gemini-key-notice');
   if(keyNotice) keyNotice.style.display = localStorage.getItem('gemini_key') ? 'none' : 'block';
@@ -1196,7 +1197,20 @@ async function loadOrGenerateAI(dayIdx){
   const {data} = await cacheQ.maybeSingle();
   if(data?.articles){
     console.log(`Day ${dayNum}: loaded from Supabase`);
-    return data.articles;
+    console.log('Article structure check:', data.articles?.map(a=>({type:a.type,title:a.title,qs:a.questions?.length,ws:a.writings?.length})));
+    // Normalize articles - ensure required fields exist
+    const arts = data.articles;
+    if(Array.isArray(arts)){
+      arts.forEach(a=>{
+        if(!a.title) a.title = a.type === 'mc' ? 'Reading Passage' : a.type === 'mc+w' ? 'Informational Passage' : 'Extended Passage';
+        if(!a.questions) a.questions = [];
+        if(!a.writings) a.writings = [];
+        if(!a.passageHTML) a.passageHTML = '';
+        if(!a.directions) a.directions = '';
+        if(!a.id) a.id = `ai-${a.type}-${dayNum}`;
+      });
+    }
+    return arts;
   }
 
   // 2. Day 50+: use personalized generation based on weak skills
@@ -1471,6 +1485,7 @@ function renderPassage(){
 function renderQuestions(){
   let html='',n=1;
   currentSet.forEach((art,ai)=>{
+    if(!art || !art.title){ console.warn('Article missing title:', art); return; }
     const short=art.title.replace('Excerpt from ','').replace(/[\u201c\u201d]/g,'');
     if(ai>0) html+='<hr class="qdiv">';
     if(art.questions.length>0){

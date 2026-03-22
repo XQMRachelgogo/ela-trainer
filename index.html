@@ -416,7 +416,7 @@ const SUPABASE_ANON = 'sb_publishable_iGo668SXmR6DJgQn8YoB3w_zVgYFKry';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 const GEMINI_KEY   = 'AIzaSyDpAWN2CMSAWXgytHnhge3l9qskn2nznnY';
-const GEMINI_MODEL = 'gemma-3-27b-it';
+const GEMINI_MODEL = 'gemini-1.5-pro';
 
 
 
@@ -1164,7 +1164,7 @@ async function loadOrGenerateAI(dayIdx){
   const dayNum = dayIdx + 1;
 
   // 1. Check Supabase cache first
-  const {data} = await sb.from('ai_articles').select('articles').eq('grade',3).eq('day_number', dayNum).single();
+  const {data} = await sb.from('ai_articles').select('articles').eq('grade',3).eq('day_number', dayNum).maybeSingle();
   if(data?.articles){
     console.log(`Day ${dayNum}: loaded from Supabase`);
     return data.articles;
@@ -1175,7 +1175,7 @@ async function loadOrGenerateAI(dayIdx){
     console.log(`Day ${dayNum}: generating personalized content...`);
     await pregenNextDay(dayNum, 0);
     // Try loading again after generation
-    const {data:fresh} = await sb.from('ai_articles').select('articles').eq('grade',3).eq('day_number', dayNum).single();
+    const {data:fresh} = await sb.from('ai_articles').select('articles').eq('grade',3).eq('day_number', dayNum).maybeSingle();
     if(fresh?.articles) return fresh.articles;
     throw new Error('Personalized generation failed. Please try again.');
   }
@@ -1253,7 +1253,7 @@ async function pregenNextDay(nextDayNum, lastScore){
   // Check Supabase cache
   try{
     const {data:cached} = await sb.from('ai_articles')
-      .select('day_number').eq('grade',3).eq('day_number', nextDayNum).single();
+      .select('day_number').eq('grade',3).eq('day_number', nextDayNum).maybeSingle();
     if(cached){ console.log('Day '+nextDayNum+' already cached'); return; }
   }catch(e){}
 

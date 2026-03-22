@@ -984,10 +984,10 @@ function showAuth(){
 function onLogin(user){
   hideLoading();
   currentUser = user;
-  document.getElementById('screen-loading').style.display='none';
   document.getElementById('screen-auth').style.display='none';
   document.getElementById('topbar').style.display='flex';
   document.getElementById('pbar-strip').style.display='block';
+  // Keep loading screen until data is ready
 
   // Load data async then navigate - return Promise so callers can await it
   return (async function(){
@@ -1003,6 +1003,8 @@ function onLogin(user){
       document.getElementById('user-name-display').textContent=displayName;
     }catch(e){ console.error('onLogin error:',e); }
     dataReady = true;
+    hideLoading();
+    document.getElementById('screen-loading').style.display='none';
     if(!gradeConfirmed){ showGradeSelector(); } else { goHome(); }
   })();
 }
@@ -1026,6 +1028,7 @@ sb.auth.onAuthStateChange((event, session)=>{
       showAuth();
     } else {
       gradeConfirmed = true;
+      dataReady = false;
       await onLogin(session.user);
     }
   } catch(e) {

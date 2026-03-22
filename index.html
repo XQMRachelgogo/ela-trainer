@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NY ELA Trainer &middot; Grade 3</title>
+<title>NYS ELA Trainer &middot; Grade 3</title>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -266,14 +266,14 @@ body.lm .ev-btn{display:inline-block}
 
 <!-- LOADING SCREEN (shown while checking session) -->
 <div id="screen-loading" style="display:flex;position:fixed;inset:0;align-items:center;justify-content:center;background:rgba(28,24,21,.82);backdrop-filter:blur(2px);flex-direction:column;gap:.8rem;font-family:'DM Sans',sans-serif;color:#f0ece4;z-index:1000">
-  <div style="font-size:1rem;font-weight:700;letter-spacing:.05em">NY ELA <span style="color:#e8834a">TRAINER</span></div>
+  <div style="font-size:1rem;font-weight:700;letter-spacing:.05em">NYS ELA <span style="color:#e8834a">TRAINER</span></div>
   <div style="width:24px;height:24px;border:3px solid #444;border-top-color:#e8834a;border-radius:50%;animation:spin .7s linear infinite"></div>
 </div>
 
 <!-- AUTH SCREEN -->
 <div id="screen-auth" style="display:none">
   <div class="auth-card">
-    <div class="auth-logo">NY ELA <em>Trainer</em></div>
+    <div class="auth-logo">NYS ELA <em>Trainer</em></div>
     <div class="auth-sub">Grade 3 &middot; 50-Day Reading Practice</div>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchTab('login')">Sign In</button>
@@ -296,7 +296,7 @@ body.lm .ev-btn{display:inline-block}
 
 <!-- TOP BAR -->
 <header id="topbar" style="display:none">
-  <div class="logo">NY ELA <em>Trainer</em></div>
+  <div class="logo">NYS ELA <em>Trainer</em></div>
   <div id="topbar-right">
     <span id="badge" class="badge exam" style="display:none">Exam Mode</span>
     <div class="user-chip">
@@ -315,7 +315,7 @@ body.lm .ev-btn{display:inline-block}
   <div class="grade-card" style="max-width:420px;width:100%;background:var(--paper);border-radius:6px;padding:2rem;box-shadow:0 20px 60px rgba(0,0,0,.5)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem">
       <div>
-        <div class="auth-logo" style="margin-bottom:.1rem">NY ELA <em>Trainer</em></div>
+        <div class="auth-logo" style="margin-bottom:.1rem">NYS ELA <em>Trainer</em></div>
         <div style="font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--ink3)">Signed in as <strong id="grade-username">&#8212;</strong></div>
       </div>
       <button onclick="closeGradeSelector()" style="font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--ink3);background:none;border:1px solid var(--border);border-radius:4px;padding:.3rem .6rem;cursor:pointer">&#10005; Close</button>
@@ -349,7 +349,7 @@ body.lm .ev-btn{display:inline-block}
   <div class="home-inner">
     <div class="home-hero" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem">
       <div>
-        <h1>50-Day ELA Practice</h1>
+        <h1>50+ Day ELA Practice</h1>
         <p>New York State Grade 3 &middot; 3 articles per session &middot; ~30 min each</p>
       </div>
       <button onclick="showGradeSelector()" style="flex-shrink:0;font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:600;padding:.35rem .7rem;border:1.5px solid var(--border);border-radius:4px;background:var(--paper);color:var(--ink3);cursor:pointer;white-space:nowrap;margin-top:.15rem" title="Switch grade">Grade 3 ▾</button>

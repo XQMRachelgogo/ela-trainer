@@ -1117,7 +1117,7 @@ function renderHome(){
     const card=document.createElement('div');
     card.className='day-card'+(locked?' locked':'')+(retryDue?' retry-due':'');
     if(d===daysDone+1) card.id='today-anchor';
-    if(!locked) card.onclick=()=>startDay(d);
+    if(!locked) card.onclick=()=>{ if(done) startDayReview(d); else startDay(d); };
 
     let badge='';
     if(done)           badge=`<span class="dbadge done">\u2713 Done</span>`;
@@ -1165,6 +1165,31 @@ function buildRetrySchedule(d, retryArts){
 
   // Mark remaining AI slots as RETRY_AI so loadOrGenerateAI knows to generate fresh
   return sched.map(s => s === 'AI' ? 'RETRY_AI' : s);
+}
+
+// Open a completed day directly in Learning Mode (read-only review)
+async function startDayReview(d){
+  // Load the day content
+  await startDay(d);
+  // Switch to learning mode after render - no answers needed, just show explanations
+  setTimeout(()=>{
+    submitted = true;
+    // Don't apply colors (no answers to color)
+    // Show writing boxes as read-only
+    currentSet.forEach(art=>{
+      (art.writings||[]).forEach(w=>{
+        const fb = document.getElementById('wfb-'+w.id);
+        if(fb) fb.classList.add('on');
+        const ta = document.getElementById('wta-'+w.id);
+        if(ta){ ta.disabled = true; ta.placeholder = 'Review mode — submit again to get new grading.'; }
+      });
+    });
+    document.getElementById('btn-sub').style.display='none';
+    document.getElementById('btn-rev').style.display='inline-block';
+    document.getElementById('btn-lrn').style.display='inline-block';
+    document.getElementById('pbar').style.background='var(--green)';
+    setMode('learning');
+  }, 600);
 }
 
 async function startDay(d){

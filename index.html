@@ -294,8 +294,8 @@ body.lm .ev-btn{display:inline-block}
 <div id="pbar-strip" style="display:none"><div id="pbar"></div></div>
 
 <!-- GRADE SELECTOR MODAL (overlay, not full screen) -->
-<div id="screen-grade" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:1rem">
-  <div class="grade-card" style="max-width:420px;width:100%">
+<div id="screen-grade" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(30,20,15,.7);align-items:center;justify-content:center;padding:1rem">
+  <div class="grade-card" style="max-width:420px;width:100%;background:var(--paper);border-radius:6px;padding:2rem;box-shadow:0 20px 60px rgba(0,0,0,.5)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem">
       <div>
         <div class="auth-logo" style="margin-bottom:.1rem">NY ELA <em>Trainer</em></div>
@@ -952,7 +952,7 @@ function showAuth(){
   document.getElementById('bbar').style.display='none';
 }
 
-async function onLogin(user){
+async async function onLogin(user){
   hideLoading();
   currentUser = user;
   // Hide auth, show app
@@ -990,18 +990,13 @@ async function onLogin(user){
 
 // Listen for auth state changes + check existing session immediately
 sb.auth.onAuthStateChange((event, session)=>{
-  if(event === 'SIGNED_IN' && !currentUser){
-    // Only handle fresh logins, not token refreshes
-    onLogin(session.user);
-  } else if(event === 'SIGNED_IN' && currentUser){
-    // Already logged in (tab switch/minimize token refresh) - do nothing
-    currentUser = session.user;
-  } else if(event === 'SIGNED_OUT'){
+  if(event === 'SIGNED_OUT'){
     currentUser = null;
     gradeConfirmed = false;
     showAuth();
   }
-  // TOKEN_REFRESHED: do nothing
+  // SIGNED_IN, TOKEN_REFRESHED etc: handled by getSession() on load
+  // Don't redirect here - causes loops on tab switch/minimize
 });
 
 // Check existing session on load
@@ -1010,9 +1005,10 @@ sb.auth.onAuthStateChange((event, session)=>{
   if(!session?.user){
     showAuth();
   } else {
-    hideLoading();
+    // User already logged in - restore session directly
+    gradeConfirmed = true;  // Skip grade selector for returning users
+    await onLogin(session.user);
   }
-  // If session exists, onAuthStateChange INITIAL_SESSION event handles login
 })();
 
 
@@ -1910,8 +1906,8 @@ body.lm .ev-btn{display:inline-block}
 <div id="pbar-strip" style="display:none"><div id="pbar"></div></div>
 
 <!-- GRADE SELECTOR MODAL (overlay, not full screen) -->
-<div id="screen-grade" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:1rem">
-  <div class="grade-card" style="max-width:420px;width:100%">
+<div id="screen-grade" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(30,20,15,.7);align-items:center;justify-content:center;padding:1rem">
+  <div class="grade-card" style="max-width:420px;width:100%;background:var(--paper);border-radius:6px;padding:2rem;box-shadow:0 20px 60px rgba(0,0,0,.5)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem">
       <div>
         <div class="auth-logo" style="margin-bottom:.1rem">NY ELA <em>Trainer</em></div>
@@ -2606,18 +2602,13 @@ async function onLogin(user){
 
 // Listen for auth state changes + check existing session immediately
 sb.auth.onAuthStateChange((event, session)=>{
-  if(event === 'SIGNED_IN' && !currentUser){
-    // Only handle fresh logins, not token refreshes
-    onLogin(session.user);
-  } else if(event === 'SIGNED_IN' && currentUser){
-    // Already logged in (tab switch/minimize token refresh) - do nothing
-    currentUser = session.user;
-  } else if(event === 'SIGNED_OUT'){
+  if(event === 'SIGNED_OUT'){
     currentUser = null;
     gradeConfirmed = false;
     showAuth();
   }
-  // TOKEN_REFRESHED: do nothing
+  // SIGNED_IN, TOKEN_REFRESHED etc: handled by getSession() on load
+  // Don't redirect here - causes loops on tab switch/minimize
 });
 
 // Check existing session on load
@@ -2626,9 +2617,10 @@ sb.auth.onAuthStateChange((event, session)=>{
   if(!session?.user){
     showAuth();
   } else {
-    hideLoading();
+    // User already logged in - restore session directly
+    gradeConfirmed = true;  // Skip grade selector for returning users
+    await onLogin(session.user);
   }
-  // If session exists, onAuthStateChange INITIAL_SESSION event handles login
 })();
 
 

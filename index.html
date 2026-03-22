@@ -1272,8 +1272,21 @@ async function loadOrGenerateAI(dayIdx, retrySchedule){
     const {data} = await cacheQ.maybeSingle();
     if(data?.articles){
       console.log(`Day ${dayNum}: loaded from Supabase`);
-    return data.articles;
-  }
+      // Normalize articles - ensure required fields exist
+      const arts = data.articles;
+      if(Array.isArray(arts)){
+        arts.forEach(a=>{
+          if(!a.title) a.title = a.type==='mc'?'Reading Passage':a.type==='mc+w'?'Informational Passage':'Extended Passage';
+          if(!a.questions) a.questions=[];
+          if(!a.writings) a.writings=[];
+          if(!a.passageHTML) a.passageHTML='';
+          if(!a.directions) a.directions='';
+          if(!a.id) a.id=`ai-${a.type}-${dayNum}`;
+        });
+      }
+      return arts;
+    }
+  } // end if(!isRetryDay)
 
   // 2. Day 50+: use personalized generation based on weak skills
   if(dayNum >= 50){
@@ -1889,22 +1902,23 @@ async function gradeW(w){
   sd.textContent='\u2026'; sd.className='sdot m';
   sl.innerHTML='<span style="font-size:.76rem">Grading\u2026</span>';
   if(!essay.trim()||essay.trim().split(/\s+/).length<5){sd.textContent='0/2';sd.className='sdot l';sl.textContent='No response provided.';return;}
+  const key=localStorage.getItem('gemini_key')||GEMINI_KEY;
+  if(!key){sd.textContent='?';sl.textContent='Set your Gemini API key to enable auto-grading.';return;}
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
+    const prompt=`You are an NYS ELA scorer for grade 3. Score 0-2 points.\nPrompt: "${w.prompt_plain}"\nStudent response: "${essay}"\nRubric: ${JSON.stringify(w.rubric)}\nReply ONLY with valid JSON (no markdown): {"score":0,"label":"Short label","checklist":[true,false,true],"feedback":"One specific improvement sentence."}`;
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`,{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,
-        messages:[{role:'user',content:`You are an NYS ELA scorer for grade 3. Score 0-2 points. Prompt: "${w.prompt_plain}" Response: "${essay}" Checklist: ${JSON.stringify(w.rubric)} Reply ONLY in valid JSON: {"score":1,"label":"Short label","checklist":[true,false,true],"feedback":"One specific feedback sentence."}`}]
-      })
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:300}})
     });
     const d=await r.json();
-    const obj=JSON.parse((d.content?.[0]?.text||'{}'). replace(/```json|```/g,'').trim());
+    const text=(d.candidates?.[0]?.content?.parts?.[0]?.text||'{}').replace(/```json|```/g,'').trim();
+    const obj=JSON.parse(text);
     const score=obj.score??0;
     sd.textContent=score+'/2'; sd.className='sdot '+(score>=2?'h':score>=1?'m':'l');
     sl.innerHTML=`<strong style="font-family:'DM Sans',sans-serif">${obj.label||''}</strong><br><span style="font-size:.78rem">${obj.feedback||''}</span>`;
     if(obj.checklist)w.rubric.forEach((_,i)=>{const el=document.getElementById(`ck-${w.id}-${i}`);if(el)el.querySelector('span').textContent=obj.checklist[i]?'\u2705':'\u274c';});
-  }catch(e){sd.textContent='?';sl.textContent='Could not grade automatically.';}
+  }catch(e){sd.textContent='?';sl.textContent='Could not grade. Check your Gemini API key.';}
 }
-
 // ═══════════════════════════════════════════
 //  IMPORT JSON
 // ═══════════════════════════════════════════

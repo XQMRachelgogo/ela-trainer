@@ -1183,8 +1183,11 @@ async function startDay(d){
 async function loadOrGenerateAI(dayIdx){
   const dayNum = dayIdx + 1;
 
-  // 1. Check Supabase cache first
-  const {data} = await sb.from('ai_articles').select('articles').eq('grade',3).eq('day_number', dayNum).maybeSingle();
+  // 1. Check Supabase cache (Days 1-49 shared, Day 50+ personal)
+  const uid = currentUser?.id || null;
+  const cacheQ = sb.from('ai_articles').select('articles').eq('grade',3).eq('day_number', dayNum);
+  if(dayNum >= 50 && uid) cacheQ.eq('user_id', uid);
+  const {data} = await cacheQ.maybeSingle();
   if(data?.articles){
     console.log(`Day ${dayNum}: loaded from Supabase`);
     return data.articles;
@@ -1194,8 +1197,11 @@ async function loadOrGenerateAI(dayIdx){
   if(dayNum >= 50){
     console.log(`Day ${dayNum}: generating personalized content...`);
     await pregenNextDay(dayNum, 0);
-    // Try loading again after generation
-    const {data:fresh} = await sb.from('ai_articles').select('articles').eq('grade',3).eq('day_number', dayNum).maybeSingle();
+    // Try loading personal cache after generation
+    const uid = currentUser?.id || null;
+    const q2 = sb.from('ai_articles').select('articles').eq('grade',3).eq('day_number', dayNum);
+    if(uid) q2.eq('user_id', uid);
+    const {data:fresh} = await q2.maybeSingle();
     if(fresh?.articles) return fresh.articles;
     throw new Error('Personalized generation failed. Please try again.');
   }
@@ -1270,10 +1276,12 @@ function inferSkill(stem){
 //  DAY 50+ PERSONALIZED PRE-GENERATION
 // ═══════════════════════════════════════════
 async function pregenNextDay(nextDayNum, lastScore){
-  // Check Supabase cache
+  // Check Supabase cache (personal for Day 50+)
   try{
-    const {data:cached} = await sb.from('ai_articles')
-      .select('day_number').eq('grade',3).eq('day_number', nextDayNum).maybeSingle();
+    const uid = currentUser?.id || null;
+    const q = sb.from('ai_articles').select('day_number').eq('grade',3).eq('day_number', nextDayNum);
+    if(nextDayNum >= 50 && uid) q.eq('user_id', uid);
+    const {data:cached} = await q.maybeSingle();
     if(cached){ console.log('Day '+nextDayNum+' already cached'); return; }
   }catch(e){}
 
@@ -1324,7 +1332,14 @@ async function pregenNextDay(nextDayNum, lastScore){
     const parsed = JSON.parse(clean);
     const arts = Array.isArray(parsed)?parsed:Array.isArray(parsed.articles)?parsed.articles:null;
     if(!arts) throw new Error('No articles array in response');
-    await sb.from('ai_articles').upsert({grade:3, day_number:nextDayNum, articles:arts});
+    const uid = currentUser?.id || null;
+    await sb.from('ai_articles').upsert({
+      grade: 3,
+      day_number: nextDayNum,
+      articles: arts,
+      user_id: uid,  // personal for Day 50+
+      weak_skills: weakSkills,
+    });
     arts.forEach(a=>{ ARTICLES[a.id]=a; });
     if(!SCHEDULE[nextDayNum-1]) SCHEDULE[nextDayNum-1]=arts.map(a=>a.id);
     console.log('Day '+nextDayNum+' personalized and saved!');

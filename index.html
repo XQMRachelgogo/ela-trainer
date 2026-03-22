@@ -1146,6 +1146,27 @@ function toggleHistory(){
 // ═══════════════════════════════════════════
 //  START DAY
 // ═══════════════════════════════════════════
+// Build a schedule for a retry day:
+// Keep the failed article, fill remaining slots with AI
+function buildRetrySchedule(d, retryArts){
+  // Types needed in a full set
+  const typeSlots = ['mc', 'mc+w', 'w-only'];
+  const sched = ['AI', 'AI', 'AI']; // start all AI
+
+  // Place retry articles in their correct type slot
+  retryArts.forEach(r => {
+    const art = ARTICLES[r.artId];
+    if(!art) return;
+    const slotIdx = typeSlots.indexOf(art.type);
+    if(slotIdx !== -1){
+      sched[slotIdx] = r.artId; // Use the retry article in its slot
+    }
+  });
+
+  // Mark remaining AI slots as RETRY_AI so loadOrGenerateAI knows to generate fresh
+  return sched.map(s => s === 'AI' ? 'RETRY_AI' : s);
+}
+
 async function startDay(d){
   currentDay=d; answers={}; submitted=false; mode='exam';
   document.getElementById('screen-home').style.display='none';
@@ -1160,8 +1181,17 @@ async function startDay(d){
   document.getElementById('btn-lrn').style.display='none';
   document.getElementById('btn-sub').style.display='inline-block';
 
-  const sched = getSched(d-1);
-  const needsAI = sched.includes('AI');
+  // Check if this day has retry articles
+  const retryArts = retryPool.filter(r => r.scheduledForDay === d);
+
+  // Build schedule: retry articles fill their slot type, rest are AI or normal
+  let sched = getSched(d-1);
+  if(retryArts.length > 0){
+    // Replace schedule slots with retry articles based on type
+    sched = buildRetrySchedule(d, retryArts);
+  }
+
+  const needsAI = sched.includes('AI') || sched.includes('RETRY_AI');
 
   if(needsAI){
     // Show loading
@@ -1173,11 +1203,11 @@ async function startDay(d){
     document.getElementById('pane-r').innerHTML='';
 
     try{
-      const arts = await loadOrGenerateAI(d-1);
+      const arts = await loadOrGenerateAI(d-1, retryArts.length > 0 ? sched : null);
       arts.forEach(a=>{ ARTICLES[a.id]=a; });
-      const newSched=sched.map((s,i)=>s==='AI'?(arts[i]?.id||s):s);
+      const newSched=sched.map((s,i)=>(s==='AI'||s==='RETRY_AI')?(arts[i]?.id||s):s);
       SCHEDULE[d-1]=newSched;
-      currentSet=arts;
+      currentSet=newSched.map(id=>ARTICLES[id]).filter(Boolean);
     }catch(err){
       document.getElementById('pane-l').innerHTML=`<div style="padding:2rem;font-family:'DM Sans',sans-serif;color:var(--red)">
         \u26a0\uFE0F Could not load content: ${err.message}.<br><br>
@@ -1187,6 +1217,11 @@ async function startDay(d){
     }
   } else {
     currentSet = sched.map(id=>ARTICLES[id]).filter(Boolean);
+  }
+
+  // Mark retry articles as being retried
+  if(retryArts.length > 0){
+    retryArts.forEach(r => r.retrying = true);
   }
 
   renderPassage();
@@ -1199,16 +1234,19 @@ async function startDay(d){
 // ═══════════════════════════════════════════
 //  AI GENERATION  (Gemini → Supabase cache)
 // ═══════════════════════════════════════════
-async function loadOrGenerateAI(dayIdx){
+async function loadOrGenerateAI(dayIdx, retrySchedule){
   const dayNum = dayIdx + 1;
+  const isRetryDay = retrySchedule && retrySchedule.some(s => s === 'RETRY_AI');
 
-  // 1. Check Supabase cache (Days 1-49 shared, Day 50+ personal)
-  const uid = currentUser?.id || null;
-  const cacheQ = sb.from('ai_articles').select('articles').eq('grade',3).eq('day_number', dayNum);
-  if(dayNum >= 50 && uid) cacheQ.eq('user_id', uid);
-  const {data} = await cacheQ.maybeSingle();
-  if(data?.articles){
-    console.log(`Day ${dayNum}: loaded from Supabase`);
+  // For retry days, skip cache - always generate fresh AI articles for empty slots
+  if(!isRetryDay){
+    // 1. Check Supabase cache (Days 1-49 shared, Day 50+ personal)
+    const uid = currentUser?.id || null;
+    const cacheQ = sb.from('ai_articles').select('articles').eq('grade',3).eq('day_number', dayNum);
+    if(dayNum >= 50 && uid) cacheQ.eq('user_id', uid);
+    const {data} = await cacheQ.maybeSingle();
+    if(data?.articles){
+      console.log(`Day ${dayNum}: loaded from Supabase`);
     return data.articles;
   }
 
@@ -1804,16 +1842,17 @@ document.addEventListener('click',e=>{if(!e.target.closest('#wp'))wpEl.classList
 document.addEventListener('scroll',()=>wpEl.classList.remove('on'),true);
 
 async function fetchDef(word){
+  const key=localStorage.getItem('gemini_key')||GEMINI_KEY;
+  if(!key) return null;
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
+    const prompt=`Give a simple, clear definition of the word "${word}" for a Grade 3 student (age 8-9). Reply in 1 sentence, plain English, no quotes around the word.`;
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`,{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,
-        messages:[{role:'user',content:`Define "${word}" simply for a 3rd-grade English learner. Reply ONLY in valid JSON: {"def":"1-2 sentence definition","ex":"short example sentence"}`}]
-      })
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.1,maxOutputTokens:80}})
     });
     const d=await r.json();
-    return JSON.parse((d.content?.[0]?.text||'{}'). replace(/```json|```/g,'').trim());
-  }catch(e){return{def:'Definition unavailable.',ex:''};} 
+    return d.candidates?.[0]?.content?.parts?.[0]?.text?.trim()||null;
+  }catch(e){ return null; }
 }
 
 // ═══════════════════════════════════════════
@@ -1907,9 +1946,12 @@ function initResize(){
   <div class="gk-card">
     <div class="gk-title">🔑 Gemini API Key</div>
     <div class="gk-sub">
-      Day 50+ uses Gemini AI to generate personalized content.<br>
-      Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a> then paste it below.<br>
-      Your key is stored locally and never uploaded anywhere.
+      A Gemini API key enables:<br>
+      &bull; <strong>Writing auto-grading</strong> — instant AI feedback on written responses<br>
+      &bull; <strong>Word definitions</strong> — tap any word for a simple explanation<br>
+      &bull; <strong>Day 50+ personalized practice</strong> — AI targets your weak areas<br><br>
+      Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a>, then paste below.<br>
+      Stored only on your device — never uploaded anywhere.
     </div>
     <input class="gk-input" id="gk-input" type="password" placeholder="AIzaSy..." autocomplete="off">
     <div class="gk-row">

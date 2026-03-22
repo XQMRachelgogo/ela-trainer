@@ -1168,14 +1168,24 @@ async function startDay(d){
 async function loadOrGenerateAI(dayIdx){
   const dayNum = dayIdx + 1;
 
-  // 1. Check Supabase cache first (shared across all users!)
+  // 1. Check Supabase cache first
   const {data} = await sb.from('ai_articles').select('articles').eq('day_number', dayNum).single();
   if(data?.articles){
-    console.log(`Day ${dayNum}: loaded from Supabase cache`);
+    console.log(`Day ${dayNum}: loaded from Supabase`);
     return data.articles;
   }
 
-  // 2. Generate with Gemini
+  // 2. Day 50+: use personalized generation based on weak skills
+  if(dayNum >= 50){
+    console.log(`Day ${dayNum}: generating personalized content...`);
+    await pregenNextDay(dayNum, 0);
+    // Try loading again after generation
+    const {data:fresh} = await sb.from('ai_articles').select('articles').eq('day_number', dayNum).single();
+    if(fresh?.articles) return fresh.articles;
+    throw new Error('Personalized generation failed. Please try again.');
+  }
+
+  // 3. Days 6-49: use standard Gemini generation
   console.log(`Day ${dayNum}: generating with Gemini...`);
   if(!GEMINI_KEY){
     throw new Error('No Gemini API key configured. Please use Import AI Day instead.');
@@ -1190,19 +1200,139 @@ async function loadOrGenerateAI(dayIdx){
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
       contents:[{parts:[{text:prompt}]}],
-      generationConfig:{temperature:0.7,maxOutputTokens:8192,responseMimeType:'application/json'},
+      generationConfig:{temperature:0.7,maxOutputTokens:8192},
     }),
   });
   if(!resp.ok){ const e=await resp.text(); throw new Error(`Gemini ${resp.status}: ${e.slice(0,200)}`); }
   const data2=await resp.json();
   const text=data2.candidates?.[0]?.content?.parts?.[0]?.text||'';
   if(!text) throw new Error('Empty response from Gemini');
-  const arts=JSON.parse(text.replace(/^```json\s*/i,'').replace(/\s*```$/i,'').trim());
+  const clean=text.replace(/^```json\s*/i,'').replace(/\s*```$/i,'').trim();
+  const parsed=JSON.parse(clean);
+  const arts=Array.isArray(parsed)?parsed:Array.isArray(parsed.articles)?parsed.articles:null;
+  if(!arts) throw new Error('Could not parse articles from Gemini response');
 
-  // 3. Store in Supabase so future users get it instantly
   await sb.from('ai_articles').upsert({day_number:dayNum, articles:arts});
   console.log(`Day ${dayNum}: saved to Supabase`);
   return arts;
+}
+
+// ═══════════════════════════════════════════
+//  SKILL INFERENCE FROM QUESTION STEM
+// ═══════════════════════════════════════════
+function inferSkill(stem){
+  const s = stem.toLowerCase();
+  if(/mean(s|ing)?|defin|word/.test(s))          return 'vocabulary';
+  if(/main idea|central idea|mostly about/.test(s))     return 'main_idea';
+  if(/infer|suggest|most likely|conclude|imply/.test(s))return 'inference';
+  if(/caus|effect|result|because|lead to/.test(s))      return 'cause_effect';
+  if(/organiz|structur|heading|section/.test(s))        return 'text_structure';
+  if(/author|why.*include|purpose|reason.*author/.test(s)) return 'author_purpose';
+  if(/charact|feel|think|change|learn|react/.test(s))   return 'character';
+  if(/support|evidence|detail.*show|which detail/.test(s)) return 'evidence';
+  if(/compar|differ|both|alike|similar/.test(s))        return 'compare_contrast';
+  return 'other';
+}
+
+// ═══════════════════════════════════════════
+//  SKILL INFERENCE
+// ═══════════════════════════════════════════
+function inferSkill(stem){
+  const s = (stem||'').toLowerCase();
+  if(/\bmean(s|ing)?\b|defin|word\b/.test(s))            return 'vocabulary';
+  if(/main idea|central idea|mostly about/.test(s))       return 'main_idea';
+  if(/infer|suggest|most likely|conclude|imply/.test(s))  return 'inference';
+  if(/caus|effect|result|because|lead to/.test(s))        return 'cause_effect';
+  if(/organiz|structur|heading|section/.test(s))          return 'text_structure';
+  if(/author|why.*include|purpose|reason.*author/.test(s))return 'author_purpose';
+  if(/charact|feel|think|change|learn|react/.test(s))     return 'character';
+  if(/support|evidence|detail.*show|which detail/.test(s))return 'evidence';
+  if(/compar|differ|both|alike|similar/.test(s))          return 'compare_contrast';
+  return 'other';
+}
+
+// ═══════════════════════════════════════════
+//  DAY 50+ PERSONALIZED PRE-GENERATION
+// ═══════════════════════════════════════════
+async function pregenNextDay(nextDayNum, lastScore){
+  // Check Supabase cache
+  try{
+    const {data:cached} = await sb.from('ai_articles')
+      .select('day_number').eq('day_number', nextDayNum).single();
+    if(cached){ console.log('Day '+nextDayNum+' already cached'); return; }
+  }catch(e){}
+
+  console.log('Pre-generating personalized Day '+nextDayNum+'...');
+
+  // Analyze weak skills from recent question_records
+  let weakSkills = [];
+  if(currentUser){
+    try{
+      const {data:qdata} = await sb.from('question_records')
+        .select('skill, correct')
+        .eq('user_id', currentUser.id)
+        .order('created_at', {ascending:false})
+        .limit(150);
+      if(qdata && qdata.length > 0){
+        const stats = {};
+        qdata.forEach(r=>{
+          if(!stats[r.skill]) stats[r.skill]={c:0,t:0};
+          stats[r.skill].t++;
+          if(r.correct) stats[r.skill].c++;
+        });
+        weakSkills = Object.entries(stats)
+          .filter(([,s])=> s.t>=3 && s.c/s.t < 0.6)
+          .sort(([,a],[,b])=> a.c/a.t - b.c/b.t)
+          .slice(0,3).map(([skill])=>skill);
+        console.log('Weak skills for Day '+nextDayNum+':', weakSkills);
+      }
+    }catch(e){ console.log('Skill analysis error:', e); }
+  }
+
+  const topic = AI_TOPICS[nextDayNum % AI_TOPICS.length];
+  const prompt = buildPersonalizedPrompt(nextDayNum, topic, weakSkills);
+
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/'+GEMINI_MODEL+':generateContent?key='+GEMINI_KEY;
+  try{
+    const resp = await fetch(url,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents:[{parts:[{text:prompt}]}],
+        generationConfig:{temperature:0.7, maxOutputTokens:8192},
+      }),
+    });
+    if(!resp.ok) throw new Error('Gemini '+resp.status);
+    const d = await resp.json();
+    const text = d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    if(!text) throw new Error('Empty response');
+    const clean = text.replace(/^```json\s*/i,'').replace(/\s*```$/i,'').trim();
+    const parsed = JSON.parse(clean);
+    const arts = Array.isArray(parsed)?parsed:Array.isArray(parsed.articles)?parsed.articles:null;
+    if(!arts) throw new Error('No articles array');
+    await sb.from('ai_articles').upsert({day_number:nextDayNum, articles:arts});
+    arts.forEach(a=>{ ARTICLES[a.id]=a; });
+    if(!SCHEDULE[nextDayNum-1]) SCHEDULE[nextDayNum-1]=arts.map(a=>a.id);
+    console.log('Day '+nextDayNum+' personalized and saved!');
+  }catch(e){ console.log('Pregen error:', e); }
+}
+
+function buildPersonalizedPrompt(dayNum, topic, weakSkills){
+  const skillNames = {
+    vocabulary:'vocabulary in context',
+    main_idea:'main idea and central idea',
+    inference:'inference and drawing conclusions',
+    cause_effect:'cause and effect',
+    text_structure:'text structure and organization',
+    author_purpose:"author's purpose",
+    character:'character analysis',
+    evidence:'identifying text evidence',
+    compare_contrast:'compare and contrast',
+  };
+  const focusLine = weakSkills.length>0
+    ? 'SKILL FOCUS: This student struggles most with: '+weakSkills.map(s=>skillNames[s]||s).join('; ')+'. Design at least 4 of 6 MC questions in Article 1 and 3 of 5 in Article 2 to target these skills.'
+    : 'Vary MC question types evenly across all skill areas.';
+
+  return 'You are an expert NYS ELA test writer for Grade 3 (ages 8-9).\nGenerate a 3-article practice set for Day '+dayNum+'.\n\n'+focusLine+'\n\nARTICLE 1 (mc): Story ~300 words, 6 MC questions, 0 written.\nARTICLE 2 (mc+w): Informational ~280 words, 5 MC + 2 written.\nARTICLE 3 (w-only): Nonfiction ~280 words, 0 MC + 3 written.\n\nParagraph HTML: <div class=\"pr\"><span class=\"pn\">N</span><span class=\"pt\" id=\"XN\">Text.</span></div>\nArticle 1 IDs: D'+dayNum+'P1... Article 2: D'+dayNum+'Q1... Article 3: D'+dayNum+'R1...\nVocab: <div class=\"vb\">word = definition</div>\nHeadings: <div class=\"sh\">Heading</div>\nArticle 3 ends: <div class=\"diagram-note\">&#9711; Diagram: description</div>\nAll quotes: &#8220; &#8221; &#8216; &#8217; — no raw quotes in passageHTML.\nMC fields: id, stem, choices[4], correct(0-3), ev[], expl, wrong:{1,2,3}\nWriting fields: id, pts:2, prompt(with <strong>two</strong>), prompt_plain, rubric[3], modelAnswer\nDirections: mc=\"Read this story. Then answer questions 1 through 6.\"\n            mc+w=\"Read this passage. Then answer questions 7 through 13.\"\n            w-only=\"Read this passage. Then answer questions 14 through 16.\"\n\nReturn JSON: {\"articles\":[mc, mcw, wo]}. No markdown.';
 }
 
 function buildWritingPrompt(dayNum, topic){
@@ -1366,10 +1496,27 @@ async function submitAll(){
       mc_total: mcTotal,
     }, {onConflict: 'user_id,day_number'});
     userDays[currentDay]={completed:true,totalScore,mc_correct:mcCorrect,mc_total:mcTotal};
-    // Update streak
     streak = Object.keys(userDays).filter(d=>userDays[d].completed).length;
-  }
 
+    // Save per-question skill records
+    const qRecords = allMCQs().map(q=>({
+      user_id: currentUser.id,
+      day_number: currentDay,
+      question_id: q.id,
+      skill: inferSkill(q.stem),
+      correct: answers[q.id] === q.correct,
+    }));
+    if(qRecords.length > 0){
+      sb.from('question_records').insert(qRecords).then(({error})=>{
+        if(error) console.log('question_records error:', error.message);
+      });
+    }
+
+    // Day 50+: pre-generate next day in background
+    if(currentDay >= 49){
+      pregenNextDay(currentDay + 1, totalScore).catch(e=>console.log('Pregen failed:', e));
+    }
+  }
   showOv(totalScore,mcTotal,mcCorrect,retried);
 }
 

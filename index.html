@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD: v10 -->
+<!-- BUILD: v11 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1098,7 +1098,7 @@ function renderHome(){ console.log('renderHome: userDays keys='+Object.keys(user
       const hd=userDays[h];
       const hrow=document.createElement('div');
       hrow.className='day-card done history-card';
-      hrow.onclick=()=>startDay(h);
+      hrow.onclick=()=>{ const isDone=!!userDays[h]?.completed; if(isDone) startDayReview(h); else startDay(h); };
       const sched=getSched(h-1);
       const hsrc=sched.map(id=>ARTICLES[id]?.isReal?'Real':'Sim').filter((v,i,a)=>a.indexOf(v)===i).join('+');
       hrow.innerHTML=`<div class="day-num">${h}</div>

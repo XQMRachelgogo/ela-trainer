@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD: v2025-fix-chrome-v6 -->
+<!-- BUILD: v7 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -436,9 +436,9 @@ body.lm .ev-btn{display:inline-block}
 </div>
 
 <script>
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  SUPABASE CONFIG
-// ─────────────────────────────────────────
+// -----------------------------------------
 const SUPABASE_URL  = 'https://ruaxyrjabbrivywcgori.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_iGo668SXmR6DJgQn8YoB3w_zVgYFKry';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -453,7 +453,7 @@ const GEMINI_MODEL = 'gemini-2.5-flash';
 ------------------------------- */
 
 const ARTICLES = {
-// 2025 S1 ─ MC only
+// 2025 S1 - MC only
 "sea-view-star":{id:"sea-view-star",type:"mc",isReal:true,source:"2025 NYS ELA Session 1",
 title:"Excerpt from Sea View Star",byline:"by Ali Bovis",
 directions:"Read this story. Then answer questions 1\u20136.",
@@ -481,7 +481,7 @@ questions:[
 {id:"svs-6",stem:"By the end of the story, how does Sylvie most likely feel about the Paint Out?",choices:["She is relieved that the planning and work are finished.","She is upset because she did most of the work.","She is concerned that they did not raise enough money.","She is proud that the event was a huge success."],correct:3,ev:["A18","A27"],expl:"Paragraph 18: they transformed Beach Street into the biggest Paint Out party ever. Paragraph 27 shows canvases filling with color. Both suggest pride.",wrong:{0:"Relief is not suggested \u2014 the focus is on success.",1:"There is no sign of upset feelings.",2:"Concern about money is never mentioned at the end."}},
 ],writings:[]},
 
-// 2025 S1 ─ MC + Writing
+// 2025 S1 - MC + Writing
 "raccoon-den":{id:"raccoon-den",type:"mc+w",isReal:true,source:"2025 NYS ELA Session 1",
 title:"A Raccoon in Its Den",byline:"by Meryl Magby",
 directions:"Read this passage. Then answer questions 7\u201313.",context:null,
@@ -514,7 +514,7 @@ questions:[
 {id:"rc-13",pts:2,prompt:'What is a central idea of the passage? Use <strong>two</strong> details from the passage to support your response.',prompt_plain:'What is a central idea of the passage? Use two details from the passage.',rubric:["States a clear central idea","Uses one detail to support it","Uses a second detail to support it"],modelAnswer:'A central idea is that raccoons are highly adaptable animals. One detail: raccoons are omnivores \u2014 what they eat \u201Cdepends on where it lives.\u201D Another detail: their numbers may be growing because they have \u201Cadapted so well to living in neighborhoods and cities near people.\u201D Together, these show raccoons can thrive in many environments.'},
 ]},
 
-// 2025 S2 ─ MC only
+// 2025 S2 - MC only
 "big-moon-tortilla":{id:"big-moon-tortilla",type:"mc",isReal:true,source:"2025 NYS ELA Session 2",
 title:"Excerpt from Big Moon Tortilla",byline:"by Joy Cowley",
 directions:"Read this story. Then answer questions 1\u20136.",
@@ -543,7 +543,7 @@ questions:[
 {id:"bmt-6",stem:"Which detail would be most important to include in a summary of the story?",choices:["Marta\u2019s stomach makes loud noises.","The tortillas are in the cookhouse.","The tortillas bubble and turn brown.","Marta decides to be like an eagle."],correct:3,ev:["T23"],expl:"Marta deciding to be like an eagle is the resolution of the story \u2014 the moment she overcomes her problems. The other choices are minor details.",wrong:{0:"Marta\u2019s stomach rumbling is a small detail that sets up the beginning.",1:"The tortillas\u2019 location is a minor setting detail.",2:"The tortillas browning is a sensory detail, not an important story event."}},
 ],writings:[]},
 
-// 2025 S2 ─ Writing only (poem)
+// 2025 S2 - Writing only (poem)
 "north-wind-and-sun":{id:"north-wind-and-sun",type:"w-only",isReal:true,source:"2025 NYS ELA Session 2",
 title:"The North Wind and the Sun",byline:"by Mary Ann Hoberman",
 directions:"Read this poem. Then answer questions 14\u201316.",context:null,
@@ -566,7 +566,7 @@ writings:[
 {id:"nws-16",pts:2,prompt:'In the poem, how do the Sun and the North Wind show that they are alike? Use <strong>two</strong> details from the poem to support your response.',prompt_plain:'How do the Sun and the North Wind show that they are alike? Use two details from the poem.',rubric:["States one way the two characters are similar","Uses one detail from the poem","Uses a second detail"],modelAnswer:'Although the Sun and the North Wind are different, both are competitive and both believe they are stronger than the other. One detail: both agree to the contest \u2014 neither one walks away. Another detail: both boast about their abilities: the Wind says \u201CNo one can beat me when I come along,\u201D and the Sun says \u201CThat gives me more power than coldness or storm.\u201D Both characters are confident they will win, showing they share the same competitive spirit.'},
 ]},
 
-// 2024 S1 ─ MC only
+// 2024 S1 - MC only
 "crazy-about-clouds":{id:"crazy-about-clouds",type:"mc",isReal:true,source:"2024 NYS ELA Session 1",
 title:"Excerpt from Crazy About Clouds",byline:"by Rena Korb",
 directions:"Read this passage. Then answer questions 1\u20136.",context:null,
@@ -605,7 +605,7 @@ questions:[
 {id:"cc-18",stem:"Which detail would be most important to include in a summary of the passage?",choices:["Some clouds can look like shapes of animals.","Clouds form when drops of water come together.","Clouds can appear on warm days and on cool days.","Birds fly through clouds that are low in the sky."],correct:1,ev:["CC4","CC5"],expl:"A summary should include the most important information. How clouds form (from water drops gathering in the sky) is a central idea of the passage. The other choices are minor supporting details.",wrong:{0:"Cloud shapes are a minor detail mentioned briefly.",2:"When clouds appear is a minor detail, not a central idea.",3:"Birds flying through clouds is a small detail, not important to a summary."}},
 ],writings:[]},
 
-// 2024 S1 ─ MC + Writing
+// 2024 S1 - MC + Writing
 "little-red-lighthouse":{id:"little-red-lighthouse",type:"mc+w",isReal:true,source:"2024 NYS ELA Session 1",
 title:"Excerpt from The Little Red Lighthouse and the Great Gray Bridge",byline:"by Hildegarde H. Swift and Lynd Ward",
 directions:"Read this story. Then answer questions 7\u201313.",
@@ -637,7 +637,7 @@ questions:[
 {id:"lh-25",pts:2,prompt:'In &#8220;Excerpt from The Little Red Lighthouse and the Great Gray Bridge,&#8221; why does the little red lighthouse feel proud? Use <strong>two</strong> details from the story to support your response.',prompt_plain:'Why does the little red lighthouse feel proud? Use two details from the story.',rubric:["Explains why the lighthouse feels proud","Uses one specific detail from the story","Uses a second specific detail"],modelAnswer:'The little red lighthouse feels proud because it believes it is doing an important job that helps the boats on the river. One detail is in paragraph 10, where the lighthouse thinks, \u201CWhat would the boats do without me?\u201D showing it believes the boats depend on it. A second detail is in paragraph 12, which says \u201Cthe boats saw the light and were safe\u201D and that \u201Cthe boats were grateful.\u201D Knowing the boats are grateful and safe because of its light makes the lighthouse feel proud and important.'},
 ]},
 
-// 2024 S2 ─ Writing only
+// 2024 S2 - Writing only
 "hide-ladybugs":{id:"hide-ladybugs",type:"w-only",isReal:true,source:"2024 NYS ELA Session 2",
 title:"Excerpt from Hide with the Ladybugs",byline:"by Karen Latchana Kenney",
 directions:"Read this passage. Then answer questions 14\u201316.",context:null,
@@ -674,7 +674,7 @@ writings:[
 {id:"lb-16",pts:2,prompt:'How does the diagram &#8220;A Ladybug&#8217;s Body&#8221; better help the reader&#8217;s understanding of the passage? Use <strong>two</strong> details from the passage to support your response.',prompt_plain:'How does the diagram help the reader understand the passage? Use two details from the passage.',rubric:["Explains how the diagram helps understanding","Connects one passage detail to a diagram label","Connects a second passage detail to a diagram label"],modelAnswer:'The diagram helps readers understand the passage by showing the parts of a ladybug that the text describes. One example: paragraph 16 explains that a ladybug uses its antennae to \u201Cfeel, smell, and taste,\u201D and the diagram shows where the antennae are located. Another example: paragraph 13 describes how the thin wings \u201Clift the ladybug into the air,\u201D and the diagram shows the thin flying wings underneath the hard elytra. Seeing the parts labeled makes it easier to understand what the text is describing.'},
 ]},
 
-// 2023 S1 ─ MC only
+// 2023 S1 - MC only
 "brothers-on-ice":{id:"brothers-on-ice",type:"mc",isReal:true,source:"2023 NYS ELA Session 1",
 title:"Excerpt from Brothers on Ice",byline:"by John Danakas",
 directions:"Read this story. Then answer questions 1\u20136.",
@@ -701,7 +701,7 @@ questions:[
 {id:"bi-6",stem:"Which detail would be best to include in a summary of the story?",choices:["Trent is excited about his new fish.","Trent\u2019s mark on the door is higher than Troy\u2019s.","Troy is tired of being measured on his birthday.","Troy\u2019s hair is different than Trent\u2019s."],correct:1,ev:["BI13"],expl:"The most important event in the story is that Trent\u2019s mark is higher \u2014 this is the central conflict that drives all of Troy\u2019s reactions. The other choices are minor details.",wrong:{0:"Trent\u2019s fish is a minor detail that sets up why he doesn\u2019t want to be measured.",2:"There is no evidence Troy is tired of being measured; he is upset about the result.",3:"The hair comment is a small, humorous detail, not a key event."}},
 ],writings:[]},
 
-// 2022 S1 ─ MC only
+// 2022 S1 - MC only
 "getting-even":{id:"getting-even",type:"mc",isReal:true,source:"2022 NYS ELA Session 1",
 title:"Getting Even",byline:"by Deb Westgate-Silva",
 directions:"Read this story. Then answer questions 1\u20136.",context:null,
@@ -726,7 +726,7 @@ questions:[
 {id:"ge-6",stem:"Which sentence best supports the central message of the story?",choices:["Stephanie makes room for Rosa to sit next to her on the bus.","Stephanie tells Rosa that she is going to the pool with someone else.","Rosa tells Stephanie that she has plans with Kiara.","Rosa asks Stephanie if she wants to go to the pool with her and Kiara."],correct:3,ev:["GE20","GE21"],expl:"The central message is that kindness and inclusion are better than getting even. Rosa\u2019s decision to invite Stephanie along best demonstrates this lesson.",wrong:{0:"Stephanie making room shows she wants to repair things, but this is not about the central message.",1:"This is an example of the problem, not the message.",2:"Rosa telling Stephanie she has plans is part of getting even, not the message."}},
 ],writings:[]},
 
-// 2022 S1 ─ MC + Writing
+// 2022 S1 - MC + Writing
 "just-listen":{id:"just-listen",type:"mc+w",isReal:true,source:"2022 NYS ELA Session 1",
 title:"Just Listen",byline:"by Kathleen Weidner Zoehfeld",
 directions:"Read this passage. Then answer questions 7\u201313.",context:null,
@@ -752,11 +752,11 @@ questions:[
 
 };  // end ARTICLES
 
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  49-DAY SCHEDULE
 //  Format: [mc-only artId, mc+w artId, w-only artId]
 //  'AI' entries trigger AI generation at runtime
-// ─────────────────────────────────────────
+// -----------------------------------------
 
 
 const REAL_MC   = ["sea-view-star","big-moon-tortilla","crazy-about-clouds","brothers-on-ice","getting-even"];
@@ -792,9 +792,9 @@ for(let d=6;d<=49;d++){
 }
 
 
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  SCHEDULE HELPERS
-// ─────────────────────────────────────────
+// -----------------------------------------
 const AI_TOPICS = [
   {mc:"A boy named Marcus who overcomes his fear of the dark by learning about nocturnal animals",info:"How bees make honey and why honey never spoils",writing:"Excerpt from a nonfiction book about monarch butterfly migration"},
   {mc:"A girl named Lily who moves to a new city and makes an unexpected best friend at the library",info:"How volcanoes form and erupt",writing:"Excerpt from a nonfiction book about ocean tides and the moon"},
@@ -810,9 +810,9 @@ function getSched(dayIdx){
   return ["AI","AI","AI"];
 }
 
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  STATE
-// ─────────────────────────────────────────
+// -----------------------------------------
 let currentUser = null;
 let userDays    = {};   // { dayNumber: {completed, totalScore, mc_correct, mc_total} }
 let retryPool   = [];
@@ -825,16 +825,16 @@ let answers     = {};
 let submitted   = false;
 const dictCache = {};
 
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  AUTH
-// ─────────────────────────────────────────
+// -----------------------------------------
 function switchTab(tab){
   document.getElementById('tab-login').style.display  = tab==='login'  ? '' : 'none';
   document.getElementById('tab-signup').style.display = tab==='signup' ? '' : 'none';
   document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='signup')));
 }
 
-// ── GRADE SELECTOR ──────────────────────────────────────────────────────────
+// -- GRADE SELECTOR ----------------------------------------------------------
 let selectedGrade = 3;
 let gradeConfirmed = false;
 let dataReady = false;
@@ -866,7 +866,7 @@ function selectGrade(grade, isClick=true){
     // Show coming soon feedback
     const btn = document.getElementById('gbtn-'+grade);
     const orig = btn.querySelector('.grade-badge').textContent;
-    btn.querySelector('.grade-badge').textContent = '🔜 coming soon';
+    btn.querySelector('.grade-badge').textContent = ' coming soon';
     setTimeout(()=>{ btn.querySelector('.grade-badge').textContent = orig; }, 1500);
     return;
   }
@@ -881,10 +881,10 @@ function selectGrade(grade, isClick=true){
   const confirmBtn = document.getElementById('grade-confirm-btn');
   if(grade === 3){
     confirmBtn.disabled = false;
-    confirmBtn.textContent = 'Start Grade 3 Practice →';
+    confirmBtn.textContent = 'Start Grade 3 Practice ->';
   } else {
     confirmBtn.disabled = true;
-    confirmBtn.textContent = `Grade ${grade} — Coming Soon`;
+    confirmBtn.textContent = `Grade ${grade} -- Coming Soon`;
   }
 }
 
@@ -1047,9 +1047,9 @@ function hideLoading(){
   if(el) el.style.display='none';
 }
 
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  HOME
-// ─────────────────────────────────────────
+// -----------------------------------------
 function goHome(){
   hideLoading();
   submitted=false; mode='exam'; answers={};
@@ -1081,7 +1081,7 @@ function renderHome(){
   const list = document.getElementById('day-list');
   list.innerHTML = '';
 
-  // ── Completed summary (collapsed) ──
+  // -- Completed summary (collapsed) --
   if(daysDone > 0){
     const row = document.createElement('div');
     row.className='completed-summary';
@@ -1108,7 +1108,7 @@ function renderHome(){
     list.appendChild(hist);
   }
 
-  // ── 7-day window: today + next 6 ──
+  // -- 7-day window: today + next 6 --
   const todayDay  = daysDone + 1;
   const windowEnd = Math.min(todayDay + 6, 999);
   if(windowEnd < todayDay){ return; } // safety check
@@ -1150,15 +1150,15 @@ function toggleHistory(){
   if(btn) btn.innerHTML=open?'View history \u25be':'Hide history \u25b4';
 }
 
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  START DAY
-// ─────────────────────────────────────────
+// -----------------------------------------
 // Build a schedule for a retry day:
 // Keep the failed article, fill remaining slots with AI
 
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  ARTICLE POOL SELECTION
-// ─────────────────────────────────────────
+// -----------------------------------------
 let poolCache = { mc: [], 'mc+w': [], 'w-only': [] };
 let poolLoaded = false;
 let userStats = {};
@@ -1271,7 +1271,7 @@ async function startDayReview(d){
   document.getElementById('btn-lrn').style.display='none';
   document.getElementById('btn-sub').style.display='none';
 
-  document.getElementById('pane-l').innerHTML='<div style="padding:3rem 2rem;text-align:center;font-family:\'DM Sans\',sans-serif;color:var(--ink3)"><div style="font-size:1.8rem;margin-bottom:.8rem">📖</div><div style="font-size:.95rem;font-weight:600">Loading your previous session\u2026</div></div>';
+  document.getElementById('pane-l').innerHTML='<div style="padding:3rem 2rem;text-align:center;font-family:\'DM Sans\',sans-serif;color:var(--ink3)"><div style="font-size:1.8rem;margin-bottom:.8rem"></div><div style="font-size:.95rem;font-weight:600">Loading your previous session\u2026</div></div>';
   document.getElementById('pane-r').innerHTML='';
 
   try{
@@ -1304,7 +1304,7 @@ async function startDayReview(d){
   currentSet.forEach(art=>{
     (art.writings||[]).forEach(w=>{
       const ta=document.getElementById('wta-'+w.id);
-      if(ta){ ta.disabled=true; ta.placeholder='Review mode — submit again to re-grade.'; }
+      if(ta){ ta.disabled=true; ta.placeholder='Review mode -- submit again to re-grade.'; }
       const fb=document.getElementById('wfb-'+w.id);
       if(fb) fb.classList.add('on');
     });
@@ -1371,9 +1371,9 @@ async function startDay(d){
   document.getElementById('pane-l').addEventListener('mouseup', handleWordSel);
 }
 
-// ─────────────────────────────────────────
-//  AI GENERATION  (Gemini → Supabase cache)
-// ─────────────────────────────────────────
+// -----------------------------------------
+//  AI GENERATION  (Gemini -> Supabase cache)
+// -----------------------------------------
 async function loadOrGenerateAI(dayIdx, retrySchedule){
   const dayNum = dayIdx + 1;
   const isRetryDay = retrySchedule && retrySchedule.some(s => s === 'RETRY_AI');
@@ -1448,9 +1448,9 @@ async function loadOrGenerateAI(dayIdx, retrySchedule){
   return arts;
 }
 
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  SKILL INFERENCE FROM QUESTION STEM
-// ─────────────────────────────────────────
+// -----------------------------------------
 function inferSkill(stem){
   const s = stem.toLowerCase();
   if(/mean(s|ing)?|defin|word/.test(s))          return 'vocabulary';
@@ -1465,9 +1465,9 @@ function inferSkill(stem){
   return 'other';
 }
 
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  SKILL INFERENCE
-// ─────────────────────────────────────────
+// -----------------------------------------
 function inferSkill(stem){
   const s = (stem||'').toLowerCase();
   if(/\bmean(s|ing)?\b|defin|word\b/.test(s))            return 'vocabulary';
@@ -1482,9 +1482,9 @@ function inferSkill(stem){
   return 'other';
 }
 
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  DAY 50+ PERSONALIZED PRE-GENERATION
-// ─────────────────────────────────────────
+// -----------------------------------------
 async function pregenNextDay(nextDayNum, lastScore){
   // Check Supabase cache (personal for Day 50+)
   try{
@@ -1557,13 +1557,13 @@ async function pregenNextDay(nextDayNum, lastScore){
   }catch(e){ console.log('Pregen error:', e); }
 }
 
-// ── GEMINI KEY MANAGEMENT ──────────────────────────────────────
+// -- GEMINI KEY MANAGEMENT --------------------------------------
 function openGeminiKeyModal(){
   const modal = document.getElementById('gemini-key-modal');
   const input = document.getElementById('gk-input');
   const existing = localStorage.getItem('gemini_key') || '';
   input.value = existing;
-  document.getElementById('gk-status').textContent = existing ? '✓ Key saved' : '';
+  document.getElementById('gk-status').textContent = existing ? 'OK Key saved' : '';
   document.getElementById('gk-status').className = existing ? 'gk-status ok' : 'gk-status';
   modal.classList.add('open');
   setTimeout(()=>input.focus(), 100);
@@ -1588,20 +1588,20 @@ async function saveGeminiKey(){
     );
     if(r.status === 200){
       localStorage.setItem('gemini_key', key);
-      status.textContent = '✓ Key valid and saved!'; status.className='gk-status ok';
+      status.textContent = 'OK Key valid and saved!'; status.className='gk-status ok';
       setTimeout(()=>closeGeminiKeyModal(), 1200);
     } else if(r.status === 403){
-      status.textContent = '✗ Key invalid or restricted (403).'; status.className='gk-status err';
+      status.textContent = 'X Key invalid or restricted (403).'; status.className='gk-status err';
     } else if(r.status === 404){
       // Model might not be available, but key syntax is OK - save anyway
       localStorage.setItem('gemini_key', key);
-      status.textContent = '✓ Key saved (model check skipped).'; status.className='gk-status ok';
+      status.textContent = 'OK Key saved (model check skipped).'; status.className='gk-status ok';
       setTimeout(()=>closeGeminiKeyModal(), 1200);
     } else {
-      status.textContent = `✗ Error ${r.status} - check your key.`; status.className='gk-status err';
+      status.textContent = `X Error ${r.status} - check your key.`; status.className='gk-status err';
     }
   }catch(e){
-    status.textContent = '✗ Network error - try again.'; status.className='gk-status err';
+    status.textContent = 'X Network error - try again.'; status.className='gk-status err';
   }
 }
 
@@ -1643,7 +1643,7 @@ function buildPersonalizedPrompt(dayNum, topic, weakSkills){
     'Vocab box: <div class=\"vb\">word = simple definition</div>',
     'Section heading: <div class=\"sh\">Heading Text</div>',
     'Article 3 diagram: <div class=\"diagram-note\">&#9711; Diagram: <em>Title</em> &#8212; description</div>',
-    'ALL quotes in passageHTML must use HTML entities: &#8220; &#8221; &#8216; &#8217; — NO raw quote characters.',
+    'ALL quotes in passageHTML must use HTML entities: &#8220; &#8221; &#8216; &#8217; -- NO raw quote characters.',
     '',
     'QUESTION FORMAT:',
     'MC: {"id":"D'+dayNum+'Q1","stem":"...?","choices":["A","B","C","D"],"correct":2,"ev":["D'+dayNum+'Q3"],"expl":"Why correct...","wrong":{"1":"Why A wrong","2":"Why B wrong","3":"Why D wrong"}}',
@@ -1655,7 +1655,7 @@ function buildPersonalizedPrompt(dayNum, topic, weakSkills){
     'w-only: "Read this passage. Then answer questions 14 through 16."',
     '',
     'Each article MUST have: id, type, isReal(false), source("AI Generated"), title, byline("by [Name]"), directions, context(null), passageHTML, questions[], writings[].',
-    'Vary correct answer positions across A/B/C/D — do NOT put all correct answers at index 0.',
+    'Vary correct answer positions across A/B/C/D -- do NOT put all correct answers at index 0.',
     '',
     'Return ONLY a JSON object: {"articles":[mc_article, mcw_article, wo_article]}',
     'No markdown, no explanation, output only the JSON.'
@@ -1690,9 +1690,9 @@ Writing: {id,pts:2,prompt(with <strong>two</strong>),prompt_plain,rubric[3],mode
 Return JSON ARRAY of exactly 3: [{id,type,isReal:false,source:"Simulation",title,byline,directions,context:null,passageHTML,questions,writings}]`;
 }
 
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  RENDER PASSAGE + QUESTIONS
-// ─────────────────────────────────────────
+// -----------------------------------------
 function renderPassage(){
   let html='';
   currentSet.forEach((art,i)=>{
@@ -1727,8 +1727,8 @@ function renderQuestions(){
 function buildMCQ(q,n){
   const ch=q.choices.map((c,i)=>`<button class="cb" data-qid="${q.id}" data-k="${i}"><span class="ck">${'ABCD'[i]}</span>${c}</button>`).join('');
   return `<div class="qb" id="qb-${q.id}"><div class="qs"><span class="qn">${n}.</span>${q.stem}</div><div class="chs">${ch}</div>
-    <div class="ex" id="ex-${q.id}"><div class="ex-t">📖 Explanation</div><div class="ex-b" id="eb-${q.id}">${q.expl}<div class="ex-w" id="ew-${q.id}"></div></div>
-    <button class="ev-btn" onclick="shEv(${JSON.stringify(q.ev)})">🔍 Show Evidence</button></div></div>`;
+    <div class="ex" id="ex-${q.id}"><div class="ex-t"> Explanation</div><div class="ex-b" id="eb-${q.id}">${q.expl}<div class="ex-w" id="ew-${q.id}"></div></div>
+    <button class="ev-btn" onclick="shEv(${JSON.stringify(q.ev)})"> Show Evidence</button></div></div>`;
 }
 
 function buildW(w,n){
@@ -1773,9 +1773,9 @@ function updateProg(){
   document.getElementById('bbar-status').textContent=ready?'All MC answered \u2014 ready to submit!':`${done}/${total} multiple choice answered`;
 }
 
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  SUBMIT + SAVE TO SUPABASE
-// ─────────────────────────────────────────
+// -----------------------------------------
 async function submitAll(){
   const mcqs=allMCQs();
   if(mcqs.length>0&&Object.keys(answers).length<mcqs.length){
@@ -1883,9 +1883,9 @@ function showOv(score,total,correct,retried){
 
 function reviewSession(){document.getElementById('overlay').classList.remove('on');}
 
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  MODE
-// ─────────────────────────────────────────
+// -----------------------------------------
 function setMode(m){
   mode=m;
   document.getElementById('badge').className='badge '+m;
@@ -1971,9 +1971,9 @@ function retryQ(q,btn){
   });
 }
 
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  EVIDENCE HIGHLIGHT
-// ─────────────────────────────────────────
+// -----------------------------------------
 function shEv(ids){
   document.querySelectorAll('.pt').forEach(p=>p.classList.remove('ev'));
   ids.forEach(id=>{
@@ -1983,9 +1983,9 @@ function shEv(ids){
   setTimeout(()=>document.querySelectorAll('.pt').forEach(p=>p.classList.remove('ev')),4500);
 }
 
-// ─────────────────────────────────────────
-//  WORD POPUP (Claude API — learning mode)
-// ─────────────────────────────────────────
+// -----------------------------------------
+//  WORD POPUP (Claude API -- learning mode)
+// -----------------------------------------
 const wpEl=document.getElementById('wp');
 function handleWordSel(e){
   if(mode!=='learn')return;
@@ -2019,9 +2019,9 @@ async function fetchDef(word){
   }catch(e){ return null; }
 }
 
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  AI WRITING GRADER (Claude API)
-// ─────────────────────────────────────────
+// -----------------------------------------
 async function gradeW(w){
   const essay=(document.getElementById('wta-'+w.id)||{}).value||'';
   const sd=document.getElementById('sd-'+w.id),sl=document.getElementById('sl-'+w.id);
@@ -2045,9 +2045,9 @@ async function gradeW(w){
     if(obj.checklist)w.rubric.forEach((_,i)=>{const el=document.getElementById(`ck-${w.id}-${i}`);if(el)el.querySelector('span').textContent=obj.checklist[i]?'\u2705':'\u274c';});
   }catch(e){sd.textContent='?';sl.textContent='Could not grade. Check your Gemini API key.';}
 }
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  IMPORT JSON
-// ─────────────────────────────────────────
+// -----------------------------------------
 function openImport(){
   document.getElementById('import-modal').classList.add('on');
   document.getElementById('import-ta').value='';
@@ -2094,9 +2094,9 @@ async function doImport(){
 }
 document.getElementById('import-modal').addEventListener('click',function(e){if(e.target===this)closeImport();});
 
-// ─────────────────────────────────────────
+// -----------------------------------------
 //  RESIZE
-// ─────────────────────────────────────────
+// -----------------------------------------
 function initResize(){
   const rh=document.getElementById('rh'),pL=document.getElementById('pane-l'),sp=document.getElementById('split');
   let drag=false,sx=0,sw=0;

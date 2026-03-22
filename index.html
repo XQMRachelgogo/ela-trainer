@@ -398,6 +398,12 @@ body.lm .ev-btn{display:inline-block}
     <div class="big-score" id="ov-score">&#8212;</div>
     <div class="ov-sub" id="ov-sub"></div>
     <div class="retry-note" id="ov-retry">&#9888;&#65039; Some articles scored below 40% and will appear again soon.</div>
+    <div id="ov-ai-notice" style="display:none;margin-top:1rem;padding:.9rem 1rem;background:#f0f7ff;border:1.5px solid #b8d4f0;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.82rem;color:#1a3a5c;line-height:1.6">
+      🎉 <strong>You've completed all 49 days of curated practice!</strong><br>
+      From Day 50 onwards, AI will analyze your answer history and craft personalized sessions targeting your weakest skills.<br><br>
+      <span id="ov-ai-key-hint" style="display:none">⚡ <strong>Set your Gemini API key</strong> to unlock personalized AI practice. <span onclick="goHome();openGeminiKeyModal()" style="color:#1a6fc4;cursor:pointer;text-decoration:underline">Set key →</span></span>
+      <span id="ov-ai-ready" style="display:none">✓ Your personalized Day 50 is being prepared in the background!</span>
+    </div>
     <div class="ov-btns">
       <button class="obtn obtn-out" onclick="reviewSession()">Review Answers</button>
       <button class="obtn obtn-ink" onclick="goHome()">&#8592; Dashboard</button>
@@ -1328,9 +1334,7 @@ async function pregenNextDay(nextDayNum, lastScore){
     const d = await resp.json();
     const text = d.candidates?.[0]?.content?.parts?.[0]?.text||'';
     if(!text) throw new Error('Empty response');
-    console.log('Gemini response length:', text.length);
-    console.log('First 200 chars:', text.slice(0,200));
-    console.log('Last 200 chars:', text.slice(-200));
+
     const clean = text.replace(/^```json\s*/i,'').replace(/\s*```$/i,'').trim();
     const parsed = JSON.parse(clean);
     const arts = Array.isArray(parsed)?parsed:Array.isArray(parsed.articles)?parsed.articles:null;
@@ -1397,9 +1401,9 @@ async function saveGeminiKey(){
   }
 }
 
-// Close modal when clicking backdrop
-document.getElementById('gemini-key-modal').addEventListener('click', function(e){
-  if(e.target === this) closeGeminiKeyModal();
+// Close modal when clicking backdrop - use event delegation (safe before DOM ready)
+document.addEventListener('click', function(e){
+  if(e.target && e.target.id === 'gemini-key-modal') closeGeminiKeyModal();
 });
 
 function buildPersonalizedPrompt(dayNum, topic, weakSkills){
@@ -1611,6 +1615,20 @@ function showOv(score,total,correct,retried){
   document.getElementById('ov-score').textContent=total>0?score+'%':'\u2014';
   document.getElementById('ov-sub').textContent=total>0?`${correct} of ${total} multiple choice correct`:'Written responses submitted';
   document.getElementById('ov-retry').classList.toggle('on',retried.length>0);
+
+  // Day 49 special message
+  const aiNotice = document.getElementById('ov-ai-notice');
+  const aiKeyHint = document.getElementById('ov-ai-key-hint');
+  const aiReady = document.getElementById('ov-ai-ready');
+  if(currentDay === 49){
+    aiNotice.style.display = 'block';
+    const hasKey = !!localStorage.getItem('gemini_key');
+    aiKeyHint.style.display = hasKey ? 'none' : 'inline';
+    aiReady.style.display = hasKey ? 'inline' : 'none';
+  } else {
+    aiNotice.style.display = 'none';
+  }
+
   document.getElementById('overlay').classList.add('on');
 }
 

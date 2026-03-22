@@ -1328,6 +1328,9 @@ async function pregenNextDay(nextDayNum, lastScore){
     const d = await resp.json();
     const text = d.candidates?.[0]?.content?.parts?.[0]?.text||'';
     if(!text) throw new Error('Empty response');
+    console.log('Gemini response length:', text.length);
+    console.log('First 200 chars:', text.slice(0,200));
+    console.log('Last 200 chars:', text.slice(-200));
     const clean = text.replace(/^```json\s*/i,'').replace(/\s*```$/i,'').trim();
     const parsed = JSON.parse(clean);
     const arts = Array.isArray(parsed)?parsed:Array.isArray(parsed.articles)?parsed.articles:null;

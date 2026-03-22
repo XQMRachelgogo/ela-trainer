@@ -1016,6 +1016,8 @@ sb.auth.onAuthStateChange((event, session)=>{
   } else if(event === 'SIGNED_OUT'){
     currentUser = null;
     gradeConfirmed = false;
+    poolLoaded = false;
+    userStats = {};
     showAuth();
   }
   // TOKEN_REFRESHED: do nothing
@@ -1153,6 +1155,87 @@ function toggleHistory(){
 // ═══════════════════════════════════════════
 // Build a schedule for a retry day:
 // Keep the failed article, fill remaining slots with AI
+
+// ═══════════════════════════════════════════
+//  ARTICLE POOL SELECTION
+// ═══════════════════════════════════════════
+let poolCache = { mc: [], 'mc+w': [], 'w-only': [] };
+let poolLoaded = false;
+let userStats = {};
+
+async function loadPool(){
+  if(poolLoaded) return;
+  try{
+    const {data} = await sb.from('article_pool')
+      .select('article_id, article_type, is_real, title, source, article')
+      .eq('grade', 3);
+    if(data){
+      poolCache = { mc: [], 'mc+w': [], 'w-only': [] };
+      data.forEach(row => {
+        if(poolCache[row.article_type]) poolCache[row.article_type].push(row);
+      });
+      console.log('Pool loaded: mc='+poolCache.mc.length+' mc+w='+poolCache['mc+w'].length+' w-only='+poolCache['w-only'].length);
+    }
+    if(currentUser){
+      const {data:stats} = await sb.from('user_article_stats')
+        .select('article_id, times_seen, avg_accuracy')
+        .eq('user_id', currentUser.id).eq('grade', 3);
+      if(stats) stats.forEach(s => { userStats[s.article_id] = s; });
+    }
+    poolLoaded = true;
+  }catch(e){ console.error('loadPool error:', e); }
+}
+
+function scoreArticle(poolRow){
+  const stat = userStats[poolRow.article_id];
+  if(!stat || stat.times_seen === 0) return poolRow.is_real ? 0 : 10;
+  if(stat.times_seen >= 2 && stat.avg_accuracy >= 80) return 9999;
+  if(stat.avg_accuracy < 50) return 20 + stat.avg_accuracy;
+  return 100 + stat.avg_accuracy;
+}
+
+async function pickDailySet(dayNum){
+  await loadPool();
+  const types = ['mc', 'mc+w', 'w-only'];
+  const realTypeIdx = Math.floor(Math.random() * 3);
+  const result = {};
+  for(let ti = 0; ti < types.length; ti++){
+    const type = types[ti];
+    const pool = poolCache[type];
+    if(!pool || pool.length === 0) continue;
+    let available = pool.filter(row => {
+      const stat = userStats[row.article_id];
+      return !(stat && stat.times_seen >= 2 && stat.avg_accuracy >= 80);
+    });
+    if(ti === realTypeIdx){
+      const realAvail = available.filter(r => r.is_real);
+      if(realAvail.length > 0) available = realAvail;
+    }
+    if(available.length === 0) available = pool;
+    available.sort((a, b) => scoreArticle(a) - scoreArticle(b));
+    const topN = available.slice(0, Math.min(3, available.length));
+    result[type] = topN[Math.floor(Math.random() * topN.length)];
+  }
+  return result;
+}
+
+async function updateArticleStats(articleId, accuracy){
+  if(!currentUser) return;
+  const existing = userStats[articleId];
+  const newTimes = (existing?.times_seen || 0) + 1;
+  const newAvg = existing
+    ? Math.round((existing.avg_accuracy * existing.times_seen + accuracy) / newTimes)
+    : accuracy;
+  const entry = {
+    user_id: currentUser.id, article_id: articleId, grade: 3,
+    times_seen: newTimes, avg_accuracy: newAvg,
+    last_seen_at: new Date().toISOString(), last_accuracy: accuracy,
+  };
+  const {error} = await sb.from('user_article_stats')
+    .upsert(entry, {onConflict: 'user_id,article_id'});
+  if(!error) userStats[articleId] = entry;
+}
+
 function buildRetrySchedule(d, retryArts){
   // Types needed in a full set
   const typeSlots = ['mc', 'mc+w', 'w-only'];
@@ -1211,47 +1294,49 @@ async function startDay(d){
   document.getElementById('btn-lrn').style.display='none';
   document.getElementById('btn-sub').style.display='inline-block';
 
-  // Check if this day has retry articles
-  const retryArts = retryPool.filter(r => r.scheduledForDay === d);
+  // Show loading spinner
+  document.getElementById('pane-l').innerHTML=`<div style="padding:3rem 2rem;text-align:center;font-family:'DM Sans',sans-serif;color:var(--ink3)">
+    <div style="font-size:1.8rem;margin-bottom:.8rem">\u2699\uFE0F</div>
+    <div style="font-size:.95rem;font-weight:600;margin-bottom:.4rem">Preparing today\u2019s practice set\u2026</div>
+    <div style="font-size:.8rem">Selecting articles tailored for you</div>
+  </div>`;
+  document.getElementById('pane-r').innerHTML='';
 
-  // Build schedule: retry articles fill their slot type, rest are AI or normal
-  let sched = getSched(d-1);
-  if(retryArts.length > 0){
-    // Replace schedule slots with retry articles based on type
-    sched = buildRetrySchedule(d, retryArts);
-  }
-
-  const needsAI = sched.includes('AI') || sched.includes('RETRY_AI');
-
-  if(needsAI){
-    // Show loading
-    document.getElementById('pane-l').innerHTML=`<div style="padding:3rem 2rem;text-align:center;font-family:'DM Sans',sans-serif;color:var(--ink3)">
-      <div style="font-size:1.8rem;margin-bottom:.8rem">\u2699\uFE0F</div>
-      <div style="font-size:.95rem;font-weight:600;margin-bottom:.4rem">Generating today\u2019s practice set\u2026</div>
-      <div style="font-size:.8rem">Fetching from database or creating new content</div>
-    </div>`;
-    document.getElementById('pane-r').innerHTML='';
-
-    try{
-      const arts = await loadOrGenerateAI(d-1, retryArts.length > 0 ? sched : null);
-      arts.forEach(a=>{ ARTICLES[a.id]=a; });
-      const newSched=sched.map((s,i)=>(s==='AI'||s==='RETRY_AI')?(arts[i]?.id||s):s);
-      SCHEDULE[d-1]=newSched;
-      currentSet=newSched.map(id=>ARTICLES[id]).filter(Boolean);
-    }catch(err){
-      document.getElementById('pane-l').innerHTML=`<div style="padding:2rem;font-family:'DM Sans',sans-serif;color:var(--red)">
-        \u26a0\uFE0F Could not load content: ${err.message}.<br><br>
-        Try <strong>Import AI Day</strong> from the dashboard to add content manually.
-      </div>`;
-      return;
+  try{
+    // Pick articles from pool based on user history
+    const picked = await pickDailySet(d);
+    currentSet = [];
+    const types = ['mc', 'mc+w', 'w-only'];
+    for(const type of types){
+      const row = picked[type];
+      if(!row) continue;
+      if(row.is_real){
+        // Real article - get from ARTICLES object (hardcoded in HTML)
+        const art = ARTICLES[row.article_id];
+        if(art) currentSet.push(art);
+      } else {
+        // AI article - use from pool row
+        const art = row.article;
+        if(art){
+          ARTICLES[art.id] = art;
+          currentSet.push(art);
+        }
+      }
     }
-  } else {
-    currentSet = sched.map(id=>ARTICLES[id]).filter(Boolean);
-  }
-
-  // Mark retry articles as being retried
-  if(retryArts.length > 0){
-    retryArts.forEach(r => r.retrying = true);
+    // Save which articles were used today
+    if(currentUser && currentSet.length > 0){
+      const artIds = currentSet.map(a => a.id);
+      sb.from('day_records').upsert({
+        user_id: currentUser.id,
+        day_number: d,
+        article_ids: artIds,
+      }, {onConflict: 'user_id,day_number'}).then(()=>{});
+    }
+  }catch(err){
+    document.getElementById('pane-l').innerHTML=`<div style="padding:2rem;font-family:'DM Sans',sans-serif;color:var(--red)">
+      \u26a0\uFE0F Could not load content: ${err.message}.
+    </div>`;
+    return;
   }
 
   renderPassage();
@@ -1715,6 +1800,15 @@ async function submitAll(){
     }, {onConflict: 'user_id,day_number'});
     userDays[currentDay]={completed:true,totalScore,mc_correct:mcCorrect,mc_total:mcTotal};
     streak = Object.keys(userDays).filter(d=>userDays[d].completed).length;
+
+    // Update article stats in pool
+    currentSet.forEach(art => {
+      if(art.questions && art.questions.length > 0){
+        const correct = art.questions.filter(q => answers[q.id] === q.correct).length;
+        const accuracy = Math.round(correct / art.questions.length * 100);
+        updateArticleStats(art.id, accuracy);
+      }
+    });
 
     // Save per-question skill records
     const qRecords = allMCQs().map(q=>({

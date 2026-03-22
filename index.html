@@ -47,6 +47,22 @@ body.view-grade #screen-grade{display:flex!important}
 .grade-confirm:disabled{opacity:.4;cursor:default}
 .grade-switch{font-family:'DM Sans',sans-serif;font-size:.75rem;color:var(--ink3);text-align:center;margin-top:1rem;cursor:pointer;text-decoration:underline}
 .grade-switch:hover{color:var(--accent)}
+
+/* ── GEMINI KEY MODAL ── */
+#gemini-key-modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(30,20,15,.7);align-items:center;justify-content:center;padding:1rem}
+#gemini-key-modal.open{display:flex}
+.gk-card{background:var(--paper);border-radius:6px;padding:2rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.gk-title{font-family:'DM Sans',sans-serif;font-weight:700;font-size:1.1rem;color:var(--ink);margin-bottom:.4rem}
+.gk-sub{font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--ink3);margin-bottom:1.2rem;line-height:1.5}
+.gk-sub a{color:var(--accent)}
+.gk-input{width:100%;font-family:'DM Mono',monospace;font-size:.78rem;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:4px;background:var(--cream);color:var(--ink);margin-bottom:.8rem;box-sizing:border-box}
+.gk-input:focus{outline:none;border-color:var(--accent)}
+.gk-row{display:flex;gap:.6rem}
+.gk-save{flex:1;padding:.6rem;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.85rem;border:none;border-radius:4px;background:var(--accent);color:#fff;cursor:pointer}
+.gk-cancel{padding:.6rem 1rem;font-family:'DM Sans',sans-serif;font-size:.85rem;border:1.5px solid var(--border);border-radius:4px;background:none;color:var(--ink3);cursor:pointer}
+.gk-status{font-family:'DM Sans',sans-serif;font-size:.75rem;margin-top:.6rem;min-height:1rem}
+.gk-status.ok{color:var(--green)}
+.gk-status.err{color:var(--red)}
 .auth-sub{font-family:'DM Sans',sans-serif;font-size:.83rem;color:var(--ink3);margin-bottom:2rem}
 .auth-tabs{display:flex;gap:0;margin-bottom:1.6rem;border-bottom:2px solid var(--border)}
 .auth-tab{font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;padding:.5rem 1.2rem;background:none;border:none;cursor:pointer;color:var(--ink3);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
@@ -287,6 +303,7 @@ body.lm .ev-btn{display:inline-block}
       <span>Personal info: <strong id="user-name-display"></strong></span>
       <button onclick="goHome()">&#8592; Home</button>
       <button onclick="doLogout()">Sign Out</button>
+      <button onclick="openGeminiKeyModal()" title="Set Gemini API Key" style="font-size:.7rem;padding:.3rem .6rem;opacity:.7">🔑 AI Key</button>
     </div>
     <button class="btn btn-dk" id="btn-back" style="display:none" onclick="goHome()">&#8592; Dashboard</button>
   </div>
@@ -336,6 +353,10 @@ body.lm .ev-btn{display:inline-block}
         <p>New York State Grade 3 &middot; 3 articles per session &middot; ~30 min each</p>
       </div>
       <button onclick="showGradeSelector()" style="flex-shrink:0;font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:600;padding:.35rem .7rem;border:1.5px solid var(--border);border-radius:4px;background:var(--paper);color:var(--ink3);cursor:pointer;white-space:nowrap;margin-top:.15rem" title="Switch grade">Grade 3 ▾</button>
+    </div>
+    <div id="gemini-key-notice" style="display:none;background:#fff8e7;border:1.5px solid #e8c84a;border-radius:4px;padding:.6rem .9rem;margin-bottom:.8rem;font-family:'DM Sans',sans-serif;font-size:.78rem;color:#7a6010">
+      ⚠ No Gemini API key set. Day 50+ personalized content requires a key.
+      <span onclick="openGeminiKeyModal()" style="color:var(--accent);cursor:pointer;font-weight:600;margin-left:.5rem">Set Key →</span>
     </div>
     <div class="stats-row">
       <div class="stat-box"><div class="stat-num" id="stat-done">0</div><div class="stat-lbl">Days Done</div></div>
@@ -415,7 +436,7 @@ const SUPABASE_URL  = 'https://ruaxyrjabbrivywcgori.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_iGo668SXmR6DJgQn8YoB3w_zVgYFKry';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-const GEMINI_KEY   = 'AIzaSyDzWTcYahWgloMvy7P0MR8prYtixord9mo';
+const GEMINI_KEY = localStorage.getItem('gemini_key') || '';
 const GEMINI_MODEL = 'gemini-1.5-flash';
 
 
@@ -946,6 +967,9 @@ function showAuth(){
   document.getElementById('topbar').style.display='none';
   document.getElementById('pbar-strip').style.display='none';
   document.getElementById('bbar').style.display='none';
+  // Show Gemini key notice if no key set
+  const keyNotice = document.getElementById('gemini-key-notice');
+  if(keyNotice) keyNotice.style.display = localStorage.getItem('gemini_key') ? 'none' : 'block';
 }
 
 function onLogin(user){
@@ -1018,6 +1042,9 @@ function goHome(){
   document.getElementById('screen-home').style.display='flex';
   document.getElementById('screen-test').style.display='none';
   document.getElementById('bbar').style.display='none';
+  // Show Gemini key notice if no key set
+  const keyNotice = document.getElementById('gemini-key-notice');
+  if(keyNotice) keyNotice.style.display = localStorage.getItem('gemini_key') ? 'none' : 'block';
   document.getElementById('btn-back').style.display='none';
   document.getElementById('badge').style.display='none';
   renderHome();
@@ -1311,6 +1338,59 @@ async function pregenNextDay(nextDayNum, lastScore){
     console.log('Day '+nextDayNum+' personalized and saved!');
   }catch(e){ console.log('Pregen error:', e); }
 }
+
+// ── GEMINI KEY MANAGEMENT ──────────────────────────────────────
+function openGeminiKeyModal(){
+  const modal = document.getElementById('gemini-key-modal');
+  const input = document.getElementById('gk-input');
+  const existing = localStorage.getItem('gemini_key') || '';
+  input.value = existing;
+  document.getElementById('gk-status').textContent = existing ? '✓ Key saved' : '';
+  document.getElementById('gk-status').className = existing ? 'gk-status ok' : 'gk-status';
+  modal.classList.add('open');
+  setTimeout(()=>input.focus(), 100);
+}
+
+function closeGeminiKeyModal(){
+  document.getElementById('gemini-key-modal').classList.remove('open');
+}
+
+async function saveGeminiKey(){
+  const key = document.getElementById('gk-input').value.trim();
+  const status = document.getElementById('gk-status');
+  if(!key){ status.textContent = 'Please enter a key.'; status.className='gk-status err'; return; }
+
+  // Test the key quickly
+  status.textContent = 'Testing key...'; status.className='gk-status';
+  try{
+    const r = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+      {method:'POST', headers:{'Content-Type':'application/json'},
+       body: JSON.stringify({contents:[{parts:[{text:'say ok'}]}], generationConfig:{maxOutputTokens:5}})}
+    );
+    if(r.status === 200){
+      localStorage.setItem('gemini_key', key);
+      status.textContent = '✓ Key valid and saved!'; status.className='gk-status ok';
+      setTimeout(()=>closeGeminiKeyModal(), 1200);
+    } else if(r.status === 403){
+      status.textContent = '✗ Key invalid or restricted (403).'; status.className='gk-status err';
+    } else if(r.status === 404){
+      // Model might not be available, but key syntax is OK - save anyway
+      localStorage.setItem('gemini_key', key);
+      status.textContent = '✓ Key saved (model check skipped).'; status.className='gk-status ok';
+      setTimeout(()=>closeGeminiKeyModal(), 1200);
+    } else {
+      status.textContent = `✗ Error ${r.status} - check your key.`; status.className='gk-status err';
+    }
+  }catch(e){
+    status.textContent = '✗ Network error - try again.'; status.className='gk-status err';
+  }
+}
+
+// Close modal when clicking backdrop
+document.getElementById('gemini-key-modal').addEventListener('click', function(e){
+  if(e.target === this) closeGeminiKeyModal();
+});
 
 function buildPersonalizedPrompt(dayNum, topic, weakSkills){
   const skillNames = {
@@ -1746,5 +1826,24 @@ function initResize(){
   document.onmouseup=()=>{drag=false;document.body.style.cssText='';};
 }
 </script>
+
+<!-- GEMINI KEY MODAL -->
+<div id="gemini-key-modal">
+  <div class="gk-card">
+    <div class="gk-title">🔑 Gemini API Key</div>
+    <div class="gk-sub">
+      Day 50+ uses Gemini AI to generate personalized content.<br>
+      Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a> then paste it below.<br>
+      Your key is stored locally and never uploaded anywhere.
+    </div>
+    <input class="gk-input" id="gk-input" type="password" placeholder="AIzaSy..." autocomplete="off">
+    <div class="gk-row">
+      <button class="gk-save" onclick="saveGeminiKey()">Save Key</button>
+      <button class="gk-cancel" onclick="closeGeminiKeyModal()">Cancel</button>
+    </div>
+    <div class="gk-status" id="gk-status"></div>
+  </div>
+</div>
+
 </body>
 </html>

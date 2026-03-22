@@ -293,6 +293,36 @@ body.lm .ev-btn{display:inline-block}
 </header>
 <div id="pbar-strip" style="display:none"><div id="pbar"></div></div>
 
+<!-- GRADE SELECTOR SCREEN -->
+<div id="screen-grade" style="display:none;flex:1;align-items:center;justify-content:center;background:var(--ink);overflow-y:auto;padding:2rem 1rem">
+  <div class="grade-card">
+    <div class="auth-logo">NY ELA <em>Trainer</em></div>
+    <div class="auth-sub">Choose your grade to begin</div>
+    <div class="grade-user">Signed in as <span id="grade-username">&#8212;</span> &nbsp;&middot;&nbsp; <span class="grade-switch" onclick="doSignOut()">Sign out</span></div>
+    <div class="grade-grid">
+      <button class="grade-btn active" id="gbtn-3" onclick="selectGrade(3)">
+        Grade 3<span class="grade-badge">50 days ready</span>
+      </button>
+      <button class="grade-btn coming-soon" id="gbtn-4" onclick="selectGrade(4)">
+        Grade 4<span class="grade-badge">coming soon</span>
+      </button>
+      <button class="grade-btn coming-soon" id="gbtn-5" onclick="selectGrade(5)">
+        Grade 5<span class="grade-badge">coming soon</span>
+      </button>
+      <button class="grade-btn coming-soon" id="gbtn-6" onclick="selectGrade(6)">
+        Grade 6<span class="grade-badge">coming soon</span>
+      </button>
+      <button class="grade-btn coming-soon" id="gbtn-7" onclick="selectGrade(7)">
+        Grade 7<span class="grade-badge">coming soon</span>
+      </button>
+      <button class="grade-btn coming-soon" id="gbtn-8" onclick="selectGrade(8)">
+        Grade 8<span class="grade-badge">coming soon</span>
+      </button>
+    </div>
+    <button class="grade-confirm" id="grade-confirm-btn" onclick="confirmGrade()">Start Grade 3 Practice &#8594;</button>
+  </div>
+</div>
+
 <!-- HOME SCREEN -->
 <div id="screen-home">
   <div class="home-inner">
@@ -780,12 +810,16 @@ function switchTab(tab){
 let selectedGrade = 3;
 
 function showGradeSelector(){
-  document.getElementById('screen-home').style.display = 'none';
-  document.getElementById('screen-test').style.display = 'none';
+  // Hide all screens
+  document.getElementById('screen-auth').style.display  = 'none';
+  document.getElementById('screen-loading').style.display = 'none';
+  document.getElementById('screen-home').style.display  = 'none';
+  document.getElementById('screen-test').style.display  = 'none';
   document.getElementById('screen-grade').style.display = 'flex';
-  document.body.className = 'view-grade';
-  // Show current user
+  // Show topbar if user is logged in
   if(currentUser){
+    document.getElementById('topbar').style.display = 'flex';
+    document.getElementById('pbar-strip').style.display = 'block';
     const name = currentUser.user_metadata?.display_name || currentUser.email?.split('@')[0] || 'Student';
     document.getElementById('grade-username').textContent = name;
   }

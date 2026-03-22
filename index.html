@@ -933,8 +933,7 @@ async function doLogin(){
   const email = username + '@ela-trainer.app';
   const {data: loginData, error} = await sb.auth.signInWithPassword({email, password:pw});
   if(error){ msg.className='auth-msg err'; msg.textContent='Username or password is incorrect.'; return; }
-  // Go to grade selector after login
-  showGradeSelector();
+  // onAuthStateChange SIGNED_IN will handle the login flow
 }
 
 async function doSignup(){
@@ -1010,13 +1009,15 @@ function onLogin(user){
 
 // Listen for auth state changes + check existing session immediately
 sb.auth.onAuthStateChange((event, session)=>{
-  if(event === 'SIGNED_OUT'){
+  if(event === 'SIGNED_IN' && !currentUser && session?.user){
+    // Fresh login (not page reload/token refresh)
+    onLogin(session.user);
+  } else if(event === 'SIGNED_OUT'){
     currentUser = null;
     gradeConfirmed = false;
     showAuth();
   }
-  // SIGNED_IN, TOKEN_REFRESHED etc: handled by getSession() on load
-  // Don't redirect here - causes loops on tab switch/minimize
+  // TOKEN_REFRESHED: do nothing
 });
 
 // Check existing session on load
@@ -1051,6 +1052,7 @@ function goHome(){
   submitted=false; mode='exam'; answers={};
   document.getElementById('screen-auth').style.display='none';
   document.getElementById('screen-loading').style.display='none';
+  document.getElementById('screen-grade').style.display='none';
   document.getElementById('screen-home').style.display='flex';
   document.getElementById('screen-test').style.display='none';
   document.getElementById('bbar').style.display='none';

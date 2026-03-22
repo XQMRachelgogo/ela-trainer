@@ -961,22 +961,26 @@ async async function onLogin(user){
   document.getElementById('topbar').style.display='flex';
   document.getElementById('pbar-strip').style.display='block';
   // Load user data from Supabase
-  const {data} = await sb.from('day_records').select('*').eq('user_id', user.id);
-  userDays = {};
-  if(data) data.forEach(r=>{ userDays[r.day_number]={completed:true, totalScore:r.total_score, mc_correct:r.mc_correct, mc_total:r.mc_total}; });
+  try {
+    const {data} = await sb.from('day_records').select('*').eq('user_id', user.id);
+    userDays = {};
+    if(data) data.forEach(r=>{ userDays[r.day_number]={completed:true, totalScore:r.total_score, mc_correct:r.mc_correct, mc_total:r.mc_total}; });
 
-  // Compute streak
-  const days = Object.keys(userDays).map(Number).sort((a,b)=>b-a);
-  streak = 0;
-  for(let i=0;i<days.length;i++){
-    if(days[i]===days[0]-i) streak++;
-    else break;
+    // Compute streak
+    const days = Object.keys(userDays).map(Number).sort((a,b)=>b-a);
+    streak = 0;
+    for(let i=0;i<days.length;i++){
+      if(days[i]===days[0]-i) streak++;
+      else break;
+    }
+
+    // Get display name
+    const {data:prof} = await sb.from('profiles').select('display_name').eq('id',user.id).single();
+    const displayName = prof?.display_name || user.user_metadata?.display_name || user.email.split('@')[0];
+    document.getElementById('user-name-display').textContent = displayName;
+  } catch(e) {
+    console.error('onLogin data load error:', e);
   }
-
-  // Get display name
-  const {data:prof} = await sb.from('profiles').select('display_name').eq('id',user.id).single();
-  const displayName = prof?.display_name || user.email.split('@')[0];
-  document.getElementById('user-name-display').textContent = displayName;
 
   document.getElementById('topbar').style.display='flex';
   document.getElementById('pbar-strip').style.display='block';
@@ -1001,13 +1005,18 @@ sb.auth.onAuthStateChange((event, session)=>{
 
 // Check existing session on load
 (async()=>{
-  const {data:{session}} = await sb.auth.getSession();
-  if(!session?.user){
+  try {
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session?.user){
+      showAuth();
+    } else {
+      gradeConfirmed = true;
+      await onLogin(session.user);
+    }
+  } catch(e) {
+    console.error('Session load error:', e);
+    hideLoading();
     showAuth();
-  } else {
-    // User already logged in - restore session directly
-    gradeConfirmed = true;  // Skip grade selector for returning users
-    await onLogin(session.user);
   }
 })();
 
@@ -2573,22 +2582,26 @@ async function onLogin(user){
   document.getElementById('topbar').style.display='flex';
   document.getElementById('pbar-strip').style.display='block';
   // Load user data from Supabase
-  const {data} = await sb.from('day_records').select('*').eq('user_id', user.id);
-  userDays = {};
-  if(data) data.forEach(r=>{ userDays[r.day_number]={completed:true, totalScore:r.total_score, mc_correct:r.mc_correct, mc_total:r.mc_total}; });
+  try {
+    const {data} = await sb.from('day_records').select('*').eq('user_id', user.id);
+    userDays = {};
+    if(data) data.forEach(r=>{ userDays[r.day_number]={completed:true, totalScore:r.total_score, mc_correct:r.mc_correct, mc_total:r.mc_total}; });
 
-  // Compute streak
-  const days = Object.keys(userDays).map(Number).sort((a,b)=>b-a);
-  streak = 0;
-  for(let i=0;i<days.length;i++){
-    if(days[i]===days[0]-i) streak++;
-    else break;
+    // Compute streak
+    const days = Object.keys(userDays).map(Number).sort((a,b)=>b-a);
+    streak = 0;
+    for(let i=0;i<days.length;i++){
+      if(days[i]===days[0]-i) streak++;
+      else break;
+    }
+
+    // Get display name
+    const {data:prof} = await sb.from('profiles').select('display_name').eq('id',user.id).single();
+    const displayName = prof?.display_name || user.user_metadata?.display_name || user.email.split('@')[0];
+    document.getElementById('user-name-display').textContent = displayName;
+  } catch(e) {
+    console.error('onLogin data load error:', e);
   }
-
-  // Get display name
-  const {data:prof} = await sb.from('profiles').select('display_name').eq('id',user.id).single();
-  const displayName = prof?.display_name || user.email.split('@')[0];
-  document.getElementById('user-name-display').textContent = displayName;
 
   document.getElementById('topbar').style.display='flex';
   document.getElementById('pbar-strip').style.display='block';
@@ -2613,13 +2626,18 @@ sb.auth.onAuthStateChange((event, session)=>{
 
 // Check existing session on load
 (async()=>{
-  const {data:{session}} = await sb.auth.getSession();
-  if(!session?.user){
+  try {
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session?.user){
+      showAuth();
+    } else {
+      gradeConfirmed = true;
+      await onLogin(session.user);
+    }
+  } catch(e) {
+    console.error('Session load error:', e);
+    hideLoading();
     showAuth();
-  } else {
-    // User already logged in - restore session directly
-    gradeConfirmed = true;  // Skip grade selector for returning users
-    await onLogin(session.user);
   }
 })();
 

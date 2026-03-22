@@ -836,6 +836,7 @@ function switchTab(tab){
 // ── GRADE SELECTOR ──────────────────────────────────────────────────────────
 let selectedGrade = 3;
 let gradeConfirmed = false;
+let dataReady = false;
 
 function showGradeSelector(){
   // Hide auth/loading, show grade overlay on top
@@ -890,7 +891,17 @@ function confirmGrade(){
   if(selectedGrade !== 3) return;
   gradeConfirmed = true;
   document.getElementById('screen-grade').style.display = 'none';
-  goHome();
+  if(dataReady){
+    goHome();
+  } else {
+    // Data still loading - show brief loading state then go home
+    document.getElementById('screen-loading').style.display = 'flex';
+    const wait = setInterval(()=>{
+      if(dataReady){ clearInterval(wait); goHome(); }
+    }, 100);
+    // Fallback after 3 seconds
+    setTimeout(()=>{ clearInterval(wait); goHome(); }, 3000);
+  }
 }
 
 // Press Enter to submit
@@ -991,6 +1002,7 @@ function onLogin(user){
       const displayName=prof?.display_name||user.user_metadata?.display_name||user.email.split('@')[0];
       document.getElementById('user-name-display').textContent=displayName;
     }catch(e){ console.error('onLogin error:',e); }
+    dataReady = true;
     if(!gradeConfirmed){ showGradeSelector(); } else { goHome(); }
   })();
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD: v16 -->
+<!-- BUILD: v17 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1103,33 +1103,32 @@ async function startDay(d){
   document.getElementById('btn-lrn').style.display='none';
   document.getElementById('btn-sub').style.display='inline-block';
 
-  // Show loading spinner
   document.getElementById('pane-l').innerHTML=`<div style="padding:3rem 2rem;text-align:center;font-family:'DM Sans',sans-serif;color:var(--ink3)">
     <div style="font-size:1.8rem;margin-bottom:.8rem">\u2699\uFE0F</div>
     <div style="font-size:.95rem;font-weight:600;margin-bottom:.4rem">Preparing today\u2019s practice set\u2026</div>
-    <div style="font-size:.8rem">Selecting articles tailored for you</div>
+    <div style="font-size:.8rem">${d >= 50 ? 'Building personalized content based on your weak areas\u2026' : 'Selecting articles tailored for you'}</div>
   </div>`;
   document.getElementById('pane-r').innerHTML='';
 
   try{
-    // Pick articles from pool based on user history
-    const picked = await pickDailySet(d);
-    currentSet = [];
-    const types = ['mc', 'mc+w', 'w-only'];
-    for(const type of types){
-      const row = picked[type];
-      if(!row) continue;
-      // Try ARTICLES{} first (works for hardcoded articles)
-      // Fall back to pool row's article field (works for Supabase-only articles)
-      const art = ARTICLES[row.article_id] || row.article;
-      if(art){
-        ARTICLES[art.id] = art; // cache it so startDayReview can find it too
-        currentSet.push(art);
+    if(d >= 50){
+      // ── Day 50+: personalized AI-generated set ──
+      currentSet = await loadOrGeneratePersonalized(d);
+    } else {
+      // ── Day 1-49: pick from article_pool ──
+      const picked = await pickDailySet(d);
+      currentSet = [];
+      const types = ['mc', 'mc+w', 'w-only'];
+      for(const type of types){
+        const row = picked[type];
+        if(!row) continue;
+        const art = ARTICLES[row.article_id] || row.article;
+        if(art){
+          ARTICLES[art.id] = art;
+          currentSet.push(art);
+        }
       }
-
     }
-    // Save which articles were used today
-    // Article IDs saved in submitAll with full score data
   }catch(err){
     document.getElementById('pane-l').innerHTML=`<div style="padding:2rem;font-family:'DM Sans',sans-serif;color:var(--red)">
       \u26a0\uFE0F Could not load content: ${err.message}.
@@ -1145,9 +1144,138 @@ async function startDay(d){
 }
 
 // -----------------------------------------
-//  AI GENERATION  (Gemini -> Supabase cache)
+//  DAY 50+ PERSONALIZED LOADER
 // -----------------------------------------
-async function loadOrGenerateAI(dayIdx, retrySchedule){
+async function loadOrGeneratePersonalized(dayNum){
+  const key = getGeminiKey();
+  const uid = currentUser?.id || null;
+
+  // 1. Try personal Supabase cache first
+  try{
+    const q = sb.from('ai_articles').select('articles')
+      .eq('grade', 3).eq('day_number', dayNum).eq('user_id', uid).maybeSingle();
+    const {data} = await q;
+    if(data?.articles){
+      console.log(`Day ${dayNum}: loaded personal cache`);
+      const arts = normalizeAIArticles(data.articles, dayNum);
+      arts.forEach(a=>{ ARTICLES[a.id]=a; });
+      return arts;
+    }
+  }catch(e){ console.log('Cache read error:', e); }
+
+  // 2. No cache — generate now (blocking, user is waiting)
+  if(!key) throw new Error('A Gemini API key is required for Day 50+ personalized practice. Click \uD83D\uDD11 AI Key to add one.');
+  console.log(`Day ${dayNum}: generating personalized set now...`);
+  const arts = await generatePersonalizedSet(dayNum, uid);
+  arts.forEach(a=>{ ARTICLES[a.id]=a; });
+  return arts;
+}
+
+// Shared generation logic — used both for on-demand (blocking) and pre-gen (background)
+async function generatePersonalizedSet(dayNum, uid){
+  const key = getGeminiKey();
+  if(!key) throw new Error('No Gemini API key');
+
+  // Analyze weak skills from last 150 question records
+  let weakSkills = [];
+  if(currentUser){
+    try{
+      const {data:qdata} = await sb.from('question_records')
+        .select('skill, correct')
+        .eq('user_id', currentUser.id)
+        .order('created_at', {ascending:false})
+        .limit(150);
+      if(qdata && qdata.length > 0){
+        const stats = {};
+        qdata.forEach(r=>{
+          if(!stats[r.skill]) stats[r.skill]={c:0,t:0};
+          stats[r.skill].t++;
+          if(r.correct) stats[r.skill].c++;
+        });
+        weakSkills = Object.entries(stats)
+          .filter(([,s])=> s.t>=3 && s.c/s.t < 0.6)
+          .sort(([,a],[,b])=> a.c/a.t - b.c/b.t)
+          .slice(0,3).map(([skill])=>skill);
+        console.log(`Day ${dayNum} weak skills:`, weakSkills);
+      }
+    }catch(e){ console.log('Skill analysis error:', e); }
+  }
+
+  const topic = AI_TOPICS[dayNum % AI_TOPICS.length];
+  const prompt = buildPersonalizedPrompt(dayNum, topic, weakSkills);
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`;
+
+  const resp = await fetch(url,{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      contents:[{parts:[{text:prompt}]}],
+      generationConfig:{temperature:0.7, maxOutputTokens:65536},
+    }),
+  });
+  if(!resp.ok) throw new Error(`Gemini ${resp.status}`);
+  const d = await resp.json();
+  const text = d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  if(!text) throw new Error('Empty response from Gemini');
+
+  const clean = text.replace(/^```json\s*/i,'').replace(/\s*```$/i,'').trim();
+  const parsed = JSON.parse(clean);
+  const arts = Array.isArray(parsed) ? parsed : Array.isArray(parsed.articles) ? parsed.articles : null;
+  if(!arts) throw new Error('Could not parse articles from Gemini response');
+
+  const normalized = normalizeAIArticles(arts, dayNum);
+
+  // Save to personal Supabase cache
+  await sb.from('ai_articles').upsert({
+    grade: 3,
+    day_number: dayNum,
+    articles: normalized,
+    user_id: uid,
+    weak_skills: weakSkills,
+  }, {onConflict: 'grade,day_number,user_id'});
+  console.log(`Day ${dayNum} personalized set saved (weak: ${weakSkills.join(',')||'none'})`);
+
+  return normalized;
+}
+
+function normalizeAIArticles(arts, dayNum){
+  if(!Array.isArray(arts)) return [];
+  arts.forEach(a=>{
+    if(!a.id)          a.id = `ai-${a.type}-${dayNum}`;
+    if(!a.title)       a.title = a.type==='mc'?'Reading Passage':a.type==='mc+w'?'Informational Passage':'Extended Passage';
+    if(!a.questions)   a.questions=[];
+    if(!a.writings)    a.writings=[];
+    if(!a.passageHTML) a.passageHTML='';
+    if(!a.directions)  a.directions='';
+    if(!a.byline)      a.byline='';
+    if(!a.context)     a.context=null;
+  });
+  return arts;
+}
+
+// Pre-generate next day's personalized set in the background after each submission
+async function pregenerateNextDay(completedDay){
+  const nextDay = completedDay + 1;
+  if(nextDay < 50) return; // only for Day 50+
+  const key = getGeminiKey();
+  if(!key){ console.log('No Gemini key — skipping pregen for Day '+nextDay); return; }
+  const uid = currentUser?.id || null;
+  if(!uid) return;
+
+  // Check if already cached
+  try{
+    const {data} = await sb.from('ai_articles').select('day_number')
+      .eq('grade',3).eq('day_number', nextDay).eq('user_id', uid).maybeSingle();
+    if(data){ console.log(`Day ${nextDay} already cached, skipping pregen`); return; }
+  }catch(e){}
+
+  console.log(`Pre-generating Day ${nextDay} in background...`);
+  try{
+    await generatePersonalizedSet(nextDay, uid);
+    console.log(`Day ${nextDay} pre-gen complete`);
+  }catch(e){
+    console.log(`Day ${nextDay} pre-gen failed:`, e.message);
+  }
+}
   const dayNum = dayIdx + 1;
   const isRetryDay = retrySchedule && retrySchedule.some(s => s === 'RETRY_AI');
 
@@ -1637,10 +1765,8 @@ async function submitAll(){
       });
     }
 
-    // Day 50+: pre-generate next day in background
-    if(currentDay >= 49){
-      pregenNextDay(currentDay + 1, totalScore).catch(e=>console.log('Pregen failed:', e));
-    }
+    // Pre-generate next day's personalized set in background (Day 50+ only)
+    pregenerateNextDay(currentDay).catch(e=>console.log('Pregen failed:', e));
   }
   showOv(totalScore,mcTotal,mcCorrect,retried);
 }
@@ -1651,7 +1777,7 @@ function showOv(score,total,correct,retried){
   document.getElementById('ov-sub').textContent=total>0?`${correct} of ${total} multiple choice correct`:'Written responses submitted';
   document.getElementById('ov-retry').classList.toggle('on',retried.length>0);
 
-  // Day 49 special message
+  // Day 49 special message — and Day 50+ pregen status
   const aiNotice = document.getElementById('ov-ai-notice');
   const aiKeyHint = document.getElementById('ov-ai-key-hint');
   const aiReady = document.getElementById('ov-ai-ready');
@@ -1660,6 +1786,12 @@ function showOv(score,total,correct,retried){
     const hasKey = !!localStorage.getItem('gemini_key');
     aiKeyHint.style.display = hasKey ? 'none' : 'inline';
     aiReady.style.display = hasKey ? 'inline' : 'none';
+  } else if(currentDay >= 50){
+    // Show that next day is being prepared
+    aiNotice.style.display = 'block';
+    if(aiKeyHint) aiKeyHint.style.display = 'none';
+    if(aiReady) aiReady.textContent = `Day ${currentDay+1} personalized content is being prepared in the background.`;
+    if(aiReady) aiReady.style.display = 'inline';
   } else {
     aiNotice.style.display = 'none';
   }

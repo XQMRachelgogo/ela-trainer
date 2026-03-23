@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD: v17 -->
+<!-- BUILD: v18 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -978,11 +978,16 @@ async function pickDailySet(dayNum){
       return !(stat && stat.times_seen >= 1 && stat.avg_accuracy >= 70);
     });
 
-    // If this slot must be a real article, restrict to real only
     if(realSlots.has(ti)){
+      // This slot MUST be a real article
       const realAvail = available.filter(r => r.is_real);
       if(realAvail.length > 0) available = realAvail;
       // else fall through to full available pool (no real articles left for this type)
+    } else if(dayNum > 3){
+      // Non-forced slots on Day 4+: prefer AI articles only
+      // Fall back to real only if no AI articles available
+      const aiAvail = available.filter(r => !r.is_real);
+      if(aiAvail.length > 0) available = aiAvail;
     }
 
     if(available.length === 0) available = pool; // safety fallback

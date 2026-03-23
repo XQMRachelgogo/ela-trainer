@@ -1103,7 +1103,7 @@ async function startDay(d){
         ARTICLES[art.id] = art; // cache it so startDayReview can find it too
         currentSet.push(art);
       }
-      console.log('PICK', type, '→ row.article_id=', row?.article_id, 'art keys=', art ? Object.keys(art).join(',') : 'NULL', 'title=', art?.title, 'questions=', art?.questions?.length);
+
     }
     // Save which articles were used today
     // Article IDs saved in submitAll with full score data

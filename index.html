@@ -2296,6 +2296,7 @@ function _tpInitResize(){
 }
 
 
+function initResize(){
   const rh=document.getElementById('rh'),pL=document.getElementById('pane-l'),sp=document.getElementById('split');
   let drag=false,sx=0,sw=0;
   rh.onmousedown=e=>{drag=true;sx=e.clientX;sw=pL.getBoundingClientRect().width;document.body.style.cssText='cursor:col-resize;user-select:none'};

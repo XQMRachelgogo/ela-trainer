@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD: v22 -->
+<!-- BUILD: v23 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -539,6 +539,26 @@ for(let d=6;d<=49;d++){
   }
 }
 
+
+// -----------------------------------------
+//  HTML ENTITY DECODER
+// -----------------------------------------
+function decodeHtml(str){
+  if(!str) return '';
+  return str
+    .replace(/&#8212;/g, '—')
+    .replace(/&#8217;/g, '\u2019')
+    .replace(/&#8216;/g, '\u2018')
+    .replace(/&#8220;/g, '\u201c')
+    .replace(/&#8221;/g, '\u201d')
+    .replace(/&#8230;/g, '\u2026')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/<[^>]+>/g, ''); // strip any remaining HTML tags
+}
 
 // -----------------------------------------
 //  SCHEDULE HELPERS
@@ -1599,7 +1619,7 @@ function buildW(w,n){
     <div class="wfb" id="wfb-${w.id}">
       <button id="gbtn-${w.id}" class="btn btn-lrn" data-wid="${w.id}" style="display:none;margin-bottom:.6rem;font-size:.72rem">Grade &#x25b6;</button>
       <div class="srow"><div class="sdot m" id="sd-${w.id}">\u2014</div><div id="sl-${w.id}" style="font-family:'DM Sans',sans-serif;font-size:.83rem;color:var(--ink2)">Press Grade to get AI feedback.</div></div>
-    <div class="ma" id="ma-${w.id}"><div class="ma-t">\u2b50 Model Response</div>${w.modelAnswer}</div></div></div>`;
+    <div class="ma" id="ma-${w.id}"><div class="ma-t">\u2b50 Model Response</div>${decodeHtml(w.modelAnswer)}</div></div></div>`;
 }
 
 function wireQ(){
@@ -2001,7 +2021,7 @@ async function gradeW(w){
   const key=getGeminiKey();
   if(!key){sd.textContent='—';sl.innerHTML='<span style="font-size:.76rem">Set a Gemini API key (🔑 AI Key button) to enable writing auto-grading.</span>';return;}
 
-  const prompt=`You are an NYS ELA scorer for grade 3. Score 0-2 points.\nPrompt: "${w.prompt_plain}"\nStudent response: "${essay}"\nRubric: ${JSON.stringify(w.rubric)}\nReply ONLY with valid JSON (no markdown): {"score":0,"label":"Short label","checklist":[true,false,true],"feedback":"One specific improvement sentence."}`;
+  const prompt=`You are an NYS ELA scorer for grade 3. Score 0-2 points.\nPrompt: "${decodeHtml(w.prompt_plain)}"\nStudent response: "${essay}"\nRubric: ${JSON.stringify(w.rubric)}\nReply ONLY with valid JSON (no markdown): {"score":0,"label":"Short label","checklist":[true,false,true],"feedback":"One specific improvement sentence."}`;
 
   const callGemini = async () => {
     const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GRADE_MODEL}:generateContent?key=${key}`,{
@@ -2157,11 +2177,11 @@ function _tpLoadArticle(articleId){
   </div>`;
 
   art.writings.forEach((w, i) => {
-    const target = (w.modelAnswer||'').replace(/<[^>]+>/g,'').trim();
+    const target = decodeHtml(w.modelAnswer||'');
     const wid = w.id;
     rhtml += `<div class="tp-q-block" id="tpq-${wid}">
       <div class="tp-q-num">Question ${i+1} &middot; ${w.pts} pts</div>
-      <div class="tp-prompt">${w.prompt_plain || w.prompt.replace(/<[^>]+>/g,'')}</div>
+      <div class="tp-prompt">${decodeHtml(w.prompt_plain || w.prompt)}</div>
       <div style="font-family:'DM Sans',sans-serif;font-size:.68rem;color:var(--ink3);margin-bottom:.35rem;font-style:italic">Type the model answer — green = correct, red = wrong</div>
       <div class="tp-target" id="tpt-${wid}"></div>
       <div class="tp-stats">
@@ -2184,8 +2204,8 @@ function _tpLoadArticle(articleId){
 
   // Wire up inputs and render initial displays
   art.writings.forEach(w => {
-    const target = (w.modelAnswer||'').replace(/<[^>]+>/g,'').trim();
-    _tpRenderDisplay(w.id, '', target);
+    const target = decodeHtml(w.modelAnswer||'');
+      _tpRenderDisplay(w.id, '', target);
     const inp = document.getElementById('tpin-'+w.id);
     if(inp) inp.addEventListener('input', _tpOnInput);
   });

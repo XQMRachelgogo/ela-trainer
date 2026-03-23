@@ -1167,16 +1167,36 @@ let userStats = {};
 async function loadPool(){
   if(poolLoaded) return;
   try{
+    // Start poolCache with the hardcoded ARTICLES (always available, no Supabase needed)
+    poolCache = { mc: [], 'mc+w': [], 'w-only': [] };
+    Object.values(ARTICLES).forEach(art => {
+      const type = art.type;
+      if(!poolCache[type]) return;
+      // Avoid duplicates if already in pool
+      if(poolCache[type].some(r => r.article_id === art.id)) return;
+      poolCache[type].push({
+        article_id: art.id,
+        article_type: type,
+        is_real: art.isReal || false,
+        title: art.title,
+        source: art.source,
+        article: art,
+      });
+    });
+
+    // Merge with Supabase article_pool (adds AI articles + extra real articles)
     const {data} = await sb.from('article_pool')
       .select('article_id, article_type, is_real, title, source, article')
       .eq('grade', 3);
     if(data){
-      poolCache = { mc: [], 'mc+w': [], 'w-only': [] };
       data.forEach(row => {
-        if(poolCache[row.article_type]) poolCache[row.article_type].push(row);
+        if(!poolCache[row.article_type]) return;
+        // Skip if already seeded from ARTICLES hardcode
+        if(poolCache[row.article_type].some(r => r.article_id === row.article_id)) return;
+        poolCache[row.article_type].push(row);
       });
-      console.log('Pool loaded: mc='+poolCache.mc.length+' mc+w='+poolCache['mc+w'].length+' w-only='+poolCache['w-only'].length);
     }
+
     if(currentUser){
       const {data:stats} = await sb.from('user_article_stats')
         .select('article_id, times_seen, avg_accuracy')
@@ -1184,6 +1204,7 @@ async function loadPool(){
       if(stats) stats.forEach(s => { userStats[s.article_id] = s; });
     }
     poolLoaded = true;
+    console.log('Pool loaded: mc='+poolCache.mc.length+' mc+w='+poolCache['mc+w'].length+' w-only='+poolCache['w-only'].length);
   }catch(e){ console.error('loadPool error:', e); }
 }
 

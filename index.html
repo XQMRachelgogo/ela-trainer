@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD: v15 -->
+<!-- BUILD: v16 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1510,7 +1510,9 @@ function buildW(w,n){
     <textarea class="wta" id="wta-${w.id}" placeholder="Write your response here\u2026"></textarea>
     <div class="wc" id="wc-${w.id}">0 words</div>
     <div class="cklist">${ck}</div>
-    <div class="wfb" id="wfb-${w.id}"><div class="srow"><div class="sdot m" id="sd-${w.id}">\u2014</div><div id="sl-${w.id}" style="font-family:'DM Sans',sans-serif;font-size:.83rem;color:var(--ink2)"></div></div>
+    <div class="wfb" id="wfb-${w.id}">
+      <button id="gbtn-${w.id}" class="btn btn-lrn" data-wid="${w.id}" style="display:none;margin-bottom:.6rem;font-size:.72rem">Grade &#x25b6;</button>
+      <div class="srow"><div class="sdot m" id="sd-${w.id}">\u2014</div><div id="sl-${w.id}" style="font-family:'DM Sans',sans-serif;font-size:.83rem;color:var(--ink2)">Press Grade to get AI feedback.</div></div>
     <div class="ma" id="ma-${w.id}"><div class="ma-t">\u2b50 Model Response</div>${w.modelAnswer}</div></div></div>`;
 }
 
@@ -1531,6 +1533,8 @@ function wireQ(){
         const n=ta.value.trim()===''?0:ta.value.trim().split(/\s+/).length;
         document.getElementById('wc-'+w.id).textContent=n+' word'+(n!==1?'s':'');
       });
+      const gbtn=document.getElementById('gbtn-'+w.id);
+      if(gbtn) gbtn.addEventListener('click', function(){ triggerGrade(w, this); });
     });
   });
 }
@@ -1556,14 +1560,15 @@ async function submitAll(){
   }
   submitted=true;
   applyColors('review');
-  // Reset serial grading queue for this submission
-  _gradeQueue = Promise.resolve(); _gradeIndex = 0; _gradeTotal = 0;
+  _lastGradeTime = 0; // reset cooldown for new session
   currentSet.forEach(art=>{
     (art.writings||[]).forEach(w=>{
       document.getElementById('wfb-'+w.id).classList.add('on');
       const ta=document.getElementById('wta-'+w.id);
       if(ta)ta.disabled=true;
-      enqueueGrade(w);
+      // Show the Grade button — user triggers manually to avoid RPM limits
+      const gbtn=document.getElementById('gbtn-'+w.id);
+      if(gbtn) gbtn.style.display='inline-block';
     });
   });
   document.getElementById('btn-sub').style.display='none';
@@ -1805,31 +1810,43 @@ async function fetchDef(word){
 }
 
 // -----------------------------------------
-//  AI WRITING GRADER — serial queue + retry
+//  AI WRITING GRADER — manual trigger + cooldown
 // -----------------------------------------
-const GRADE_MODEL = 'gemini-2.0-flash-lite';
-let _gradeQueue = Promise.resolve(); // ensures sequential execution
-let _gradeIndex = 0;  // how many grading jobs have been dispatched this session
-let _gradeTotal = 0;
+const GRADE_MODEL = 'gemini-2.5-flash-lite-preview-06-17';
+const GRADE_COOLDOWN_MS = 7000; // 7s between requests (safe for 10 RPM)
+let _lastGradeTime = 0; // timestamp of last successful request send
+let _gradeCountdown = null; // interval handle for countdown UI
 
-function enqueueGrade(w){
-  _gradeTotal++;
-  const myIndex = _gradeTotal; // capture at enqueue time
-  _gradeQueue = _gradeQueue.then(async () => {
-    // Inter-request delay: skip for first job, wait 13s between subsequent ones
-    // (free tier is 5 RPM = 12s gap needed; 13s gives a small buffer)
-    if(myIndex > 1) await new Promise(r => setTimeout(r, 13000));
-    await gradeW(w, myIndex, _gradeTotal);
-  });
-  return _gradeQueue;
+async function triggerGrade(w, btnEl){
+  // Enforce cooldown between requests
+  const now = Date.now();
+  const elapsed = now - _lastGradeTime;
+  if(elapsed < GRADE_COOLDOWN_MS && _lastGradeTime > 0){
+    const wait = Math.ceil((GRADE_COOLDOWN_MS - elapsed) / 1000);
+    // Show countdown on button
+    btnEl.disabled = true;
+    let remaining = wait;
+    btnEl.textContent = `Wait ${remaining}s`;
+    const iv = setInterval(()=>{
+      remaining--;
+      if(remaining <= 0){ clearInterval(iv); btnEl.textContent = 'Grade \u25b6'; btnEl.disabled = false; }
+      else btnEl.textContent = `Wait ${remaining}s`;
+    }, 1000);
+    return;
+  }
+  // Fire the request
+  btnEl.disabled = true;
+  btnEl.textContent = 'Grading\u2026';
+  _lastGradeTime = Date.now();
+  await gradeW(w);
+  btnEl.style.display = 'none'; // hide after successful grade
 }
 
-async function gradeW(w, jobIndex, jobTotal){
+async function gradeW(w){
   const essay=(document.getElementById('wta-'+w.id)||{}).value||'';
   const sd=document.getElementById('sd-'+w.id),sl=document.getElementById('sl-'+w.id);
   sd.textContent='\u2026'; sd.className='sdot m';
-  const progressLabel = jobTotal > 1 ? `Grading ${jobIndex}/${jobTotal}\u2026` : 'Grading\u2026';
-  sl.innerHTML=`<span style="font-size:.76rem">${progressLabel}</span>`;
+  sl.innerHTML='<span style="font-size:.76rem">Grading\u2026</span>';
   if(!essay.trim()||essay.trim().split(/\s+/).length<5){sd.textContent='0/2';sd.className='sdot l';sl.textContent='No response provided.';return;}
   const key=getGeminiKey();
   if(!key){sd.textContent='—';sl.innerHTML='<span style="font-size:.76rem">Set a Gemini API key (🔑 AI Key button) to enable writing auto-grading.</span>';return;}
@@ -1857,9 +1874,9 @@ async function gradeW(w, jobIndex, jobTotal){
       obj = await callGemini();
     } catch(e){
       if(e.retry){
-        // Wait 20s then retry once
-        sl.innerHTML=`<span style="font-size:.76rem">Rate limited — retrying in 20s\u2026</span>`;
+        sl.innerHTML='<span style="font-size:.76rem">Rate limited — retrying in 20s\u2026</span>';
         await new Promise(r => setTimeout(r, 20000));
+        _lastGradeTime = Date.now();
         obj = await callGemini();
       } else { throw e; }
     }
@@ -1870,7 +1887,10 @@ async function gradeW(w, jobIndex, jobTotal){
   }catch(e){
     console.error('gradeW error:', e);
     sd.textContent='?';
-    sl.textContent='Could not grade. ('+(e.message||'Unknown error')+') — check your Gemini API key or try again.';
+    sl.textContent='Could not grade. ('+(e.message||'Unknown error')+') — try again.';
+    // Re-show grade button on error
+    const btn = document.getElementById('gbtn-'+w.id);
+    if(btn){ btn.textContent='Retry Grade \u25b6'; btn.disabled=false; btn.style.display='inline-block'; }
   }
 }
 // -----------------------------------------

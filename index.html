@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD: v19 -->
+<!-- BUILD: v20 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -749,7 +749,7 @@ function onLogin(user){
       const days=Object.keys(userDays).map(Number).sort((a,b)=>b-a);
       streak=0;
       for(let i=0;i<days.length;i++){ if(days[i]===days[0]-i) streak++; else break; }
-      const {data:prof}=await sb.from('profiles').select('display_name').eq('id',user.id).single();
+      const {data:prof}=await sb.from('profiles').select('display_name').eq('id',user.id).maybeSingle();
       const displayName=prof?.display_name||user.user_metadata?.display_name||user.email.split('@')[0];
       document.getElementById('user-name-display').textContent=displayName;
     }catch(e){ console.error('onLogin error:',e); }
@@ -1598,6 +1598,23 @@ function updateProg(){
   const ready=done===total;
   document.getElementById('btn-sub').style.opacity=ready?'1':'0.55';
   document.getElementById('bbar-status').textContent=ready?'All MC answered \u2014 ready to submit!':`${done}/${total} multiple choice answered`;
+}
+
+// -----------------------------------------
+//  SKILL INFERENCE
+// -----------------------------------------
+function inferSkill(stem){
+  const s = (stem||'').toLowerCase();
+  if(/\bmean(s|ing)?\b|defin|word\b/.test(s))            return 'vocabulary';
+  if(/main idea|central idea|mostly about/.test(s))       return 'main_idea';
+  if(/infer|suggest|most likely|conclude|imply/.test(s))  return 'inference';
+  if(/caus|effect|result|because|lead to/.test(s))        return 'cause_effect';
+  if(/organiz|structur|heading|section/.test(s))          return 'text_structure';
+  if(/author|why.*include|purpose|reason.*author/.test(s))return 'author_purpose';
+  if(/charact|feel|think|change|learn|react/.test(s))     return 'character';
+  if(/support|evidence|detail.*show|which detail/.test(s))return 'evidence';
+  if(/compar|differ|both|alike|similar/.test(s))          return 'compare_contrast';
+  return 'other';
 }
 
 // -----------------------------------------

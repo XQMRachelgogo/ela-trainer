@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD: v14 -->
+<!-- BUILD: v13 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -878,9 +878,18 @@ async function loadPool(){
     if(data){
       data.forEach(row => {
         if(!poolCache[row.article_type]) return;
+        // Skip rows with no article data — can't render them
+        if(!row.article) return;
+        // Normalize article fields so renderPassage/renderQuestions never crash
+        const a = row.article;
+        if(!a.questions)   a.questions   = [];
+        if(!a.writings)    a.writings    = [];
+        if(!a.passageHTML) a.passageHTML = '';
+        if(!a.directions)  a.directions  = '';
+        if(!a.title)       a.title       = '—';
+        if(!a.byline)      a.byline      = '';
+        ARTICLES[row.article_id] = a;
         poolCache[row.article_type].push(row);
-        // Populate ARTICLES lookup so startDayReview can find articles by id
-        if(row.article) ARTICLES[row.article_id] = row.article;
       });
     }
 
@@ -1094,6 +1103,7 @@ async function startDay(d){
         ARTICLES[art.id] = art; // cache it so startDayReview can find it too
         currentSet.push(art);
       }
+      console.log('PICK', type, '→ row.article_id=', row?.article_id, 'art keys=', art ? Object.keys(art).join(',') : 'NULL', 'title=', art?.title, 'questions=', art?.questions?.length);
     }
     // Save which articles were used today
     // Article IDs saved in submitAll with full score data
@@ -1441,7 +1451,7 @@ function renderPassage(){
       ? `<div class="art-src real-src">\uD83D\uDCC5 ${art.source}</div>`
       : `<div class="art-src sim-src">\u2605 Simulation</div>`;
     html+=`<div class="art-hd">${srcTag}<div class="art-dir">${art.directions}</div>${art.context?`<div class="art-ctx">${art.context}</div>`:''}<div class="art-ttl">${art.title}</div><div class="art-byl">${art.byline}</div></div>`;
-    html+=art.passageHTML;
+    html+=(art.passageHTML||'');
   });
   document.getElementById('pane-l').innerHTML=html;
 }
@@ -1451,7 +1461,7 @@ function renderQuestions(){
   currentSet.forEach((art,ai)=>{
     const short=(art.title||'').replace('Excerpt from ','').replace(/[\u201c\u201d]/g,'');
     if(ai>0) html+='<hr class="qdiv">';
-    if(art.questions.length>0){
+    if((art.questions||[]).length>0){
       html+=`<div class="ql">${short} \u2014 Questions ${n}\u2013${n+art.questions.length-1} \u00b7 Multiple Choice</div>`;
       art.questions.forEach(q=>{html+=buildMCQ(q,n);n++;});
     }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD: v18 -->
+<!-- BUILD: v19 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -236,10 +236,19 @@ body.lm .ev-btn{display:inline-block}
 /* ── COMPLETION OVERLAY ── */
 #overlay{display:none;position:fixed;inset:0;background:rgba(28,24,21,.72);z-index:500;align-items:center;justify-content:center}
 #overlay.on{display:flex}
-.ov-card{background:var(--paper);border-radius:4px;padding:2rem 2.4rem;max-width:400px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.4)}
-.ov-card h2{font-family:'DM Sans',sans-serif;font-weight:700;font-size:1.3rem;margin-bottom:.4rem}
+.ov-card{background:var(--paper);border-radius:4px;padding:2rem 2.4rem;max-width:440px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.ov-card h2{font-family:'DM Sans',sans-serif;font-weight:700;font-size:1.3rem;margin-bottom:1rem}
+.score-boxes{display:flex;gap:.8rem;justify-content:center;margin-bottom:.6rem;flex-wrap:wrap}
+.score-box{background:#1a4a8c;border-radius:4px;padding:.7rem 1.1rem;min-width:90px;text-align:center}
+.score-box.writing{background:#2a6048}
+.score-box-lbl{font-family:'DM Sans',sans-serif;font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:.3rem}
+.score-box-num{font-family:'DM Sans',sans-serif;font-size:2rem;font-weight:700;color:#fff;line-height:1}
+.score-box-den{font-family:'DM Sans',sans-serif;font-size:.75rem;color:rgba(255,255,255,.6);margin-top:.1rem}
+.score-of{font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;color:var(--ink3);align-self:center;padding-bottom:.2rem}
 .big-score{font-family:'DM Sans',sans-serif;font-size:3rem;font-weight:700;color:var(--accent);line-height:1}
 .ov-sub{font-family:'DM Sans',sans-serif;font-size:.83rem;color:var(--ink3);margin:.4rem 0 1rem}
+.ov-pct{font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--ink3);margin-bottom:.9rem}
+.ov-writing-pending{font-family:'DM Sans',sans-serif;font-size:.75rem;color:var(--ink3);font-style:italic;margin-bottom:.9rem}
 .retry-note{font-family:'DM Sans',sans-serif;font-size:.79rem;background:#fffae8;border:1px solid var(--ev-border);border-radius:3px;padding:.55rem .85rem;color:#856404;margin-bottom:.9rem;display:none;line-height:1.55}
 .retry-note.on{display:block}
 .ov-btns{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
@@ -395,9 +404,23 @@ body.lm .ev-btn{display:inline-block}
 <div id="overlay">
   <div class="ov-card">
     <h2 id="ov-title">Session Complete!</h2>
-    <div class="big-score" id="ov-score">&#8212;</div>
-    <div class="ov-sub" id="ov-sub"></div>
-    <div class="retry-note" id="ov-retry">&#9888;&#65039; Some articles scored below 40% and will appear again soon.</div>
+    <div class="score-boxes" id="ov-score-boxes">
+      <!-- Reading score box -->
+      <div class="score-box" id="ov-mc-box" style="display:none">
+        <div class="score-box-lbl">Reading</div>
+        <div class="score-box-num" id="ov-mc-num">—</div>
+        <div class="score-box-den" id="ov-mc-den"></div>
+      </div>
+      <!-- Writing score box -->
+      <div class="score-box writing" id="ov-w-box" style="display:none">
+        <div class="score-box-lbl">Writing</div>
+        <div class="score-box-num" id="ov-w-num">—</div>
+        <div class="score-box-den" id="ov-w-den"></div>
+      </div>
+    </div>
+    <div class="ov-pct" id="ov-pct"></div>
+    <div class="ov-writing-pending" id="ov-writing-pending" style="display:none">✏️ Writing scores update after you grade each response above.</div>
+    <div class="retry-note" id="ov-retry">⚠️ Some articles scored below 40% and will appear again soon.</div>
     <div id="ov-ai-notice" style="display:none;margin-top:1rem;padding:.9rem 1rem;background:#f0f7ff;border:1.5px solid #b8d4f0;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:.82rem;color:#1a3a5c;line-height:1.6">
       🎉 <strong>You've completed all 49 days of curated practice!</strong><br>
       From Day 50 onwards, AI will analyze your answer history and craft personalized sessions targeting your weakest skills.<br><br>
@@ -1608,6 +1631,10 @@ async function submitAll(){
   const mcCorrect=allMCQs().filter(q=>answers[q.id]===q.correct).length;
   const totalScore=mcTotal>0?Math.round(mcCorrect/mcTotal*100):0;
 
+  // Writing totals (max score only at submit time; actual scores filled in by gradeW)
+  const allWritings = currentSet.flatMap(a=>a.writings||[]);
+  const wMax = allWritings.reduce((s,w)=>s+(w.pts||2), 0);
+
   // Retry pool
   const retried=[];
   currentSet.forEach(art=>{
@@ -1667,16 +1694,44 @@ async function submitAll(){
     // Pre-generate next day's personalized set in background (Day 50+ only)
     pregenerateNextDay(currentDay).catch(e=>console.log('Pregen failed:', e));
   }
-  showOv(totalScore,mcTotal,mcCorrect,retried);
+  showOv(totalScore, mcTotal, mcCorrect, wMax, retried);
 }
 
-function showOv(score,total,correct,retried){
+function showOv(score, total, correct, wMax, retried){
   document.getElementById('ov-title').textContent=`Day ${currentDay} Complete!`;
-  document.getElementById('ov-score').textContent=total>0?score+'%':'\u2014';
-  document.getElementById('ov-sub').textContent=total>0?`${correct} of ${total} multiple choice correct`:'Written responses submitted';
-  document.getElementById('ov-retry').classList.toggle('on',retried.length>0);
 
-  // Day 49 special message — and Day 50+ pregen status
+  // Reading score box
+  const mcBox = document.getElementById('ov-mc-box');
+  if(total > 0){
+    mcBox.style.display = 'block';
+    document.getElementById('ov-mc-num').textContent = correct;
+    document.getElementById('ov-mc-den').textContent = `of ${total}`;
+    document.getElementById('ov-pct').textContent = `Reading: ${score}%`;
+  } else {
+    mcBox.style.display = 'none';
+    document.getElementById('ov-pct').textContent = '';
+  }
+
+  // Writing score box
+  const wBox = document.getElementById('ov-w-box');
+  if(wMax > 0){
+    wBox.style.display = 'block';
+    document.getElementById('ov-w-num').textContent = '—';
+    document.getElementById('ov-w-den').textContent = `of ${wMax}`;
+    document.getElementById('ov-writing-pending').style.display = 'block';
+    // Store wMax globally so gradeW can update it
+    window._ovWMax = wMax;
+    window._ovWGot = 0;
+    window._ovWGraded = 0;
+    window._ovWCount = (currentSet.flatMap(a=>a.writings||[])).length;
+  } else {
+    wBox.style.display = 'none';
+    document.getElementById('ov-writing-pending').style.display = 'none';
+  }
+
+  document.getElementById('ov-retry').classList.toggle('on', retried.length > 0);
+
+  // Day 49 / Day 50+ notice
   const aiNotice = document.getElementById('ov-ai-notice');
   const aiKeyHint = document.getElementById('ov-ai-key-hint');
   const aiReady = document.getElementById('ov-ai-ready');
@@ -1686,7 +1741,6 @@ function showOv(score,total,correct,retried){
     aiKeyHint.style.display = hasKey ? 'none' : 'inline';
     aiReady.style.display = hasKey ? 'inline' : 'none';
   } else if(currentDay >= 50){
-    // Show that next day is being prepared
     aiNotice.style.display = 'block';
     if(aiKeyHint) aiKeyHint.style.display = 'none';
     if(aiReady) aiReady.textContent = `Day ${currentDay+1} personalized content is being prepared in the background.`;
@@ -1696,6 +1750,18 @@ function showOv(score,total,correct,retried){
   }
 
   document.getElementById('overlay').classList.add('on');
+}
+
+// Called by gradeW after each writing score is returned — updates writing box live
+function updateOvWritingScore(scorePts){
+  if(window._ovWMax == null) return;
+  window._ovWGot = (window._ovWGot || 0) + scorePts;
+  window._ovWGraded = (window._ovWGraded || 0) + 1;
+  document.getElementById('ov-w-num').textContent = window._ovWGot;
+  // Hide pending note once all writings are graded
+  if(window._ovWGraded >= window._ovWCount){
+    document.getElementById('ov-writing-pending').style.display = 'none';
+  }
 }
 
 function reviewSession(){document.getElementById('overlay').classList.remove('on');}
@@ -1915,6 +1981,7 @@ async function gradeW(w){
     sd.textContent=score+'/2'; sd.className='sdot '+(score>=2?'h':score>=1?'m':'l');
     sl.innerHTML=`<strong style="font-family:'DM Sans',sans-serif">${obj.label||''}</strong><br><span style="font-size:.78rem">${obj.feedback||''}</span>`;
     if(obj.checklist)w.rubric.forEach((_,i)=>{const el=document.getElementById(`ck-${w.id}-${i}`);if(el)el.querySelector('span').textContent=obj.checklist[i]?'\u2705':'\u274c';});
+    updateOvWritingScore(score);
   }catch(e){
     console.error('gradeW error:', e);
     sd.textContent='?';

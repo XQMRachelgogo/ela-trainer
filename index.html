@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD: v20 -->
+<!-- BUILD: v21 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -256,7 +256,43 @@ body.lm .ev-btn{display:inline-block}
 .obtn-ink{background:var(--ink);color:#f0ece4}.obtn-ink:hover{background:#333}
 .obtn-out{background:none;border:1.5px solid var(--border);color:var(--ink2)}.obtn-out:hover{border-color:var(--ink);color:var(--ink)}
 
-/* ── LOADING ── */
+/* ── TYPING PRACTICE ── */
+#typing-modal{display:none;position:fixed;inset:0;z-index:9000;background:rgba(28,24,21,.78);align-items:center;justify-content:center;padding:1rem}
+#typing-modal.open{display:flex}
+.tp-card{background:var(--paper);border-radius:6px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);display:flex;flex-direction:column}
+.tp-header{padding:1.2rem 1.5rem .8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tp-title{font-family:'DM Sans',sans-serif;font-weight:700;font-size:1rem;color:var(--ink)}
+.tp-close{background:none;border:1px solid var(--border);border-radius:3px;padding:.2rem .55rem;font-size:.8rem;cursor:pointer;color:var(--ink3)}
+.tp-body{padding:1.2rem 1.5rem;flex:1}
+/* article selector */
+.tp-list{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
+.tp-art-btn{background:var(--paper);border:1.5px solid var(--border);border-radius:4px;padding:.6rem .9rem;text-align:left;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.85rem;color:var(--ink);transition:border-color .15s}
+.tp-art-btn:hover{border-color:var(--accent);color:var(--accent)}
+.tp-art-btn .tp-art-sub{font-size:.7rem;color:var(--ink3);margin-top:.1rem;font-family:'DM Mono',monospace}
+/* question selector */
+.tp-q-list{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
+.tp-q-btn{background:var(--paper);border:1.5px solid var(--border);border-radius:4px;padding:.6rem .9rem;text-align:left;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.82rem;color:var(--ink);transition:border-color .15s;line-height:1.5}
+.tp-q-btn:hover{border-color:var(--accent)}
+/* typing area */
+.tp-prompt{font-family:'Libre Baskerville',serif;font-size:.88rem;line-height:1.7;color:var(--ink2);background:#f7f3ec;border-left:3px solid var(--gold);padding:.8rem 1rem;border-radius:0 3px 3px 0;margin-bottom:1rem}
+.tp-target{font-family:'DM Mono',monospace;font-size:.88rem;line-height:1.9;letter-spacing:.01em;padding:.8rem 1rem;background:var(--cream);border:1.5px solid var(--border);border-radius:4px;margin-bottom:.8rem;min-height:4rem;word-break:break-word}
+.tp-target .tc{color:var(--ink3)}
+.tp-target .tp-cor{color:var(--green);background:#edf8f2}
+.tp-target .tp-err{color:#fff;background:var(--red);border-radius:2px}
+.tp-target .tp-cur{border-left:2px solid var(--accent);margin-left:-1px}
+.tp-stats{display:flex;gap:1.2rem;font-family:'DM Mono',monospace;font-size:.72rem;color:var(--ink3);margin-bottom:.8rem;flex-wrap:wrap}
+.tp-stats span strong{color:var(--ink);font-size:.9rem}
+.tp-input{width:100%;font-family:'Libre Baskerville',serif;font-size:.88rem;line-height:1.7;padding:.7rem .9rem;border:1.5px solid var(--border);border-radius:4px;background:var(--paper);color:var(--ink);resize:none;min-height:90px;outline:none;box-sizing:border-box}
+.tp-input:focus{border-color:var(--accent)}
+.tp-input:disabled{background:#f0ece4;color:var(--ink3)}
+.tp-result{display:none;margin-top:.8rem;padding:.9rem 1rem;background:#f0f8f4;border:1.5px solid var(--green);border-radius:4px;font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--ink)}
+.tp-result.on{display:block}
+.tp-result-row{display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:.4rem}
+.tp-result-stat{text-align:center}
+.tp-result-num{font-size:1.6rem;font-weight:700;font-family:'DM Sans',sans-serif;color:var(--accent)}
+.tp-result-lbl{font-size:.65rem;font-family:'DM Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+.tp-row{display:flex;gap:.6rem;margin-top:.8rem;flex-wrap:wrap}
+
 .loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;background:var(--ink);color:#f0ece4;font-family:'DM Sans',sans-serif;gap:.6rem}
 .loading-screen .spin{width:28px;height:28px;border:3px solid #444;border-top-color:#e8834a;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -314,6 +350,7 @@ body.lm .ev-btn{display:inline-block}
       <button onclick="goHome()">&#8592; Home</button>
       <button onclick="doLogout()">Sign Out</button>
       <button onclick="openGeminiKeyModal()" title="Set Gemini API Key" style="font-size:.7rem;padding:.3rem .6rem;opacity:.7">🔑 AI Key</button>
+      <button onclick="openTypingModal()" title="Typing Practice" style="font-size:.7rem;padding:.3rem .6rem;opacity:.7">✍️ Typing</button>
     </div>
     <button class="btn btn-dk" id="btn-back" style="display:none" onclick="goHome()">&#8592; Dashboard</button>
   </div>
@@ -2011,9 +2048,218 @@ async function gradeW(w){
 // -----------------------------------------
 //  IMPORT JSON
 // -----------------------------------------
+
 // -----------------------------------------
-//  RESIZE
+//  TYPING PRACTICE
 // -----------------------------------------
+let _tpTarget = '';       // plain text to type
+let _tpTyped  = '';       // what user has typed so far
+let _tpStart  = null;     // timestamp when typing started
+let _tpTimer  = null;     // interval for live WPM
+let _tpDone   = false;
+
+function openTypingModal(){
+  document.getElementById('typing-modal').classList.add('open');
+  renderTypingArticleList();
+}
+
+function closeTypingModal(){
+  document.getElementById('typing-modal').classList.remove('open');
+  _tpStopTimer();
+}
+
+function renderTypingArticleList(){
+  // Collect all w-only articles the user has seen (in day_records)
+  const seenIds = new Set();
+  Object.values(userDays).forEach(d => {/* article_ids not stored in userDays in memory */});
+
+  // Use poolCache w-only + ARTICLES to find ones with writings
+  const candidates = [];
+  const woPool = poolCache['w-only'] || [];
+  woPool.forEach(row => {
+    const art = ARTICLES[row.article_id];
+    if(art && art.writings && art.writings.length > 0){
+      candidates.push({art, row});
+    }
+  });
+
+  const body = document.getElementById('tp-body');
+  if(candidates.length === 0){
+    body.innerHTML = `<div style="font-family:'DM Sans',sans-serif;color:var(--ink3);padding:1rem 0">
+      No writing passages available yet. Complete some days first to unlock writing practice.
+    </div>`;
+    return;
+  }
+
+  let html = `<div style="font-family:'DM Sans',sans-serif;font-size:.8rem;color:var(--ink3);margin-bottom:.8rem">Choose a passage to practice typing:</div>
+  <div class="tp-list">`;
+  candidates.forEach(({art, row}) => {
+    const wCount = art.writings.length;
+    html += `<button class="tp-art-btn" onclick="renderTypingQuestionList('${row.article_id}')">
+      <div>${art.title}</div>
+      <div class="tp-art-sub">${wCount} writing question${wCount!==1?'s':''} &middot; ${row.is_real ? '📅 Real exam' : '★ Simulation'}</div>
+    </button>`;
+  });
+  html += `</div>`;
+  body.innerHTML = html;
+}
+
+function renderTypingQuestionList(articleId){
+  const art = ARTICLES[articleId];
+  if(!art) return;
+  const body = document.getElementById('tp-body');
+  let html = `<button onclick="renderTypingArticleList()" style="font-family:'DM Sans',sans-serif;font-size:.75rem;color:var(--ink3);background:none;border:none;cursor:pointer;margin-bottom:.8rem;padding:0">← Back</button>
+  <div style="font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;margin-bottom:.7rem">${art.title}</div>
+  <div style="font-family:'DM Sans',sans-serif;font-size:.8rem;color:var(--ink3);margin-bottom:.6rem">Choose a question to practice:</div>
+  <div class="tp-q-list">`;
+  art.writings.forEach((w, i) => {
+    html += `<button class="tp-q-btn" onclick="startTypingPractice('${articleId}', ${i})">
+      <strong>Q${i+1}.</strong> ${w.prompt_plain || w.prompt.replace(/<[^>]+>/g,'')}
+    </button>`;
+  });
+  html += `</div>`;
+  body.innerHTML = html;
+}
+
+function startTypingPractice(articleId, wIndex){
+  const art = ARTICLES[articleId];
+  if(!art) return;
+  const w = art.writings[wIndex];
+  if(!w || !w.modelAnswer) return;
+
+  _tpTarget = w.modelAnswer.replace(/<[^>]+>/g, '').trim();
+  _tpTyped  = '';
+  _tpStart  = null;
+  _tpDone   = false;
+  _tpStopTimer();
+
+  const body = document.getElementById('tp-body');
+  body.innerHTML = `
+    <button onclick="renderTypingQuestionList('${articleId}')" style="font-family:'DM Sans',sans-serif;font-size:.75rem;color:var(--ink3);background:none;border:none;cursor:pointer;margin-bottom:.8rem;padding:0">← Back</button>
+    <div class="tp-prompt">${w.prompt_plain || w.prompt.replace(/<[^>]+>/g,'')}</div>
+    <div style="font-family:'DM Sans',sans-serif;font-size:.72rem;color:var(--ink3);margin-bottom:.4rem;font-style:italic">Type the model answer below. Characters turn green when correct, red when wrong.</div>
+    <div class="tp-target" id="tp-display"></div>
+    <div class="tp-stats">
+      <span>WPM: <strong id="tp-wpm">—</strong></span>
+      <span>Accuracy: <strong id="tp-acc">—</strong></span>
+      <span>Progress: <strong id="tp-prog">0/${_tpTarget.length}</strong></span>
+    </div>
+    <textarea class="tp-input" id="tp-input" placeholder="Start typing here…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+    <div class="tp-result" id="tp-result">
+      <div class="tp-result-row">
+        <div class="tp-result-stat"><div class="tp-result-num" id="tp-final-wpm">—</div><div class="tp-result-lbl">WPM</div></div>
+        <div class="tp-result-stat"><div class="tp-result-num" id="tp-final-acc">—</div><div class="tp-result-lbl">Accuracy</div></div>
+        <div class="tp-result-stat"><div class="tp-result-num" id="tp-final-time">—</div><div class="tp-result-lbl">Time (sec)</div></div>
+      </div>
+    </div>
+    <div class="tp-row">
+      <button class="btn btn-dk" onclick="startTypingPractice('${articleId}', ${wIndex})">↺ Retry</button>
+      <button class="btn btn-lrn" onclick="renderTypingQuestionList('${articleId}')">← Other Questions</button>
+    </div>`;
+
+  _tpRenderDisplay();
+  const input = document.getElementById('tp-input');
+  input.addEventListener('input', _tpOnInput);
+  input.focus();
+}
+
+function _tpOnInput(e){
+  if(_tpDone) return;
+  const val = e.target.value;
+
+  // Start timer on first keystroke
+  if(!_tpStart && val.length > 0){
+    _tpStart = Date.now();
+    _tpTimer = setInterval(_tpUpdateStats, 300);
+  }
+
+  _tpTyped = val;
+  _tpRenderDisplay();
+  _tpUpdateStats();
+
+  // Check completion
+  if(_tpTyped.length >= _tpTarget.length){
+    _tpFinish();
+  }
+}
+
+function _tpRenderDisplay(){
+  const chars = _tpTarget.split('');
+  let html = '';
+  chars.forEach((ch, i) => {
+    const typed = _tpTyped[i];
+    let cls = 'tc'; // untyped
+    if(typed !== undefined){
+      cls = typed === ch ? 'tp-cor' : 'tp-err';
+    }
+    // cursor position
+    const isCur = i === _tpTyped.length;
+    const curClass = isCur ? ' tp-cur' : '';
+    // escape HTML chars
+    const display = ch === ' ' ? '&nbsp;' : ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch;
+    html += `<span class="${cls}${curClass}">${display}</span>`;
+  });
+  const el = document.getElementById('tp-display');
+  if(el) el.innerHTML = html;
+}
+
+function _tpUpdateStats(){
+  if(!_tpStart) return;
+  const elapsed = (Date.now() - _tpStart) / 1000 / 60; // minutes
+  const words = _tpTyped.trim().split(/\s+/).filter(Boolean).length;
+  const wpm = elapsed > 0 ? Math.round(words / elapsed) : 0;
+
+  // Accuracy: correct chars / total typed
+  let correct = 0;
+  for(let i = 0; i < _tpTyped.length; i++){
+    if(_tpTyped[i] === _tpTarget[i]) correct++;
+  }
+  const acc = _tpTyped.length > 0 ? Math.round(correct / _tpTyped.length * 100) : 100;
+
+  const wpmEl = document.getElementById('tp-wpm');
+  const accEl = document.getElementById('tp-acc');
+  const progEl = document.getElementById('tp-prog');
+  if(wpmEl) wpmEl.textContent = wpm;
+  if(accEl) accEl.textContent = acc + '%';
+  if(progEl) progEl.textContent = `${_tpTyped.length}/${_tpTarget.length}`;
+}
+
+function _tpFinish(){
+  _tpDone = true;
+  _tpStopTimer();
+
+  const elapsed = _tpStart ? (Date.now() - _tpStart) / 1000 : 0;
+  const elapsedMin = elapsed / 60;
+  const words = _tpTarget.trim().split(/\s+/).filter(Boolean).length;
+  const wpm = elapsedMin > 0 ? Math.round(words / elapsedMin) : 0;
+
+  let correct = 0;
+  for(let i = 0; i < Math.min(_tpTyped.length, _tpTarget.length); i++){
+    if(_tpTyped[i] === _tpTarget[i]) correct++;
+  }
+  const acc = Math.round(correct / _tpTarget.length * 100);
+
+  const input = document.getElementById('tp-input');
+  if(input) input.disabled = true;
+
+  const result = document.getElementById('tp-result');
+  if(result){
+    result.classList.add('on');
+    document.getElementById('tp-final-wpm').textContent = wpm;
+    document.getElementById('tp-final-acc').textContent = acc + '%';
+    document.getElementById('tp-final-time').textContent = Math.round(elapsed);
+  }
+}
+
+function _tpStopTimer(){
+  if(_tpTimer){ clearInterval(_tpTimer); _tpTimer = null; }
+}
+
+// Close modal on backdrop click
+document.addEventListener('click', e => {
+  if(e.target && e.target.id === 'typing-modal') closeTypingModal();
+});
+
 function initResize(){
   const rh=document.getElementById('rh'),pL=document.getElementById('pane-l'),sp=document.getElementById('split');
   let drag=false,sx=0,sw=0;
@@ -2023,7 +2269,20 @@ function initResize(){
 }
 </script>
 
-<!-- GEMINI KEY MODAL -->
+<!-- TYPING PRACTICE MODAL -->
+<div id="typing-modal">
+  <div class="tp-card">
+    <div class="tp-header">
+      <div class="tp-title">✍️ Typing Practice</div>
+      <button class="tp-close" onclick="closeTypingModal()">✕ Close</button>
+    </div>
+    <div class="tp-body" id="tp-body">
+      <!-- content injected by JS -->
+    </div>
+  </div>
+</div>
+
+
 <div id="gemini-key-modal">
   <div class="gk-card">
     <div class="gk-title">🔑 Gemini API Key</div>

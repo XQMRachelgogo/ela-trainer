@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD: v21 -->
+<!-- BUILD: v22 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -94,7 +94,7 @@ body.view-grade #screen-grade{display:flex!important}
 #pbar{height:100%;background:var(--accent);width:0;transition:width .35s}
 
 /* ── SCREENS ── */
-#screen-home,#screen-test{display:none;flex:1;min-height:0;overflow:hidden;flex-direction:column}
+#screen-home,#screen-test,#screen-typing{display:none;flex:1;min-height:0;overflow:hidden;flex-direction:column}
 #screen-home{overflow-y:auto;align-items:center;padding:1rem 1.25rem 3rem;background:var(--cream)}
 #screen-home{display:none}body.view-home #screen-home{display:flex}
 #screen-test{display:none}body.view-test #screen-test{display:flex}
@@ -257,41 +257,30 @@ body.lm .ev-btn{display:inline-block}
 .obtn-out{background:none;border:1.5px solid var(--border);color:var(--ink2)}.obtn-out:hover{border-color:var(--ink);color:var(--ink)}
 
 /* ── TYPING PRACTICE ── */
-#typing-modal{display:none;position:fixed;inset:0;z-index:9000;background:rgba(28,24,21,.78);align-items:center;justify-content:center;padding:1rem}
-#typing-modal.open{display:flex}
-.tp-card{background:var(--paper);border-radius:6px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);display:flex;flex-direction:column}
-.tp-header{padding:1.2rem 1.5rem .8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.tp-title{font-family:'DM Sans',sans-serif;font-weight:700;font-size:1rem;color:var(--ink)}
-.tp-close{background:none;border:1px solid var(--border);border-radius:3px;padding:.2rem .55rem;font-size:.8rem;cursor:pointer;color:var(--ink3)}
-.tp-body{padding:1.2rem 1.5rem;flex:1}
-/* article selector */
-.tp-list{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
-.tp-art-btn{background:var(--paper);border:1.5px solid var(--border);border-radius:4px;padding:.6rem .9rem;text-align:left;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.85rem;color:var(--ink);transition:border-color .15s}
-.tp-art-btn:hover{border-color:var(--accent);color:var(--accent)}
-.tp-art-btn .tp-art-sub{font-size:.7rem;color:var(--ink3);margin-top:.1rem;font-family:'DM Mono',monospace}
-/* question selector */
-.tp-q-list{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
-.tp-q-btn{background:var(--paper);border:1.5px solid var(--border);border-radius:4px;padding:.6rem .9rem;text-align:left;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.82rem;color:var(--ink);transition:border-color .15s;line-height:1.5}
-.tp-q-btn:hover{border-color:var(--accent)}
-/* typing area */
-.tp-prompt{font-family:'Libre Baskerville',serif;font-size:.88rem;line-height:1.7;color:var(--ink2);background:#f7f3ec;border-left:3px solid var(--gold);padding:.8rem 1rem;border-radius:0 3px 3px 0;margin-bottom:1rem}
-.tp-target{font-family:'DM Mono',monospace;font-size:.88rem;line-height:1.9;letter-spacing:.01em;padding:.8rem 1rem;background:var(--cream);border:1.5px solid var(--border);border-radius:4px;margin-bottom:.8rem;min-height:4rem;word-break:break-word}
+.tp-article-header{margin-bottom:1rem;padding-bottom:.7rem;border-bottom:2px solid var(--border)}
+.tp-q-block{margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px dashed var(--border)}
+.tp-q-block:last-child{border-bottom:none}
+.tp-q-num{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:.35rem}
+.tp-prompt{font-family:'Libre Baskerville',serif;font-size:.9rem;line-height:1.65;font-weight:700;color:var(--ink);margin-bottom:.8rem}
+.tp-target{font-family:'DM Mono',monospace;font-size:.85rem;line-height:2;padding:.8rem 1rem;background:var(--cream);border:1.5px solid var(--border);border-radius:4px;margin-bottom:.6rem;word-break:break-word;min-height:3.5rem}
 .tp-target .tc{color:var(--ink3)}
-.tp-target .tp-cor{color:var(--green);background:#edf8f2}
+.tp-target .tp-cor{color:var(--green);background:#edf8f2;border-radius:1px}
 .tp-target .tp-err{color:#fff;background:var(--red);border-radius:2px}
-.tp-target .tp-cur{border-left:2px solid var(--accent);margin-left:-1px}
-.tp-stats{display:flex;gap:1.2rem;font-family:'DM Mono',monospace;font-size:.72rem;color:var(--ink3);margin-bottom:.8rem;flex-wrap:wrap}
-.tp-stats span strong{color:var(--ink);font-size:.9rem}
-.tp-input{width:100%;font-family:'Libre Baskerville',serif;font-size:.88rem;line-height:1.7;padding:.7rem .9rem;border:1.5px solid var(--border);border-radius:4px;background:var(--paper);color:var(--ink);resize:none;min-height:90px;outline:none;box-sizing:border-box}
+.tp-target .tp-cur{border-left:2px solid var(--accent)}
+.tp-stats{display:flex;gap:1rem;font-family:'DM Mono',monospace;font-size:.68rem;color:var(--ink3);margin-bottom:.5rem}
+.tp-stats strong{color:var(--ink);font-size:.82rem}
+.tp-input{width:100%;font-family:'Libre Baskerville',serif;font-size:.88rem;line-height:1.7;padding:.65rem .85rem;border:1.5px solid var(--border);border-radius:4px;background:var(--paper);color:var(--ink);resize:none;min-height:80px;outline:none;box-sizing:border-box;transition:border-color .15s}
 .tp-input:focus{border-color:var(--accent)}
 .tp-input:disabled{background:#f0ece4;color:var(--ink3)}
-.tp-result{display:none;margin-top:.8rem;padding:.9rem 1rem;background:#f0f8f4;border:1.5px solid var(--green);border-radius:4px;font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--ink)}
-.tp-result.on{display:block}
-.tp-result-row{display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:.4rem}
-.tp-result-stat{text-align:center}
-.tp-result-num{font-size:1.6rem;font-weight:700;font-family:'DM Sans',sans-serif;color:var(--accent)}
-.tp-result-lbl{font-size:.65rem;font-family:'DM Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
-.tp-row{display:flex;gap:.6rem;margin-top:.8rem;flex-wrap:wrap}
+.tp-result-bar{display:none;margin-top:.6rem;padding:.65rem .9rem;background:#f0f8f4;border:1.5px solid var(--green);border-radius:4px;font-family:'DM Sans',sans-serif;font-size:.82rem;display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap}
+.tp-result-bar.on{display:flex}
+.tp-res-stat{text-align:center}
+.tp-res-num{font-size:1.3rem;font-weight:700;color:var(--accent);font-family:'DM Sans',sans-serif;line-height:1}
+.tp-res-lbl{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-top:.1rem}
+.tp-selector{display:flex;flex-direction:column;gap:.45rem;padding:1rem 0}
+.tp-art-btn{background:var(--paper);border:1.5px solid var(--border);border-radius:4px;padding:.65rem .9rem;text-align:left;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.85rem;color:var(--ink);transition:border-color .15s,background .15s;width:100%}
+.tp-art-btn:hover{border-color:var(--accent);background:#f7f3ec}
+.tp-art-sub{font-size:.68rem;color:var(--ink3);margin-top:.15rem;font-family:'DM Mono',monospace}
 
 .loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;background:var(--ink);color:#f0ece4;font-family:'DM Sans',sans-serif;gap:.6rem}
 .loading-screen .spin{width:28px;height:28px;border:3px solid #444;border-top-color:#e8834a;border-radius:50%;animation:spin .7s linear infinite}
@@ -350,7 +339,7 @@ body.lm .ev-btn{display:inline-block}
       <button onclick="goHome()">&#8592; Home</button>
       <button onclick="doLogout()">Sign Out</button>
       <button onclick="openGeminiKeyModal()" title="Set Gemini API Key" style="font-size:.7rem;padding:.3rem .6rem;opacity:.7">🔑 AI Key</button>
-      <button onclick="openTypingModal()" title="Typing Practice" style="font-size:.7rem;padding:.3rem .6rem;opacity:.7">✍️ Typing</button>
+      <button onclick="openTypingPractice()" title="Typing Practice" style="font-size:.7rem;padding:.3rem .6rem;opacity:.7">✍️ Typing</button>
     </div>
     <button class="btn btn-dk" id="btn-back" style="display:none" onclick="goHome()">&#8592; Dashboard</button>
   </div>
@@ -424,6 +413,15 @@ body.lm .ev-btn{display:inline-block}
     <div id="pane-l"></div>
     <div id="rh"></div>
     <div id="pane-r"></div>
+  </div>
+</div>
+
+<!-- TYPING SCREEN -->
+<div id="screen-typing" style="display:none;flex:1;min-height:0;overflow:hidden;flex-direction:column">
+  <div id="tp-split" style="flex:1;display:flex;min-height:0;overflow:hidden">
+    <div id="tp-pane-l" style="width:52%;flex-shrink:0;overflow-y:auto;background:var(--paper);border-right:1px solid var(--border);padding:1.3rem 1.4rem 3rem"></div>
+    <div id="tp-rh" style="width:5px;flex-shrink:0;cursor:col-resize;background:var(--border)"></div>
+    <div id="tp-pane-r" style="flex:1;overflow-y:auto;background:var(--cream);padding:1.3rem 1.3rem 3rem"></div>
   </div>
 </div>
 
@@ -847,6 +845,7 @@ function goHome(){
   document.getElementById('screen-grade').style.display='none';
   document.getElementById('screen-home').style.display='flex';
   document.getElementById('screen-test').style.display='none';
+  document.getElementById('screen-typing').style.display='none';
   document.getElementById('bbar').style.display='none';
   document.getElementById('overlay').classList.remove('on');
   // Show Gemini key notice if no key set
@@ -2049,218 +2048,254 @@ async function gradeW(w){
 //  IMPORT JSON
 // -----------------------------------------
 
+
+
 // -----------------------------------------
-//  TYPING PRACTICE
+//  TYPING PRACTICE — full page
 // -----------------------------------------
-let _tpTarget = '';       // plain text to type
-let _tpTyped  = '';       // what user has typed so far
-let _tpStart  = null;     // timestamp when typing started
-let _tpTimer  = null;     // interval for live WPM
-let _tpDone   = false;
+let _tpArticles = [];  // [{art, articleId}] w-only articles seen by user
+let _tpStates   = {};  // keyed by writing id: {typed, start, timer, done}
 
-function openTypingModal(){
-  document.getElementById('typing-modal').classList.add('open');
-  renderTypingArticleList();
-}
+async function openTypingPractice(){
+  // Load pool if not yet loaded
+  await loadPool();
 
-function closeTypingModal(){
-  document.getElementById('typing-modal').classList.remove('open');
-  _tpStopTimer();
-}
+  // Fetch all article_ids the user has seen from day_records
+  let seenIds = new Set();
+  if(currentUser){
+    try{
+      const {data} = await sb.from('day_records')
+        .select('article_ids').eq('user_id', currentUser.id);
+      if(data) data.forEach(r => (r.article_ids||[]).forEach(id => seenIds.add(id)));
+    }catch(e){}
+  }
 
-function renderTypingArticleList(){
-  // Collect all w-only articles the user has seen (in day_records)
-  const seenIds = new Set();
-  Object.values(userDays).forEach(d => {/* article_ids not stored in userDays in memory */});
-
-  // Use poolCache w-only + ARTICLES to find ones with writings
-  const candidates = [];
+  // Find w-only articles that were seen AND have writings
+  _tpArticles = [];
   const woPool = poolCache['w-only'] || [];
   woPool.forEach(row => {
+    if(!seenIds.has(row.article_id)) return;
     const art = ARTICLES[row.article_id];
     if(art && art.writings && art.writings.length > 0){
-      candidates.push({art, row});
+      _tpArticles.push({art, articleId: row.article_id});
     }
   });
 
-  const body = document.getElementById('tp-body');
-  if(candidates.length === 0){
-    body.innerHTML = `<div style="font-family:'DM Sans',sans-serif;color:var(--ink3);padding:1rem 0">
-      No writing passages available yet. Complete some days first to unlock writing practice.
-    </div>`;
+  if(_tpArticles.length === 0){
+    // Show article selector with "no articles yet"
+    _tpShowSelector();
     return;
   }
 
-  let html = `<div style="font-family:'DM Sans',sans-serif;font-size:.8rem;color:var(--ink3);margin-bottom:.8rem">Choose a passage to practice typing:</div>
-  <div class="tp-list">`;
-  candidates.forEach(({art, row}) => {
-    const wCount = art.writings.length;
-    html += `<button class="tp-art-btn" onclick="renderTypingQuestionList('${row.article_id}')">
-      <div>${art.title}</div>
-      <div class="tp-art-sub">${wCount} writing question${wCount!==1?'s':''} &middot; ${row.is_real ? '📅 Real exam' : '★ Simulation'}</div>
-    </button>`;
-  });
-  html += `</div>`;
-  body.innerHTML = html;
+  // Show article selector
+  _tpShowSelector();
 }
 
-function renderTypingQuestionList(articleId){
-  const art = ARTICLES[articleId];
-  if(!art) return;
-  const body = document.getElementById('tp-body');
-  let html = `<button onclick="renderTypingArticleList()" style="font-family:'DM Sans',sans-serif;font-size:.75rem;color:var(--ink3);background:none;border:none;cursor:pointer;margin-bottom:.8rem;padding:0">← Back</button>
-  <div style="font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;margin-bottom:.7rem">${art.title}</div>
-  <div style="font-family:'DM Sans',sans-serif;font-size:.8rem;color:var(--ink3);margin-bottom:.6rem">Choose a question to practice:</div>
-  <div class="tp-q-list">`;
-  art.writings.forEach((w, i) => {
-    html += `<button class="tp-q-btn" onclick="startTypingPractice('${articleId}', ${i})">
-      <strong>Q${i+1}.</strong> ${w.prompt_plain || w.prompt.replace(/<[^>]+>/g,'')}
-    </button>`;
-  });
-  html += `</div>`;
-  body.innerHTML = html;
-}
+function _tpShowSelector(){
+  // Hide all screens, show typing screen with selector
+  document.getElementById('screen-home').style.display='none';
+  document.getElementById('screen-test').style.display='none';
+  document.getElementById('screen-typing').style.display='flex';
+  document.getElementById('bbar').style.display='none';
+  document.getElementById('btn-back').style.display='inline-block';
+  document.getElementById('badge').style.display='inline-block';
+  document.getElementById('badge').className='badge learn';
+  document.getElementById('badge').textContent='Typing Practice';
 
-function startTypingPractice(articleId, wIndex){
-  const art = ARTICLES[articleId];
-  if(!art) return;
-  const w = art.writings[wIndex];
-  if(!w || !w.modelAnswer) return;
-
-  _tpTarget = w.modelAnswer.replace(/<[^>]+>/g, '').trim();
-  _tpTyped  = '';
-  _tpStart  = null;
-  _tpDone   = false;
-  _tpStopTimer();
-
-  const body = document.getElementById('tp-body');
-  body.innerHTML = `
-    <button onclick="renderTypingQuestionList('${articleId}')" style="font-family:'DM Sans',sans-serif;font-size:.75rem;color:var(--ink3);background:none;border:none;cursor:pointer;margin-bottom:.8rem;padding:0">← Back</button>
-    <div class="tp-prompt">${w.prompt_plain || w.prompt.replace(/<[^>]+>/g,'')}</div>
-    <div style="font-family:'DM Sans',sans-serif;font-size:.72rem;color:var(--ink3);margin-bottom:.4rem;font-style:italic">Type the model answer below. Characters turn green when correct, red when wrong.</div>
-    <div class="tp-target" id="tp-display"></div>
-    <div class="tp-stats">
-      <span>WPM: <strong id="tp-wpm">—</strong></span>
-      <span>Accuracy: <strong id="tp-acc">—</strong></span>
-      <span>Progress: <strong id="tp-prog">0/${_tpTarget.length}</strong></span>
-    </div>
-    <textarea class="tp-input" id="tp-input" placeholder="Start typing here…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
-    <div class="tp-result" id="tp-result">
-      <div class="tp-result-row">
-        <div class="tp-result-stat"><div class="tp-result-num" id="tp-final-wpm">—</div><div class="tp-result-lbl">WPM</div></div>
-        <div class="tp-result-stat"><div class="tp-result-num" id="tp-final-acc">—</div><div class="tp-result-lbl">Accuracy</div></div>
-        <div class="tp-result-stat"><div class="tp-result-num" id="tp-final-time">—</div><div class="tp-result-lbl">Time (sec)</div></div>
-      </div>
-    </div>
-    <div class="tp-row">
-      <button class="btn btn-dk" onclick="startTypingPractice('${articleId}', ${wIndex})">↺ Retry</button>
-      <button class="btn btn-lrn" onclick="renderTypingQuestionList('${articleId}')">← Other Questions</button>
+  if(_tpArticles.length === 0){
+    document.getElementById('tp-pane-l').innerHTML=`<div style="padding:3rem 2rem;font-family:'DM Sans',sans-serif;color:var(--ink3);text-align:center">
+      <div style="font-size:1.4rem;margin-bottom:.6rem">✍️</div>
+      <div style="font-weight:600;margin-bottom:.4rem">No passages available yet</div>
+      <div style="font-size:.82rem">Complete days that include writing-only articles to unlock typing practice.</div>
     </div>`;
+    document.getElementById('tp-pane-r').innerHTML='';
+    return;
+  }
 
-  _tpRenderDisplay();
-  const input = document.getElementById('tp-input');
-  input.addEventListener('input', _tpOnInput);
-  input.focus();
+  // Left pane: article selector
+  let html = `<div style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:1rem;color:var(--ink);margin-bottom:.3rem">✍️ Typing Practice</div>
+  <div style="font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--ink3);margin-bottom:1.2rem">Choose a passage to practice typing the model answers.</div>
+  <div class="tp-selector">`;
+  _tpArticles.forEach(({art, articleId}) => {
+    const wCount = art.writings.length;
+    html += `<button class="tp-art-btn" onclick="_tpLoadArticle('${articleId}')">
+      <div style="font-weight:600">${art.title}</div>
+      <div class="tp-art-sub">${wCount} writing question${wCount!==1?'s':''}</div>
+    </button>`;
+  });
+  html += `</div>`;
+  document.getElementById('tp-pane-l').innerHTML = html;
+  document.getElementById('tp-pane-r').innerHTML = `<div style="padding:3rem 1rem;font-family:'DM Sans',sans-serif;color:var(--ink3);text-align:center;font-size:.85rem">← Select a passage to begin</div>`;
+}
+
+function _tpLoadArticle(articleId){
+  const entry = _tpArticles.find(a => a.articleId === articleId);
+  if(!entry) return;
+  const {art} = entry;
+
+  // Reset states for this article's writings
+  _tpStates = {};
+  art.writings.forEach(w => {
+    _tpStates[w.id] = { typed:'', start:null, timer:null, done:false };
+  });
+
+  // Left pane: passage
+  const srcTag = art.isReal
+    ? `<div class="art-src real-src">📅 ${art.source}</div>`
+    : `<div class="art-src sim-src">★ Simulation</div>`;
+  document.getElementById('tp-pane-l').innerHTML =
+    `<div class="art-hd">${srcTag}
+      <div class="art-dir">${art.directions}</div>
+      ${art.context ? `<div class="art-ctx">${art.context}</div>` : ''}
+      <div class="art-ttl">${art.title}</div>
+      <div class="art-byl">${art.byline||''}</div>
+    </div>${art.passageHTML||''}`;
+
+  // Right pane: all writing questions
+  let rhtml = `<div style="font-family:'DM Sans',sans-serif;font-size:.67rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);padding-bottom:.42rem;margin-bottom:1.1rem;border-bottom:1px solid var(--border)">
+    ${art.title.replace('Excerpt from ','')} — Typing Practice
+  </div>`;
+
+  art.writings.forEach((w, i) => {
+    const target = (w.modelAnswer||'').replace(/<[^>]+>/g,'').trim();
+    const wid = w.id;
+    rhtml += `<div class="tp-q-block" id="tpq-${wid}">
+      <div class="tp-q-num">Question ${i+1} &middot; ${w.pts} pts</div>
+      <div class="tp-prompt">${w.prompt_plain || w.prompt.replace(/<[^>]+>/g,'')}</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:.68rem;color:var(--ink3);margin-bottom:.35rem;font-style:italic">Type the model answer — green = correct, red = wrong</div>
+      <div class="tp-target" id="tpt-${wid}"></div>
+      <div class="tp-stats">
+        <span>WPM: <strong id="tpwpm-${wid}">—</strong></span>
+        <span>Accuracy: <strong id="tpacc-${wid}">—</strong></span>
+        <span>Progress: <strong id="tpprog-${wid}">0/${target.length}</strong></span>
+      </div>
+      <textarea class="tp-input" id="tpin-${wid}" data-wid="${wid}" data-target="${encodeURIComponent(target)}"
+        placeholder="Start typing here…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+      <div class="tp-result-bar" id="tpres-${wid}">
+        <div class="tp-res-stat"><div class="tp-res-num" id="tprwpm-${wid}">—</div><div class="tp-res-lbl">WPM</div></div>
+        <div class="tp-res-stat"><div class="tp-res-num" id="tpracc-${wid}">—</div><div class="tp-res-lbl">Accuracy</div></div>
+        <div class="tp-res-stat"><div class="tp-res-num" id="tprtime-${wid}">—</div><div class="tp-res-lbl">Seconds</div></div>
+        <button class="btn btn-dk" style="font-size:.65rem" onclick="_tpRetry('${articleId}','${wid}')">↺ Retry</button>
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('tp-pane-r').innerHTML = rhtml;
+
+  // Wire up inputs and render initial displays
+  art.writings.forEach(w => {
+    const target = (w.modelAnswer||'').replace(/<[^>]+>/g,'').trim();
+    _tpRenderDisplay(w.id, '', target);
+    const inp = document.getElementById('tpin-'+w.id);
+    if(inp) inp.addEventListener('input', _tpOnInput);
+  });
+
+  // Init resize for typing panes
+  _tpInitResize();
 }
 
 function _tpOnInput(e){
-  if(_tpDone) return;
+  const wid = e.target.dataset.wid;
+  const target = decodeURIComponent(e.target.dataset.target);
+  const state = _tpStates[wid];
+  if(!state || state.done) return;
+
   const val = e.target.value;
-
-  // Start timer on first keystroke
-  if(!_tpStart && val.length > 0){
-    _tpStart = Date.now();
-    _tpTimer = setInterval(_tpUpdateStats, 300);
+  if(!state.start && val.length > 0){
+    state.start = Date.now();
+    state.timer = setInterval(() => _tpUpdateStats(wid, val, target), 350);
   }
+  state.typed = val;
+  _tpRenderDisplay(wid, val, target);
+  _tpUpdateStats(wid, val, target);
 
-  _tpTyped = val;
-  _tpRenderDisplay();
-  _tpUpdateStats();
-
-  // Check completion
-  if(_tpTyped.length >= _tpTarget.length){
-    _tpFinish();
-  }
+  if(val.length >= target.length) _tpFinish(wid, val, target);
 }
 
-function _tpRenderDisplay(){
-  const chars = _tpTarget.split('');
+function _tpRenderDisplay(wid, typed, target){
+  const el = document.getElementById('tpt-'+wid);
+  if(!el) return;
   let html = '';
-  chars.forEach((ch, i) => {
-    const typed = _tpTyped[i];
-    let cls = 'tc'; // untyped
-    if(typed !== undefined){
-      cls = typed === ch ? 'tp-cor' : 'tp-err';
-    }
-    // cursor position
-    const isCur = i === _tpTyped.length;
-    const curClass = isCur ? ' tp-cur' : '';
-    // escape HTML chars
-    const display = ch === ' ' ? '&nbsp;' : ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch;
-    html += `<span class="${cls}${curClass}">${display}</span>`;
+  target.split('').forEach((ch, i) => {
+    const t = typed[i];
+    let cls = 'tc';
+    if(t !== undefined) cls = t === ch ? 'tp-cor' : 'tp-err';
+    const isCur = i === typed.length;
+    const disp = ch === ' ' ? '&nbsp;' : ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch;
+    html += `<span class="${cls}${isCur?' tp-cur':''}">${disp}</span>`;
   });
-  const el = document.getElementById('tp-display');
-  if(el) el.innerHTML = html;
+  el.innerHTML = html;
 }
 
-function _tpUpdateStats(){
-  if(!_tpStart) return;
-  const elapsed = (Date.now() - _tpStart) / 1000 / 60; // minutes
-  const words = _tpTyped.trim().split(/\s+/).filter(Boolean).length;
+function _tpUpdateStats(wid, typed, target){
+  const state = _tpStates[wid];
+  if(!state || !state.start) return;
+  const elapsed = (Date.now() - state.start) / 60000;
+  const words = typed.trim().split(/\s+/).filter(Boolean).length;
   const wpm = elapsed > 0 ? Math.round(words / elapsed) : 0;
+  let cor = 0;
+  for(let i=0;i<typed.length;i++) if(typed[i]===target[i]) cor++;
+  const acc = typed.length > 0 ? Math.round(cor/typed.length*100) : 100;
 
-  // Accuracy: correct chars / total typed
-  let correct = 0;
-  for(let i = 0; i < _tpTyped.length; i++){
-    if(_tpTyped[i] === _tpTarget[i]) correct++;
-  }
-  const acc = _tpTyped.length > 0 ? Math.round(correct / _tpTyped.length * 100) : 100;
-
-  const wpmEl = document.getElementById('tp-wpm');
-  const accEl = document.getElementById('tp-acc');
-  const progEl = document.getElementById('tp-prog');
-  if(wpmEl) wpmEl.textContent = wpm;
-  if(accEl) accEl.textContent = acc + '%';
-  if(progEl) progEl.textContent = `${_tpTyped.length}/${_tpTarget.length}`;
+  const w = document.getElementById('tpwpm-'+wid);
+  const a = document.getElementById('tpacc-'+wid);
+  const p = document.getElementById('tpprog-'+wid);
+  if(w) w.textContent = wpm;
+  if(a) a.textContent = acc+'%';
+  if(p) p.textContent = `${typed.length}/${target.length}`;
 }
 
-function _tpFinish(){
-  _tpDone = true;
-  _tpStopTimer();
+function _tpFinish(wid, typed, target){
+  const state = _tpStates[wid];
+  if(!state) return;
+  state.done = true;
+  if(state.timer){ clearInterval(state.timer); state.timer=null; }
 
-  const elapsed = _tpStart ? (Date.now() - _tpStart) / 1000 : 0;
-  const elapsedMin = elapsed / 60;
-  const words = _tpTarget.trim().split(/\s+/).filter(Boolean).length;
-  const wpm = elapsedMin > 0 ? Math.round(words / elapsedMin) : 0;
+  const elapsed = state.start ? (Date.now()-state.start)/1000 : 0;
+  const words = target.trim().split(/\s+/).filter(Boolean).length;
+  const wpm = elapsed > 0 ? Math.round(words/(elapsed/60)) : 0;
+  let cor = 0;
+  for(let i=0;i<Math.min(typed.length,target.length);i++) if(typed[i]===target[i]) cor++;
+  const acc = Math.round(cor/target.length*100);
 
-  let correct = 0;
-  for(let i = 0; i < Math.min(_tpTyped.length, _tpTarget.length); i++){
-    if(_tpTyped[i] === _tpTarget[i]) correct++;
-  }
-  const acc = Math.round(correct / _tpTarget.length * 100);
-
-  const input = document.getElementById('tp-input');
-  if(input) input.disabled = true;
-
-  const result = document.getElementById('tp-result');
-  if(result){
-    result.classList.add('on');
-    document.getElementById('tp-final-wpm').textContent = wpm;
-    document.getElementById('tp-final-acc').textContent = acc + '%';
-    document.getElementById('tp-final-time').textContent = Math.round(elapsed);
+  const inp = document.getElementById('tpin-'+wid);
+  if(inp) inp.disabled = true;
+  const res = document.getElementById('tpres-'+wid);
+  if(res){ res.classList.add('on');
+    document.getElementById('tprwpm-'+wid).textContent = wpm;
+    document.getElementById('tpracc-'+wid).textContent = acc+'%';
+    document.getElementById('tprtime-'+wid).textContent = Math.round(elapsed);
   }
 }
 
-function _tpStopTimer(){
-  if(_tpTimer){ clearInterval(_tpTimer); _tpTimer = null; }
+function _tpRetry(articleId, wid){
+  const state = _tpStates[wid];
+  if(state){ if(state.timer) clearInterval(state.timer); _tpStates[wid]={typed:'',start:null,timer:null,done:false}; }
+  const inp = document.getElementById('tpin-'+wid);
+  const target = inp ? decodeURIComponent(inp.dataset.target) : '';
+  if(inp){ inp.disabled=false; inp.value=''; inp.focus(); }
+  _tpRenderDisplay(wid,'',target);
+  const res = document.getElementById('tpres-'+wid);
+  if(res) res.classList.remove('on');
+  const w=document.getElementById('tpwpm-'+wid);
+  const a=document.getElementById('tpacc-'+wid);
+  const p=document.getElementById('tpprog-'+wid);
+  if(w) w.textContent='—'; if(a) a.textContent='—';
+  if(p) p.textContent=`0/${target.length}`;
 }
 
-// Close modal on backdrop click
-document.addEventListener('click', e => {
-  if(e.target && e.target.id === 'typing-modal') closeTypingModal();
-});
+function _tpInitResize(){
+  const rh=document.getElementById('tp-rh');
+  const pL=document.getElementById('tp-pane-l');
+  const sp=document.getElementById('tp-split');
+  if(!rh||!pL||!sp) return;
+  let drag=false,sx=0,sw=0;
+  rh.onmousedown=e=>{drag=true;sx=e.clientX;sw=pL.getBoundingClientRect().width;document.body.style.cssText='cursor:col-resize;user-select:none'};
+  document.addEventListener('mousemove',e=>{if(!drag)return;const tw=sp.getBoundingClientRect().width;pL.style.width=Math.min(Math.max(sw+(e.clientX-sx),220),tw-220)+'px';});
+  document.addEventListener('mouseup',()=>{if(drag){drag=false;document.body.style.cssText='';}});
+}
 
-function initResize(){
+
   const rh=document.getElementById('rh'),pL=document.getElementById('pane-l'),sp=document.getElementById('split');
   let drag=false,sx=0,sw=0;
   rh.onmousedown=e=>{drag=true;sx=e.clientX;sw=pL.getBoundingClientRect().width;document.body.style.cssText='cursor:col-resize;user-select:none'};
@@ -2268,20 +2303,6 @@ function initResize(){
   document.onmouseup=()=>{drag=false;document.body.style.cssText='';};
 }
 </script>
-
-<!-- TYPING PRACTICE MODAL -->
-<div id="typing-modal">
-  <div class="tp-card">
-    <div class="tp-header">
-      <div class="tp-title">✍️ Typing Practice</div>
-      <button class="tp-close" onclick="closeTypingModal()">✕ Close</button>
-    </div>
-    <div class="tp-body" id="tp-body">
-      <!-- content injected by JS -->
-    </div>
-  </div>
-</div>
-
 
 <div id="gemini-key-modal">
   <div class="gk-card">

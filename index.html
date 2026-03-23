@@ -1812,7 +1812,7 @@ async function fetchDef(word){
 // -----------------------------------------
 //  AI WRITING GRADER — manual trigger + cooldown
 // -----------------------------------------
-const GRADE_MODEL = 'gemini-2.5-flash-lite-preview-06-17';
+const GRADE_MODEL = 'gemini-2.5-flash-lite';
 const GRADE_COOLDOWN_MS = 7000; // 7s between requests (safe for 10 RPM)
 let _lastGradeTime = 0; // timestamp of last successful request send
 let _gradeCountdown = null; // interval handle for countdown UI

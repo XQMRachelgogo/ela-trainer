@@ -1328,7 +1328,7 @@ async function startDayReview(d){
     }
     if(currentSet.length === 0){
       // article_ids missing or articles not found — can't reconstruct original session
-      document.getElementById('pane-l').innerHTML='<div style="padding:3rem 2rem;text-align:center;font-family:'DM Sans',sans-serif;color:var(--ink3)"><div style="font-size:1.4rem;margin-bottom:.6rem">&#9888;&#65039;</div><div style="font-size:.9rem">Could not load the original articles for this session.</div></div>';
+      document.getElementById('pane-l').innerHTML='<div style="padding:3rem 2rem;text-align:center;font-family:DM Sans,sans-serif;color:var(--ink3)"><div style="font-size:1.4rem;margin-bottom:.6rem">&#9888;&#65039;</div><div style="font-size:.9rem">Could not load the original articles for this session.</div></div>';
       document.getElementById('pane-r').innerHTML='';
       return;
     }

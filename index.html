@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD: v25 -->
+<!-- BUILD: v25b -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -187,7 +187,7 @@ body.view-grade #screen-grade{display:flex!important}
 .pn{font-family:'DM Mono',monospace;font-size:.63rem;color:var(--ink3);min-width:1.2rem;padding-top:.3rem;user-select:none;flex-shrink:0}
 .pt{flex:1;line-height:1.85}
 .pt.ev{background:var(--ev-bg);border-left:3px solid var(--ev-border);padding-left:.45rem;border-radius:0 2px 2px 0}
-.vb{display:inline-block;border:1.5px solid var(--border);border-radius:2px;padding:.16rem .55rem;font-family:'DM Sans',sans-serif;font-size:.74rem;color:var(--ink3);margin:.04rem 0 .5rem 1.85rem;background:#f5f0e8;white-space:nowrap;float:left;clear:left}
+.vb{display:inline;border:1.5px solid var(--border);border-radius:2px;padding:.15rem .5rem;font-family:'DM Sans',sans-serif;font-size:.74rem;color:var(--ink3);background:#f5f0e8;white-space:nowrap}
 .sh{font-family:'DM Sans',sans-serif;font-weight:700;font-size:.8rem;text-align:center;margin:.9rem 0 .45rem;color:var(--ink)}
 .gfx{border:1.5px solid var(--border);border-radius:3px;padding:.8rem 1rem;margin:.4rem 0 .85rem;background:#f5f0e8;font-family:'DM Sans',sans-serif;font-size:.84rem}
 .gfx-r{display:flex;align-items:flex-start;gap:.5rem;margin-bottom:.32rem}.gfx-r:last-child{margin-bottom:0}
@@ -1582,7 +1582,7 @@ function renderPassage(){
       ? `<div class="art-src real-src">\uD83D\uDCC5 ${art.source}</div>`
       : `<div class="art-src sim-src">\u2605 Simulation</div>`;
     html+=`<div class="art-hd">${srcTag}<div class="art-dir">${art.directions}</div>${art.context?`<div class="art-ctx">${art.context}</div>`:''}<div class="art-ttl">${art.title}</div><div class="art-byl">${art.byline}</div></div>`;
-    html+=(art.passageHTML||'');
+    html+=fixVbInPassage(art.passageHTML||'');
   });
   document.getElementById('pane-l').innerHTML=html;
 }
@@ -2173,7 +2173,7 @@ function _tpLoadArticle(articleId){
       ${art.context ? `<div class="art-ctx">${art.context}</div>` : ''}
       <div class="art-ttl">${art.title}</div>
       <div class="art-byl">${art.byline||''}</div>
-    </div>${art.passageHTML||''}`;
+    </div>${fixVbInPassage(art.passageHTML||'')}`;
 
   // Right pane: all writing questions
   let rhtml = `<div style="font-family:'DM Sans',sans-serif;font-size:.67rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);padding-bottom:.42rem;margin-bottom:1.1rem;border-bottom:1px solid var(--border)">
@@ -2326,6 +2326,13 @@ function initResize(){
   rh.onmousedown=e=>{drag=true;sx=e.clientX;sw=pL.getBoundingClientRect().width;document.body.style.cssText='cursor:col-resize;user-select:none'};
   document.onmousemove=e=>{if(!drag)return;const tw=sp.getBoundingClientRect().width;pL.style.width=Math.min(Math.max(sw+(e.clientX-sx),220),tw-220)+'px';};
   document.onmouseup=()=>{drag=false;document.body.style.cssText='';};
+}
+
+// Render vb vocab boxes as compact inline spans (not full-width divs)
+function fixVbInPassage(html){
+  return (html||'').replace(/<div class="vb">([\s\S]*?)<\/div>/g, function(_,txt){
+    return '<div style="margin:.2rem 0 .45rem 1.85rem"><span class="vb">'+txt.trim()+'</span></div>';
+  });
 }
 </script>
 

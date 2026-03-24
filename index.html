@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- BUILD: v24 -->
+<!-- BUILD: v25 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -797,7 +797,7 @@ function onLogin(user){
   return (async function(){
     if(dataReady && currentUser?.id === user.id){ goHome(); return; } // already loaded
     try{
-      const {data} = await sb.from('day_records').select('*').eq('user_id', user.id);
+      const {data} = await sb.from('day_records').select('*').eq('user_id', user.id).eq('grade', selectedGrade);
       userDays = {};
       if(data) data.forEach(r=>{ userDays[r.day_number]={completed:true,totalScore:r.total_score,mc_correct:r.mc_correct,mc_total:r.mc_total}; });
       rebuildRetryPool(data || []);
@@ -976,7 +976,7 @@ async function loadPool(){
     // Load all articles from Supabase article_pool
     const {data} = await sb.from('article_pool')
       .select('article_id, article_type, is_real, title, source, article')
-      .eq('grade', 3);
+      .eq('grade', selectedGrade);
     if(data){
       data.forEach(row => {
         if(!poolCache[row.article_type]) return;
@@ -998,7 +998,7 @@ async function loadPool(){
     if(currentUser){
       const {data:stats} = await sb.from('user_article_stats')
         .select('article_id, times_seen, avg_accuracy')
-        .eq('user_id', currentUser.id).eq('grade', 3);
+        .eq('user_id', currentUser.id).eq('grade', selectedGrade);
       if(stats) stats.forEach(s => { userStats[s.article_id] = s; });
     }
     poolLoaded = true;
@@ -1087,7 +1087,7 @@ async function updateArticleStats(articleId, accuracy){
     ? Math.round((existing.avg_accuracy * existing.times_seen + accuracy) / newTimes)
     : accuracy;
   const entry = {
-    user_id: currentUser.id, article_id: articleId, grade: 3,
+    user_id: currentUser.id, article_id: articleId, grade: selectedGrade,
     times_seen: newTimes, avg_accuracy: newAvg,
     last_seen_at: new Date().toISOString(), last_accuracy: accuracy,
   };
@@ -1135,7 +1135,7 @@ async function startDayReview(d){
 
   try{
     const {data:rec} = await sb.from('day_records')
-      .select('article_ids').eq('user_id', currentUser.id).eq('day_number', d).maybeSingle();
+      .select('article_ids').eq('user_id', currentUser.id).eq('grade', selectedGrade).eq('day_number', d).maybeSingle();
     const artIds = rec?.article_ids;
     if(artIds && artIds.length > 0){
       await loadPool();
@@ -1237,7 +1237,7 @@ async function loadOrGeneratePersonalized(dayNum){
   // 1. Try personal Supabase cache first
   try{
     const q = sb.from('ai_articles').select('articles')
-      .eq('grade', 3).eq('day_number', dayNum).eq('user_id', uid).maybeSingle();
+      .eq('grade', selectedGrade).eq('day_number', dayNum).eq('user_id', uid).maybeSingle();
     const {data} = await q;
     if(data?.articles){
       console.log(`Day ${dayNum}: loaded personal cache`);
@@ -1267,6 +1267,7 @@ async function generatePersonalizedSet(dayNum, uid){
       const {data:qdata} = await sb.from('question_records')
         .select('skill, correct')
         .eq('user_id', currentUser.id)
+        .eq('grade', selectedGrade)
         .order('created_at', {ascending:false})
         .limit(150);
       if(qdata && qdata.length > 0){
@@ -1310,7 +1311,7 @@ async function generatePersonalizedSet(dayNum, uid){
 
   // Save to personal Supabase cache
   await sb.from('ai_articles').upsert({
-    grade: 3,
+    grade: selectedGrade,
     day_number: dayNum,
     articles: normalized,
     user_id: uid,
@@ -1348,7 +1349,7 @@ async function pregenerateNextDay(completedDay){
   // Check if already cached
   try{
     const {data} = await sb.from('ai_articles').select('day_number')
-      .eq('grade',3).eq('day_number', nextDay).eq('user_id', uid).maybeSingle();
+      .eq('grade', selectedGrade).eq('day_number', nextDay).eq('user_id', uid).maybeSingle();
     if(data){ console.log(`Day ${nextDay} already cached, skipping pregen`); return; }
   }catch(e){}
 
@@ -1368,7 +1369,7 @@ async function pregenNextDay(nextDayNum, lastScore){
   // Check Supabase cache (personal for Day 50+)
   try{
     const uid = currentUser?.id || null;
-    const q = sb.from('ai_articles').select('day_number').eq('grade',3).eq('day_number', nextDayNum);
+    const q = sb.from('ai_articles').select('day_number').eq('grade', selectedGrade).eq('day_number', nextDayNum);
     if(nextDayNum >= 50 && uid) q.eq('user_id', uid);
     const {data:cached} = await q.maybeSingle();
     if(cached){ console.log('Day '+nextDayNum+' already cached'); return; }
@@ -1383,6 +1384,7 @@ async function pregenNextDay(nextDayNum, lastScore){
       const {data:qdata} = await sb.from('question_records')
         .select('skill, correct')
         .eq('user_id', currentUser.id)
+        .eq('grade', selectedGrade)
         .order('created_at', {ascending:false})
         .limit(150);
       if(qdata && qdata.length > 0){
@@ -1424,7 +1426,7 @@ async function pregenNextDay(nextDayNum, lastScore){
     if(!arts) throw new Error('No articles array in response');
     const uid = currentUser?.id || null;
     await sb.from('ai_articles').upsert({
-      grade: 3,
+      grade: selectedGrade,
       day_number: nextDayNum,
       articles: arts,
       user_id: uid,  // personal for Day 50+
@@ -1727,11 +1729,12 @@ async function submitAll(){
     await sb.from('day_records').upsert({
       user_id: currentUser.id,
       day_number: currentDay,
+      grade: selectedGrade,
       total_score: totalScore,
       mc_correct: mcCorrect,
       mc_total: mcTotal,
       article_ids: currentSet.map(a => a.id),
-    }, {onConflict: 'user_id,day_number'});
+    }, {onConflict: 'user_id,day_number,grade'});
     console.log('Saved day record with article_ids:', currentSet.map(a=>a.id));
     userDays[currentDay]={completed:true,totalScore,mc_correct:mcCorrect,mc_total:mcTotal};
     streak = Object.keys(userDays).filter(d=>userDays[d].completed).length;
@@ -1754,6 +1757,7 @@ async function submitAll(){
     const qRecords = allMCQs().map(q=>({
       user_id: currentUser.id,
       day_number: currentDay,
+      grade: selectedGrade,
       question_id: q.id,
       skill: inferSkill(q.stem),
       correct: answers[q.id] === q.correct,

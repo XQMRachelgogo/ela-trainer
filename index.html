@@ -2329,10 +2329,20 @@ function initResize(){
 }
 
 // Render vb vocab boxes as compact inline spans (not full-width divs)
+// Also fixes vb divs incorrectly nested inside pr divs
 function fixVbInPassage(html){
-  return (html||'').replace(/<div class="vb">([\s\S]*?)<\/div>/g, function(_,txt){
+  if(!html) return '';
+  // Step 1: extract vb divs that are nested inside pr divs — move them outside
+  // Pattern: <div class="vb">...</div></div>  where the outer </div> closes a pr
+  html = html.replace(
+    /(<span class="pt"[^>]*>[\s\S]*?<\/span>)\s*(<div class="vb">[\s\S]*?<\/div>)\s*(<\/div>)/g,
+    '$1$3\n$2'
+  );
+  // Step 2: convert all <div class="vb"> to compact inline spans
+  html = html.replace(/<div class="vb">([\s\S]*?)<\/div>/g, function(_,txt){
     return '<div style="margin:.2rem 0 .45rem 1.85rem"><span class="vb">'+txt.trim()+'</span></div>';
   });
+  return html;
 }
 </script>
 
